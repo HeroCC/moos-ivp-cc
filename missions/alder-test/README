@@ -1,0 +1,11 @@
+To Run this mission, make sure that the following two bin
+directories are in your path:
+
+moos-ivp/ivp/bin/
+moos-ivp-extend/bin/
+
+Then launch the mission by:
+
+pAntler alder.moos
+
+ 

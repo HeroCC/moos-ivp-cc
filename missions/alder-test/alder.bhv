@@ -1,0 +1,41 @@
+//--------    FILE: alder.bhv   -------------
+
+initialize   DEPLOY = false
+initialize   RETURN = false
+
+//----------------------------------------------
+Behavior = BHV_SimpleWaypoint
+{ 
+  name      = waypt_to_point
+  pwt       = 100
+  condition = RETURN = false
+  condition = DEPLOY = true
+  endflag   = RETURN = true
+
+  speed      = 2.0   // meters per second
+  radius     = 8.0
+  ptx        = 100
+  pty        = -50
+}
+
+//----------------------------------------------
+Behavior = BHV_SimpleWaypoint
+{
+  name       = waypt_return
+  pwt        = 100
+  condition  = (RETURN = true)
+  condition  = (DEPLOY = true)
+
+  speed      = 2.0
+  radius     = 8.0
+  ptx        = 0
+  pty        = 0
+}
+
+//----------------------------------------------
+Behavior = BHV_HSLine
+{
+  name        = hsline
+  time_on_leg = 20
+}
+

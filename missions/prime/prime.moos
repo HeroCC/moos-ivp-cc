@@ -1,0 +1,28 @@
+ServerHost = localhost
+ServerPost = 9000
+
+Community = prime
+
+ProcessConfig = ANTLER
+{
+  Run = MOOSDB @ NewConsole = false
+  Run = pPrimeFactor @ NewConsole = false
+  Run = pPrimeFactorTester @ NewConsole = false
+  Run = uTimerScript @ NewConsole = fasle
+}
+
+
+ProcessConfig = uTimerScript 
+{
+  AppTick = 4
+  CommsTick = 4
+
+  paused = false
+//  event = var=NUM_VALUE, val="$(15)g", time=0.25
+//  event = var=NUM_VALUE, val="$(9)g", time=0.25
+//  event = var=NUM_VALUE, val="$(7)g", time=0.25
+  event = var=NUM_VALUE, val="$(5)g", time=0.25
+  reset_max = nolimit
+  reset_time = all-posted
+}
+
