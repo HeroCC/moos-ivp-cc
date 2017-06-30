@@ -2,7 +2,5 @@
 MOOSLog*
 bin/
 build/
-<<<<<<< HEAD
 lib/
-=======
->>>>>>> adc13edb00a34837ac49ffa47462e6c479b05d5b
+.LastOpenedMOOSLogDirectory
