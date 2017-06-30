@@ -5,17 +5,38 @@ initialize   RETURN = false
 
 Behavior=BHV_Loiter
 {
-  name=loiter_poly
+  name=loiter_one
 
   clockwise=false
   polygon = radial:: x=100,y=-75,radius=30,pts=8
 
   condition = DEPLOY=true
+  condition = LOITER_POS=west
   condition = RETURN=false
-  endflag = RETURN=true
+  perpetual=true
+  endflag = LOITER_POS=east
   duration = 150
+  duration_reset = LOITER_POS=west
   speed=2.5
 }
+
+Behavior=BHV_Loiter
+{
+  name=loiter_two
+
+  clockwise=false
+  polygon = radial:: x=160,y=-50,radius=20,pts=8
+
+  condition = DEPLOY=true
+  condition = LOITER_POS=east
+  condition = RETURN=false
+  perpetual=true
+  endflag = LOITER_POS=west
+  duration = 150
+  duration_reset = LOITER_POS=east
+  speed=2.5
+}
+
 
 
 
