@@ -1,0 +1,123 @@
+//--------    FILE: alpha.bhv   -------------
+
+initialize   DEPLOY = false
+initialize   RETURN = false
+initialize   SURFACING = false
+
+// West Loiter
+Behavior=BHV_Loiter
+{
+  name=loiter_one
+
+  clockwise=false
+  polygon = radial:: x=100,y=-75,radius=30,pts=8
+
+  condition = DEPLOY=true
+  condition = LOITER_POS=west
+  condition = RETURN=false
+  condition = SURFACING=false
+  perpetual=true
+  endflag = LOITER_POS=east
+  duration = 150
+  duration_reset = LOITER_POS=west
+  speed=2.5
+}
+
+Behavior = BHV_ConstantDepth {
+  name = loiter_depth_one
+  condition = LOITER_POS=west
+  condition = DEPLOY=true
+  depth = 30
+  duration = 150
+  duration_reset = LOITER_POS=west
+  perpetual=true
+}
+
+// East Loiter
+Behavior=BHV_Loiter
+{
+  name=loiter_two
+
+  clockwise=false
+  polygon = radial:: x=160,y=-50,radius=20,pts=8
+
+  condition = DEPLOY=true
+  condition = LOITER_POS=east
+  condition = RETURN=false
+  condition = SURFACING=false
+  perpetual=true
+  endflag = LOITER_POS=west
+  duration = 150
+  duration_reset = LOITER_POS=east
+  speed=2.5
+}
+
+Behavior = BHV_ConstantDepth {
+  name = loiter_depth_two
+  condition = LOITER_POS=east
+  condition = DEPLOY=true
+  depth = 10
+  duration = 150
+  duration_reset = LOITER_POS=east
+  perpetual=true
+}
+
+
+//----------------------------------------------
+Behavior=BHV_Waypoint
+{
+  name       = waypt_return
+  pwt        = 100
+  condition  = RETURN = true
+  condition  = DEPLOY = true
+  perpetual  = true
+  updates    = RETURN_UPDATE
+  endflag    = RETURN = false
+  endflag    = DEPLOY = false
+  endflag    = MISSION = complete
+	
+           speed = 2.0
+  capture_radius = 2.0
+     slip_radius = 8.0
+          points = 0,0
+}
+
+
+//----------------------------------------------
+Behavior=BHV_ConstantSpeed
+{
+  name       = const_speed
+  pwt        = 200
+  condition  = SPD=true
+  condition  = DEPLOY = true
+  perpetual  = true
+  updates    = SPEED_UPDATE
+  endflag    = SPD = false
+
+     speed = 0.5
+		 duration = 10
+		 duration_reset = CONST_SPD_RESET=true
+	
+}
+
+Behavior = BHV_ConstantDepth {
+  name = periodic_surface
+  condition = SURFACING=true
+  condition = DEPLOY=true
+  depth = 0
+  duration = 60
+  endflag = SURFACING=false
+  duration_reset = SURFACING=false
+  perpetual=true
+}
+
+// Periodic Surface
+Behavior = BHV_Timer
+{
+  name = surface_timer
+  condition = DEPLOY=true
+  endflag = SURFACING=true
+  perpetual = true
+  duration = 200
+  duration_reset = SURFACING=false
+}
