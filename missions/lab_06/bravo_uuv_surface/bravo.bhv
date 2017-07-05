@@ -19,6 +19,7 @@ Behavior=BHV_Loiter
   perpetual=true
   endflag = LOITER_POS=east
   duration = 150
+  duration_idle_decay = false
   duration_reset = LOITER_POS=west
   speed=2.5
 }
@@ -48,6 +49,7 @@ Behavior=BHV_Loiter
   perpetual=true
   endflag = LOITER_POS=west
   duration = 150
+  duration_idle_decay = false
   duration_reset = LOITER_POS=east
   speed=2.5
 }
@@ -100,18 +102,27 @@ Behavior=BHV_ConstantSpeed
 	
 }
 
+// Periodic Surface
+
 Behavior = BHV_ConstantDepth {
   name = periodic_surface
   condition = SURFACING=true
-  condition = DEPLOY=true
   depth = 0
-  duration = 60
-  endflag = SURFACING=false
-  duration_reset = SURFACING=false
   perpetual=true
+  depth_mismatch_var = DEPTH_DIFF
 }
 
-// Periodic Surface
+Behavior = BHV_Timer
+{
+  name = count_time_on_surface
+  condition = DEPTH_DIFF=0
+  condition = SURFACING=true
+  perpetual=true
+  duration = 60
+  duration_reset = SURFACING=false
+  endflag = SURFACING=false
+}
+
 Behavior = BHV_Timer
 {
   name = surface_timer
