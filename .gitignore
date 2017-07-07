@@ -4,3 +4,4 @@ bin/
 build/
 lib/
 .LastOpenedMOOSLogDirectory
+LOG_*/
