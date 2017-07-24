@@ -1,0 +1,9 @@
+//------------------------------------------------
+// pGenPath config block
+
+ProcessConfig = pGenPath
+{
+   AppTick   = 4
+   CommsTick = 4
+}
+
