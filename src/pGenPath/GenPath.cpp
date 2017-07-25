@@ -36,9 +36,17 @@ bool GenPath::OnNewMail(MOOSMSG_LIST &NewMail)
   for(p=NewMail.begin(); p!=NewMail.end(); p++) {
     CMOOSMsg &msg = *p;
 
-    if (msg.GetKey() == "NAV_X") lastX = msg.GetDouble();
-    if (msg.GetKey() == "NAV_Y") lastY = msg.GetDouble();
-
+    if (msg.GetKey() == "NAV_X") {
+      lastX = msg.GetDouble();
+    }
+    if (msg.GetKey() == "NAV_Y") {
+      lastY = msg.GetDouble();
+    }
+    if (msg.GetKey() == "GENPATH_REGENERATE" && msg.GetString() == "true") {
+      points = neededPoints;
+      reportEvent("Regenerating with " + to_string(neededPoints.size()) + " Ship points");
+      sendShip();
+    }
     if (msg.GetKey() == "VISIT_POINT") {
       if (msg.GetString() == "lastpoint") {
         sendShip();
@@ -76,16 +84,6 @@ bool GenPath::sendShip() {
   double previousX = lastX;
   double previousY = lastY;
 
-  /*
-  for (int i = 0; pSize > i; i++) {
-    unsigned int closestIndex = getClosestPointIndex(points.closest_vertex(), points.get_vy(0), points);
-    previousX = points.get_vx(closestIndex);
-    previousY = points.get_vy(closestIndex);
-    newPoints.add_vertex(previousX, previousY);
-    points.delete_vertex(closestIndex);
-  }
-  */
-
   for (int i = 0; pSize > i; i++) {
     unsigned int closestIndex = points.closest_vertex(previousX, previousY);
     previousX = points.get_vx(closestIndex);
@@ -96,9 +94,17 @@ bool GenPath::sendShip() {
   newPoints.delete_vertex(0, 0); // Not sure why, but for some reason the point 0,0 is added along the line
 
   std::string points_string = "points=";
-  points_string += newPoints.get_spec();
-  reportEvent("Sending ship with " + points_string);
-  m_Comms.Notify("SURVEY_POINTS", points_string);
+  if (newPoints.size() != 0) {
+    points_string += newPoints.get_spec();
+    reportEvent("Sending ship with " + points_string);
+    m_Comms.Notify("SURVEY_POINTS", points_string);
+  } else {
+    reportEvent("No more points to assign!");
+    m_Comms.Notify("SURVEY", "false"); // Stop Surveying
+    m_Comms.Notify("RETURN", "true");
+  }
+  points = newPoints;
+  neededPoints = points;
   return(true);
 }
 
@@ -106,22 +112,22 @@ double GenPath::pointDistance(double x1, double y1, double x2, double y2) {
   return sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2));
 }
 
-unsigned int GenPath::getClosestPointIndex(double x, double y, XYSegList p) {
-  double min = INFINITY;
-  unsigned int indexOfMin = UINT_MAX;
+bool GenPath::checkPointRange(double x1, double y1, double x2, double y2) {
+  //reportEvent(to_string(x1) + " compared to " + to_string(x2) + " " + to_string(y1) + " compared to " + to_string(y2));
+  return pointDistance(x1, x2, y1, y2) <= maxRadius;
+}
 
-  for (unsigned int i = 0; i < p.size(); ++i) {
-    if (p.get_vx(i) == x && p.get_vy(i) == y) { // Don't calculate self
-      p.delete_vertex(x, y);
-    } else {
-      double dist = pointDistance(p.get_vx(i), p.get_vy(i), x, y); // Get distance between two points
-      if (dist < min) {
-        min = dist; // If distance is less than minimum, set new minimum
-        indexOfMin = points.closest_vertex(p.get_vx(i), p.get_vy(i)); // Get Index of that minimum
-      }
+void GenPath::removePointIfInRange() {
+  for (unsigned int i = 0; i < neededPoints.size(); ++i) {
+    double x = neededPoints.get_vx(i);
+    double y = neededPoints.get_vy(i);
+    double currentX = lastX;
+    double currentY = lastY;
+    if (checkPointRange(x, currentX, y, currentY)) {
+      reportEvent("Deleted point:" + to_string(x) + " " + to_string(y));
+      neededPoints.delete_vertex(x, y);
     }
   }
-  return indexOfMin; // Return index of found
 }
 
 //---------------------------------------------------------
@@ -146,7 +152,7 @@ bool GenPath::OnConnectToServer()
 bool GenPath::Iterate()
 {
   AppCastingMOOSApp::Iterate();
-
+  removePointIfInRange();
   AppCastingMOOSApp::PostReport();
   return(true);
 }
@@ -158,25 +164,31 @@ bool GenPath::Iterate()
 bool GenPath::OnStartUp()
 {
   AppCastingMOOSApp::OnStartUp();
-  list<string> sParams;
+
+  STRING_LIST sParams;
   m_MissionReader.EnableVerbatimQuoting(false);
-  if(m_MissionReader.GetConfiguration(GetAppName(), sParams)) {
-    list<string>::iterator p;
-    for(p=sParams.begin(); p!=sParams.end(); p++) {
-      string original_line = *p;
-      string param = stripBlankEnds(toupper(biteString(*p, '=')));
-      string value = stripBlankEnds(*p);
-      
-      if(param == "FOO") {
-        //handled
-      }
-      else if(param == "BAR") {
-        //handled
-      }
+  if(!m_MissionReader.GetConfiguration(GetAppName(), sParams))
+    reportConfigWarning("No config block found for " + GetAppName());
+
+  STRING_LIST::iterator p;
+  for(p=sParams.begin(); p!=sParams.end(); p++) {
+    string orig  = *p;
+    string line  = *p;
+    string param = biteStringX(line, '=');
+    string value = line;
+
+    bool handled = false;
+    if(param == "visit_radius") {
+      maxRadius = stoi(value);
+      handled = true;
     }
+
+    if(!handled)
+      reportUnhandledConfigWarning(orig);
+
   }
-  
-  RegisterVariables();	
+
+  RegisterVariables();
   return(true);
 }
 
@@ -189,10 +201,12 @@ void GenPath::RegisterVariables()
   Register("VISIT_POINT", 0);
   Register("NAV_X", 0);
   Register("NAV_Y", 0);
+  Register("GENPATH_REGENERATE", 0);
 }
 
 bool GenPath::buildReport()
 {
   m_msgs << "Assigned " + to_string(points.size()) + " points" << endl;
+  m_msgs << "Max Range: " + to_string(maxRadius) << endl;
   return(true);
 }

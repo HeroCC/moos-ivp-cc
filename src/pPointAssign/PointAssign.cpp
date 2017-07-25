@@ -102,7 +102,7 @@ void PointAssign::orderNotify() {
 
 void PointAssign::regionNotify() {
     for (unsigned int i = 0; posList.size() > i; i++) {
-      reportConfigWarning("x=" + to_string(posList.get_vx(i)) + ",y=" + to_string(posList.get_vy(i)));
+      //reportConfigWarning("x=" + to_string(posList.get_vx(i)) + ",y=" + to_string(posList.get_vy(i)));
         if (posList.get_vx(i) > posList.get_avg_x()){
             m_Comms.Notify("VISIT_POINT_" + vehicles.at(0),
                            "x=" + to_string(posList.get_vx(i)) + ",y=" + to_string(posList.get_vy(i)));

@@ -29,18 +29,21 @@ class GenPath : public AppCastingMOOSApp
    void RegisterVariables();
     double pointDistance(double x1, double x2, double y1, double y2);
 
-    unsigned int getClosestPointIndex(double x, double y, XYSegList p);
-
  private: // Configuration variables
     XYSegList points;
+    XYSegList neededPoints;
     int assigned_points = 0;
     bool sendShip();
 
  private: // State variables
     double lastX;
     double lastY;
+    int maxRadius = 5;
+    bool sentShip = false;
+    bool checkPointRange(double x, double y);
+    void removePointIfInRange();
 
-
+    bool checkPointRange(double x1, double y1, double x2, double y2);
 };
 
 #endif 
