@@ -27,6 +27,9 @@ class GenPath : public AppCastingMOOSApp
 
  protected:
    void RegisterVariables();
+    double pointDistance(double x1, double x2, double y1, double y2);
+
+    unsigned int getClosestPointIndex(double x, double y, XYSegList p);
 
  private: // Configuration variables
     XYSegList points;
@@ -34,7 +37,10 @@ class GenPath : public AppCastingMOOSApp
     bool sendShip();
 
  private: // State variables
-    std::string updates_str;
+    double lastX;
+    double lastY;
+
+
 };
 
 #endif 

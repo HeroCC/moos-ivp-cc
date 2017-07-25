@@ -6,3 +6,4 @@ lib/
 .LastOpenedMOOSLogDirectory
 LOG_*/
 cmake-build-debug/
+targ_*

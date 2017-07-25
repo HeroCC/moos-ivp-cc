@@ -6,16 +6,16 @@
 /************************************************************/
 
 #include <iterator>
-#include "MBUtils.h"
+#include <XYSegList.h>
 #include "ACTable.h"
 #include "PointAssign.h"
 
 using namespace std;
 
 std::vector<std::string> vehicles;
-uint64_t currentVehicleIndex = 0;
 bool assignByRegion = false;
-int num_assigned_points = 0;
+unsigned long current_vehicle_index = 0;
+XYSegList posList;
 
 //---------------------------------------------------------
 // Constructor
@@ -48,19 +48,18 @@ bool PointAssign::OnNewMail(MOOSMSG_LIST &NewMail)
             if (toupper(msg.GetString()) == toupper("firstpoint")) {
                 true;
             } else if (toupper(msg.GetString()) == toupper("lastpoint")) {
-                m_Comms.Notify("VISIT_POINT_ALL", "lastpoint");
-                reportConfigWarning(msg.GetString());
+              sendShips();
+              m_Comms.Notify("VISIT_POINT_ALL", "lastpoint");
             } else {
                 std::string xpos = tokStringParse(msg.GetString(), "x", ',', '='); // See http://oceanai.mit.edu/ivpman/pmwiki/pmwiki.php?n=Help.StringParsing
-                //float xcoord = std::stof(xpos.c_str());
+                float xcoord = std::stof(xpos.c_str());
 
                 std::string ypos = tokStringParse(msg.GetString(), "y", ',', '=');
-                //float ycoord = std::stof(ypos.c_str());
+                float ycoord = std::stof(ypos.c_str());
 
                 std::string _id = tokStringParse(msg.GetString(), "id", ',', '=');
-                //int id = std::stoi(_id.c_str());
 
-                assignPoint(xpos, ypos, _id);
+                posList.add_vertex(xcoord, ycoord);
             }
         } else if(key == "FOO") {
             cout << "great!";
@@ -84,18 +83,33 @@ bool PointAssign::OnNewMail(MOOSMSG_LIST &NewMail)
     return(true);
 }
 
-void PointAssign::assignPoint(string xcoord, string ycoord, string id) {
-    num_assigned_points++;
-    if (currentVehicleIndex > vehicles.size() - 1) currentVehicleIndex = 0;
-    if (!assignByRegion) {
-        cout << currentVehicleIndex << " vehicle assignment, :" << num_assigned_points << endl;
-        std::string targetVehicle = toupper(vehicles.at(currentVehicleIndex));
-        currentVehicleIndex++;
-        //reportConfigWarning("VISIT_POINT_" + targetVehicle + "      " "x=" + xcoord + ",y=" + ycoord + ",id=" + id);
-        m_Comms.Notify("VISIT_POINT_" + targetVehicle, "x=" + xcoord + ",y=" + ycoord + ",id=" + id);
-        reportEvent("VISIT_POINT_" + targetVehicle + "      " "x=" + xcoord + ",y=" + ycoord + ",id=" + id);
+void PointAssign::sendShips() {
+    if (assignByRegion) {
+        regionNotify();
     } else {
-        reportConfigWarning("ABR enabled");
+        orderNotify();
+    }
+}
+
+void PointAssign::orderNotify() {
+    for (unsigned int i = 0; posList.size() > i; i++) {
+        if (current_vehicle_index > vehicles.size() - 1) current_vehicle_index = 0;
+        m_Comms.Notify("VISIT_POINT_" + vehicles.at(current_vehicle_index),
+                       "x=" + to_string(posList.get_vx(i)) + ",y=" + to_string(posList.get_vy(i)));
+      current_vehicle_index++;
+    }
+}
+
+void PointAssign::regionNotify() {
+    for (unsigned int i = 0; posList.size() > i; i++) {
+      reportConfigWarning("x=" + to_string(posList.get_vx(i)) + ",y=" + to_string(posList.get_vy(i)));
+        if (posList.get_vx(i) > posList.get_avg_x()){
+            m_Comms.Notify("VISIT_POINT_" + vehicles.at(0),
+                           "x=" + to_string(posList.get_vx(i)) + ",y=" + to_string(posList.get_vy(i)));
+        } else {
+            m_Comms.Notify("VISIT_POINT_" + vehicles.at(1),
+                           "x=" + to_string(posList.get_vx(i)) + ",y=" + to_string(posList.get_vy(i)));
+        }
     }
 }
 
@@ -142,9 +156,7 @@ bool PointAssign::OnStartUp()
 
         bool handled = false;
         if(param == "vname") {
-            vehicles.push_back(value);
-            reportConfigWarning(value);
-
+            vehicles.push_back(toupper(value));
             handled = true;
         } else if(param == "assign_by_region") {
             if (value == "true") assignByRegion = true;
@@ -180,7 +192,7 @@ bool PointAssign::buildReport()
     m_msgs << "============================================ \n";
 
     m_msgs << "Assigning by Region: " << to_string(assignByRegion) << endl;
-    m_msgs << "Received a total of " << num_assigned_points << " points" << endl;
+    m_msgs << "Received a total of " << posList.size() << " points" << endl;
     //m_msgs << "Next assignment to: " << vehicles.at(currentVehicleIndex);
     //m_msgs << "Assigned " + to_string(num_points) + " points to " + to_string(vehicles.size()) + " vehicles" << endl;
 

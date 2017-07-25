@@ -27,11 +27,14 @@ protected: // Standard AppCastingMOOSApp function to overload
 
 protected:
     void registerVariables();
-    void assignPoint(std::string, std::string, std::string);
 
 private: // Configuration variables
 
 private: // State variables
+    void sendShips();
+    void orderNotify();
+    void regionNotify();
+
 };
 
 #endif 

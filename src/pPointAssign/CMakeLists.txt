@@ -15,5 +15,6 @@ TARGET_LINK_LIBRARIES(pPointAssign
    ${MOOS_LIBRARIES}
    mbutil
    m
+   geometry
    pthread)
 
