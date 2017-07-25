@@ -1,0 +1,13 @@
+ProcessConfig = uTimerScript
+ {
+   AppTick    = 2
+   CommsTick  = 2
+
+   condition  = DEPLOY=true
+   randvar    = varname=YPOS, min=-125, max=0, key=at_reset
+
+   event      = var=NODE_MESSAGE_LOCAL, val="src_node=$(VNAME),dest_node=all,var_name=UP_LOITER,string_val=ycenter_assign=$[YPOS]", time=60:90 
+
+   reset_max = nolimit
+   reset_time = all-posted
+ }
