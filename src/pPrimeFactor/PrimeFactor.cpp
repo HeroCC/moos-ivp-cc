@@ -63,10 +63,16 @@ bool PrimeFactor::OnNewMail(MOOSMSG_LIST &NewMail)
   return(true);
 }
 
+std::string my_to_string(int64_t i) {
+  std::stringstream ss;
+  ss << i;
+  return ss.str();
+}
+
 string PrimeFactor::GetFormattedString(PrimeFactorEntry i, string username) {
   m_prime_order_delivery++;
 
-  string st = "orig="+to_string(i.GetTargetNumber())+",delivered="+to_string(m_prime_order_delivery)+",received="+to_string(i.GetOrderNumber())+",user="+username+",primes=";
+  string st = "orig="+my_to_string(i.GetTargetNumber())+",delivered="+my_to_string(m_prime_order_delivery)+",received="+my_to_string(i.GetOrderNumber())+",user="+username+",primes=";
   for (unsigned int j = 0; j < i.GetCalculatedPrimeFactors().size(); ++j) {
     st += (to_string(i.GetCalculatedPrimeFactors().at(j)) + ":");
   }
