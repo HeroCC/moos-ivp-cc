@@ -16,6 +16,7 @@ using namespace std;
 
 GenPath::GenPath()
 {
+  maxRadius = 5;
 }
 
 //---------------------------------------------------------

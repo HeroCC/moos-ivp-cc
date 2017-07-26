@@ -36,8 +36,8 @@ int main(int argc, char *argv[])
     else if(strBegins(argi, "--testPrime=")) {
       PrimeFactorEntry entry = PrimeFactorEntry(std::atoi(argi.substr(12).c_str()), 1, 0);
       entry.ContinueCalculations(999);
-      for (auto &i : entry.GetCalculatedPrimeFactors()) {
-        cout << "thingie: " << to_string(i) << endl;
+      for (unsigned int j = 0; j < entry.GetCalculatedPrimeFactors().size(); ++j) {
+        cout << "thingie: " << to_string(entry.GetCalculatedPrimeFactors().at(j)) << endl;
       }
       cout << "finished: " << entry.IsFinished() << endl;
       return 0;

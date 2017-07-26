@@ -32,15 +32,12 @@ class GenPath : public AppCastingMOOSApp
  private: // Configuration variables
     XYSegList points;
     XYSegList neededPoints;
-    int assigned_points = 0;
     bool sendShip();
 
  private: // State variables
     double lastX;
     double lastY;
-    int maxRadius = 5;
-    bool sentShip = false;
-    bool checkPointRange(double x, double y);
+    int maxRadius;
     void removePointIfInRange();
 
     bool checkPointRange(double x1, double y1, double x2, double y2);

@@ -78,8 +78,8 @@ bool PrimeFactorTester::ValidatePrimeString(string msg) {
   vector<string> numbers = parseString(parsedMsg[4].substr(0,7), ':'); // 5th element is primes, remove 'primes='
 
   uint64_t total = 1;
-  for (auto &number : numbers) {
-    total *= std::atoi(number.c_str());
+  for (unsigned int j = 0; j < numbers.size(); ++j) {
+    total *= std::atoi(numbers.at(j).c_str());
   }
   if (total == origin) {
     m_Comms.Notify("PRIME_RESULT_VALID", msg + ",valid=true");

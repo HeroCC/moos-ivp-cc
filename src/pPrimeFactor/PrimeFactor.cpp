@@ -67,8 +67,8 @@ string PrimeFactor::GetFormattedString(PrimeFactorEntry i, string username) {
   m_prime_order_delivery++;
 
   string st = "orig="+to_string(i.GetTargetNumber())+",delivered="+to_string(m_prime_order_delivery)+",received="+to_string(i.GetOrderNumber())+",user="+username+",primes=";
-  for (auto &i : i.GetCalculatedPrimeFactors()) {
-    st += (to_string(i) + ":");
+  for (unsigned int j = 0; j < i.GetCalculatedPrimeFactors().size(); ++j) {
+    st += (to_string(i.GetCalculatedPrimeFactors().at(j)) + ":");
   }
   st = st.substr(0, st.size()-1); // Remove the trailling ':'
   st += ",solve_time="+to_string(abs(i.GetStartTime() - MOOSTime()));
