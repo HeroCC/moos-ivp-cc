@@ -42,6 +42,12 @@ Behavior = BHV_Pulse
   pwt = 100
 }
 
+Behavior = BHV_ZigLeg
+{
+  name = zig
+  pwt = 100
+}
+
 //----------------------------------------------
 Behavior=BHV_Waypoint
 {
