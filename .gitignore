@@ -7,3 +7,4 @@ lib/
 LOG_*/
 cmake-build-debug/
 targ_*
+.moos++
