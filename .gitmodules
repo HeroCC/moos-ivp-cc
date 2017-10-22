@@ -1,0 +1,3 @@
+[submodule "src/pWebSocketServer/Simple-WebSocket-Server"]
+	path = src/pWebSocketServer/Simple-WebSocket-Server
+	url = https://github.com/eidheim/Simple-WebSocket-Server.git
