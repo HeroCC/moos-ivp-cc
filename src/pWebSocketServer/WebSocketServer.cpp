@@ -160,10 +160,11 @@ string WebSocketServer::itos(double ival) {
 }
 
 void WebSocketServer::checkRegisteredClients(string param, string mail) {
-  for (const shared_ptr<WebSocketClient> client : m_clients) {
-    if (client->getSubscribedMail().find(param) != client->getSubscribedMail().end()) {
-      sendMailToClient(client, param + "=" + mail);
+  for (const shared_ptr<WebSocketClient> &client : m_clients) {
+    if (client->getSubscribedMail().count(param) == 0) {
+      return;
     }
+    sendMailToClient(client, param + "=" + mail);
   }
 }
 
@@ -172,7 +173,7 @@ void WebSocketServer::sendMailToClient(shared_ptr<WebSocketClient> client, strin
 }
 
 shared_ptr<WebSocketClient> WebSocketServer::getClientByConnection(shared_ptr<WsServer::Connection> connection) {
-  for (shared_ptr<WebSocketClient> client : m_clients) {
+  for (const shared_ptr<WebSocketClient> &client : m_clients) {
     if (client->getConnection() == connection) return client;
   }
   return nullptr;
@@ -197,11 +198,15 @@ bool WebSocketServer::buildReport()
   //m_msgs << "File:                                        \n";
   //m_msgs << "============================================ \n";
 
-  //ACTable actab(4);
-  //actab << "Alpha | Bravo | Charlie | Delta";
-  //actab.addHeaderLines();
+  ACTable actab(2);
+  actab << "Location | Subscribed Messages";
+  actab.addHeaderLines();
   //actab << "one" << "two" << "three" << "four";
-  //m_msgs << actab.getFormattedString();
+
+  for (const shared_ptr<WebSocketClient> &client : m_clients) {
+    actab << client->getConnection()->remote_endpoint_address + ":" + itos(client->getConnection()->remote_endpoint_port) << itos(client->getSubscribedMail().size());
+  }
+  m_msgs << actab.getFormattedString();
 
   return(true);
 }

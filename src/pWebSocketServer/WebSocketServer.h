@@ -11,6 +11,12 @@
 #include "MOOS/libMOOS/Thirdparty/AppCasting/AppCastingMOOSApp.h"
 #include "WebSocketClient.h"
 
+/* WebSocket libraries:
+ * https://github.com/eidheim/Simple-WebSocket-Server
+ * https://github.com/mattgodbolt/seasocks
+ * https://github.com/zaphoyd/websocketpp
+*/
+
 class WebSocketServer : public AppCastingMOOSApp
 {
  public:

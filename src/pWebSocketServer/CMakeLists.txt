@@ -11,6 +11,7 @@ SET(SRC
         WebSocketClient.cpp WebSocketClient.h)
 
 # TODO This is all one big hack copied from the other CMake file, make it simpler (compile the library seperate)
+# https://codedump.io/share/L3qcmOuUZDDE/1/how-to-create-a-cmake-header-only-library-that-depends-on-external-header-files
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wsign-conversion")
 include_directories(Simple-WebSocket-Server)
