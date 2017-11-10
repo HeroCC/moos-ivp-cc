@@ -55,7 +55,7 @@ bool WebSocketServer::OnNewMail(MOOSMSG_LIST &NewMail)
      if(key == "FOO") cout << "great!";
 
     string sendMe;
-    msg.IsDouble() ? sendMe = itos(msg.GetDouble()) : sendMe = msg.GetString();
+    msg.IsDouble() ? sendMe = std::to_string(msg.GetDouble()) : sendMe = msg.GetString();
 
     // Forward the rest to clients
     checkRegisteredClients(key, sendMe);
