@@ -1,0 +1,83 @@
+<html>
+<head>
+	<title>MOOS Map</title>
+	<style>
+      /* Always set the map height explicitly to define the size of the div
+      * element that contains the map. */
+      #map {
+      	height: 100%;
+      }
+      /* Optional: Makes the sample page fill the window. */
+      html, body {
+      	height: 100%;
+      	margin: 0;
+      	padding: 0;
+      }
+  </style>
+</head>
+<body>
+	<div id="map"></div>
+	<p id="things">
+		BEGIN BELOW:
+	</p>
+
+	<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY"></script>
+	<script>
+		var moosReports = new Map();
+		var mapMarkers = new Map();
+	var map = new google.maps.Map(document.getElementById('map'), {
+		zoom: 16,
+		center: new google.maps.LatLng(43.825300, -70.330400),
+		mapTypeId: 'hybrid'
+	});
+
+	function processNodeReport(value) {
+		var pairs = value.split(",");
+		thisVars = new Map();
+		for (var i = 0; i < pairs.length; i++) {
+			key = pairs[i].split("=")[0];
+			value = pairs[i].split("=")[1];
+			thisVars.set(key, value);
+		}
+		name = thisVars.get("NAME");
+		moosReports.set(name, thisVars);
+
+		if (mapMarkers.get(name) == null) {
+			marker = new  google.maps.Marker({
+				map: map,
+				title: name,
+				label: name.slice(0, 1)
+    			//icon: './img/yellow_kayak.svg'
+    		});
+			mapMarkers.set(name, marker);
+		}
+	}
+
+	function updateMarkers() {
+		mapMarkers.forEach(function(value, key){
+			lat = moosReports.get(key).get("LAT");
+			long = moosReports.get(key).get("LON");
+			//head = moosReports.get(key).get("HDG"); // TODO: Use real rotable icons (https://stackoverflow.com/a/23695799/1709894)
+			value.setPosition(new google.maps.LatLng(lat, long));
+		});
+	}
+
+	var ws=new WebSocket("ws://localhost:9090/listen");
+	ws.onmessage=function(evt){
+		origString = evt.data;
+		key = origString.split("=")[0];
+		val = origString.slice(origString.indexOf("=") + 1);
+		if (key == 'NODE_REPORT') {
+			processNodeReport(val);
+		}
+		updateMarkers();
+  	};
+
+  	setTimeout(function(){ 
+  		ws.send("test");
+  		ws.send('NODE_REPORT');
+  	}, 1000);
+
+  </script>
+</body>
+</html>
