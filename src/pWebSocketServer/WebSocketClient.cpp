@@ -42,7 +42,7 @@ bool WebSocketClient::sendMail(string mail) {
 }
 
 bool operator< (const WebSocketClient &left, const WebSocketClient &right) {
-  return left.m_connection->remote_endpoint_port > right.m_connection->remote_endpoint_port;
+  return left.m_connection->remote_endpoint_port() > right.m_connection->remote_endpoint_port();
   // TODO Actual logic here, for some reason unordered_set freaks out things, and we don't care about client order, so sort method is by port
 }
 

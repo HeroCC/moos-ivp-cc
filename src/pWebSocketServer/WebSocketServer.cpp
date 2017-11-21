@@ -121,7 +121,7 @@ bool WebSocketServer::OnStartUp()
 
   auto &echo_all = wsServer.endpoint["^/listen/?$"];
   echo_all.on_open = [this](shared_ptr<WsServer::Connection> connection) {
-      reportEvent("WS: New connection from " + connection->remote_endpoint_address + ":" + itos(connection->remote_endpoint_port));
+      reportEvent("WS: New connection from " + connection->remote_endpoint_address() + ":" + itos(connection->remote_endpoint_port()));
 
       shared_ptr<WebSocketClient> client (new WebSocketClient(connection));
       m_clients.insert(move(client));
@@ -129,14 +129,14 @@ bool WebSocketServer::OnStartUp()
 
   echo_all.on_message = [this](shared_ptr<WsServer::Connection> connection, shared_ptr<WsServer::Message> message) {
       auto message_str = message->string();
-      reportEvent("WS: Received: '" + message_str + "' from " + connection->remote_endpoint_address + ":" + itos(connection->remote_endpoint_port));
+      reportEvent("WS: Received: '" + message_str + "' from " + connection->remote_endpoint_address() + ":" + itos(connection->remote_endpoint_port()));
 
       m_Comms.Register(message_str, 0);
       getClientByConnection(connection)->addSubscribedMail(message_str);
   };
 
   echo_all.on_close = [this](shared_ptr<WsServer::Connection> connection, int status, const string &reason) {
-      reportEvent("WS: Disconnected " + connection->remote_endpoint_address + ":" + itos(connection->remote_endpoint_port));
+      reportEvent("WS: Disconnected " + connection->remote_endpoint_address() + ":" + itos(connection->remote_endpoint_port()));
       m_clients.erase(m_clients.find(getClientByConnection(connection)));
   };
 
@@ -204,7 +204,7 @@ bool WebSocketServer::buildReport()
   //actab << "one" << "two" << "three" << "four";
 
   for (const shared_ptr<WebSocketClient> &client : m_clients) {
-    actab << client->getConnection()->remote_endpoint_address + ":" + itos(client->getConnection()->remote_endpoint_port) << itos(client->getSubscribedMail().size());
+    actab << client->getConnection()->remote_endpoint_address() + ":" + itos(client->getConnection()->remote_endpoint_port()) << itos(client->getSubscribedMail().size());
   }
   m_msgs << actab.getFormattedString();
 
