@@ -130,9 +130,20 @@ bool WebSocketServer::OnStartUp()
   echo_all.on_message = [this](shared_ptr<WsServer::Connection> connection, shared_ptr<WsServer::Message> message) {
       auto message_str = message->string();
       reportEvent("WS: Received: '" + message_str + "' from " + connection->remote_endpoint_address() + ":" + itos(connection->remote_endpoint_port()));
+      if (message_str.find('=') != string::npos) {
+        string delim = "=";
 
-      m_Comms.Register(message_str, 0);
-      getClientByConnection(connection)->addSubscribedMail(message_str);
+        string target = message_str.substr(0, message_str.find(delim));
+        message_str.erase(0, message_str.find(delim) + delim.length());
+
+        string value = message_str.substr(0, message_str.find(delim));
+        reportEvent("WS: Setting " + target + " to " + value);
+        // Assume the client wants to set a variable and is trusted to do so
+        m_Comms.Notify(target, value);
+      } else {
+        m_Comms.Register(message_str, 0);
+        getClientByConnection(connection)->addSubscribedMail(message_str);
+      }
   };
 
   echo_all.on_close = [this](shared_ptr<WsServer::Connection> connection, int status, const string &reason) {
@@ -210,7 +221,3 @@ bool WebSocketServer::buildReport()
 
   return(true);
 }
-
-
-
-
