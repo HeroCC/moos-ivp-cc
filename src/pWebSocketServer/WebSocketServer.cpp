@@ -151,6 +151,11 @@ bool WebSocketServer::OnStartUp()
       m_clients.erase(m_clients.find(getClientByConnection(connection)));
   };
 
+  echo_all.on_error = [this](shared_ptr<WsServer::Connection> connection, const SimpleWeb::error_code &error_code) {
+      reportEvent("WS: ERRing " + connection->remote_endpoint_address() + ":" + itos(connection->remote_endpoint_port()));
+      m_clients.erase(m_clients.find(getClientByConnection(connection)));
+  };
+
   registerVariables();
 
   reportEvent("Attempting to start WebSocket server on: " + wsServer.config.address + ":" + itos(wsServer.config.port));
