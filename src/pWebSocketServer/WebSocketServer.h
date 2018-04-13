@@ -39,6 +39,7 @@ class WebSocketServer : public AppCastingMOOSApp
 
  private: // Configuration variables
     WsServer wsServer;
+    bool allowSubmissions;
 
  private: // State variables
     void checkRegisteredClients(std::string param, std::string value);

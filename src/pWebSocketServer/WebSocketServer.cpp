@@ -97,6 +97,7 @@ bool WebSocketServer::OnStartUp()
   AppCastingMOOSApp::OnStartUp();
 
   wsServer.config.port = 9090;
+  this->allowSubmissions = true;
 
   STRING_LIST sParams;
   m_MissionReader.EnableVerbatimQuoting(false);
@@ -113,8 +114,8 @@ bool WebSocketServer::OnStartUp()
     if(param == "WSPort") {
       wsServer.config.port = stoi(value);
     }
-    else if(param == "BAR") {
-
+    else if(param == "AllowSubmissions") {
+      if (value == "false") allowSubmissions = false;
     }
 
   }
@@ -131,6 +132,9 @@ bool WebSocketServer::OnStartUp()
       auto message_str = message->string();
       reportEvent("WS: Received: '" + message_str + "' from " + connection->remote_endpoint_address() + ":" + itos(connection->remote_endpoint_port()));
       if (message_str.find('=') != string::npos) {
+        if (!allowSubmissions) {
+          reportEvent("WS: Rejected submission from " + connection->remote_endpoint_address() + ":" + itos(connection->remote_endpoint_port()));
+        }
         string delim = "=";
 
         string target = message_str.substr(0, message_str.find(delim));
