@@ -111,10 +111,10 @@ bool WebSocketServer::OnStartUp()
     string param = toupper(biteStringX(line, '='));
     string value = line;
 
-    if(param == "WSPort") {
+    if(param == "WSPORT") {
       wsServer.config.port = stoi(value);
     }
-    else if(param == "AllowSubmissions") {
+    else if(param == "ALLOWSUBMISSIONS") {
       if (value == "false") allowSubmissions = false;
     }
 
