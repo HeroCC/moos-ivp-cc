@@ -18,11 +18,18 @@ Processconfig = ANTLER
   Run = pShare          @ NewConsole = false
   Run = pHostInfo       @ NewConsole = false
   Run = uFldShoreBroker @ NewConsole = false
+  Run = pWebSocketServer @ NewConsole = false
 }
 
 #include plug_pShare.moos
 #include plug_pHostInfo.moos
 #include plug_pLogger.moos
+
+ProcessConfig = pWebSocketServer
+{
+  WSPort = 9090
+  AllowSubmissions = true
+}
 
 //--------------------------------------------------
 // uFldShoreBroker Configuration Block

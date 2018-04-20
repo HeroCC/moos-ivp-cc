@@ -21,6 +21,13 @@ Processconfig = ANTLER
   Run = pShare             @ NewConsole = false
   Run = pHostInfo          @ NewConsole = false
   Run = uFldNodeBroker     @ NewConsole = false
+  Run = pWebSocketServer   @ NewConsole = false
+}
+
+ProcessConfig = pWebSocketServer
+{
+  WSPort = $(WSPort)
+  AllowSubmissions = true
 }
  
 #include plug_uSimMarine.moos
