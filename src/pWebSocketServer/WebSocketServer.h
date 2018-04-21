@@ -1,7 +1,7 @@
 /************************************************************/
-/*    NAME:                                               */
+/*    NAME: Conlan Cesar                                    */
 /*    ORGN: MIT                                             */
-/*    FILE: WebSocketServer.h                                          */
+/*    FILE: WebSocketServer.h                               */
 /*    DATE: December 29th, 1963                             */
 /************************************************************/
 
@@ -28,26 +28,23 @@ class WebSocketServer : public AppCastingMOOSApp
    bool Iterate();
    bool OnConnectToServer();
    bool OnStartUp();
-
- protected: // Standard AppCastingMOOSApp function to overload 
    bool buildReport();
 
  protected:
    void registerVariables();
+    void checkRegisteredClients(std::string param, std::string value);
+    void registerMailEndpoint();
     std::set<std::shared_ptr<WebSocketClient>> m_clients;
     std::string itos(double i);
 
  private: // Configuration variables
-    WsServer wsServer;
     bool allowSubmissions;
 
  private: // State variables
-    void checkRegisteredClients(std::string param, std::string value);
+    WsServer wsServer;
 
     std::shared_ptr<WebSocketClient>
     getClientByConnection(std::shared_ptr<SimpleWeb::SocketServerBase<SimpleWeb::WS>::Connection> connection);
-
-    void sendMailToClient(std::shared_ptr<WebSocketClient> client, std::string mail);
 };
 
 #endif 

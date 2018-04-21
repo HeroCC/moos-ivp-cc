@@ -6,5 +6,6 @@ ProcessConfig = pWebSocketServer
    AppTick   = 4
    CommsTick = 4
    WSPort = 9090
+   AllowSubmissions = true
 }
 

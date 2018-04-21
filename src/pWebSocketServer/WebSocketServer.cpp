@@ -1,7 +1,7 @@
 /************************************************************/
-/*    NAME:                                               */
+/*    NAME: Conlan Cesar                                    */
 /*    ORGN: MIT                                             */
-/*    FILE: WebSocketServer.cpp                                        */
+/*    FILE: WebSocketServer.cpp                             */
 /*    DATE:                                                 */
 /************************************************************/
 
@@ -40,9 +40,9 @@ bool WebSocketServer::OnNewMail(MOOSMSG_LIST &NewMail)
   MOOSMSG_LIST::iterator p;
   for(p=NewMail.begin(); p!=NewMail.end(); p++) {
     CMOOSMsg &msg = *p;
-    string key    = msg.GetKey();
+    string key = msg.GetKey();
 
-#if 0 // Keep these around just for template
+    #if 0 // Keep these around just for template
     string comm  = msg.GetCommunity();
     double dval  = msg.GetDouble();
     string sval  = msg.GetString(); 
@@ -50,9 +50,9 @@ bool WebSocketServer::OnNewMail(MOOSMSG_LIST &NewMail)
     double mtime = msg.GetTime();
     bool   mdbl  = msg.IsDouble();
     bool   mstr  = msg.IsString();
-#endif
+    #endif
 
-     if(key == "FOO") cout << "great!";
+    if (key == "FOO") cout << "great!";
 
     string sendMe;
     msg.IsDouble() ? sendMe = std::to_string(msg.GetDouble()) : sendMe = msg.GetString();
@@ -60,11 +60,10 @@ bool WebSocketServer::OnNewMail(MOOSMSG_LIST &NewMail)
     // Forward the rest to clients
     checkRegisteredClients(key, sendMe);
 
-     //else if(key != "APPCAST_REQ") // handled by AppCastingMOOSApp
-       //reportRunWarning("Unhandled Mail: " + key);
-   }
-	
-   return(true);
+    //else if(key != "APPCAST_REQ") // handled by AppCastingMOOSApp
+    //reportRunWarning("Unhandled Mail: " + key);
+  }
+  return(true);
 }
 
 //---------------------------------------------------------
@@ -72,8 +71,8 @@ bool WebSocketServer::OnNewMail(MOOSMSG_LIST &NewMail)
 
 bool WebSocketServer::OnConnectToServer()
 {
-   registerVariables();
-   return(true);
+  registerVariables();
+  return(true);
 }
 
 //---------------------------------------------------------
@@ -117,59 +116,63 @@ bool WebSocketServer::OnStartUp()
     else if(param == "ALLOWSUBMISSIONS") {
       if (value == "false") allowSubmissions = false;
     }
-
   }
 
-  auto &echo_all = wsServer.endpoint["^/listen/?$"];
-  echo_all.on_open = [this](shared_ptr<WsServer::Connection> connection) {
-      reportEvent("WS: New connection from " + connection->remote_endpoint_address() + ":" + itos(connection->remote_endpoint_port()));
-
-      shared_ptr<WebSocketClient> client (new WebSocketClient(connection));
-      m_clients.insert(move(client));
-  };
-
-  echo_all.on_message = [this](shared_ptr<WsServer::Connection> connection, shared_ptr<WsServer::Message> message) {
-      auto message_str = message->string();
-      reportEvent("WS: Received: '" + message_str + "' from " + connection->remote_endpoint_address() + ":" + itos(connection->remote_endpoint_port()));
-      if (message_str.find('=') != string::npos) {
-        if (!allowSubmissions) {
-          reportEvent("WS: Rejected submission from " + connection->remote_endpoint_address() + ":" + itos(connection->remote_endpoint_port()));
-        }
-        string delim = "=";
-
-        string target = message_str.substr(0, message_str.find(delim));
-        message_str.erase(0, message_str.find(delim) + delim.length());
-
-        string value = message_str.substr(0, message_str.find(delim));
-        reportEvent("WS: Setting " + target + " to " + value);
-        // Assume the client wants to set a variable and is trusted to do so
-        m_Comms.Notify(target, value);
-      } else {
-        m_Comms.Register(message_str, 0);
-        getClientByConnection(connection)->addSubscribedMail(message_str);
-      }
-  };
-
-  echo_all.on_close = [this](shared_ptr<WsServer::Connection> connection, int status, const string &reason) {
-      reportEvent("WS: Disconnected " + connection->remote_endpoint_address() + ":" + itos(connection->remote_endpoint_port()));
-      m_clients.erase(m_clients.find(getClientByConnection(connection)));
-  };
-
-  echo_all.on_error = [this](shared_ptr<WsServer::Connection> connection, const SimpleWeb::error_code &error_code) {
-      reportEvent("WS: ERRing " + connection->remote_endpoint_address() + ":" + itos(connection->remote_endpoint_port()));
-      m_clients.erase(m_clients.find(getClientByConnection(connection)));
-  };
+  registerMailEndpoint();
 
   registerVariables();
 
   reportEvent("Attempting to start WebSocket server on: " + wsServer.config.address + ":" + itos(wsServer.config.port));
   thread server_thread([this]() {
-      this->wsServer.start();
+    this->wsServer.start();
   });
 
   server_thread.detach();
   //server_thread.join();
   return(true);
+}
+
+void WebSocketServer::registerMailEndpoint() {
+  auto &mailListener = wsServer.endpoint["^/mail/?$"];
+  mailListener.on_open = [this](shared_ptr<WsServer::Connection> connection) {
+    reportEvent("WS: New Mail connection from " + connection->remote_endpoint_address() + ":" + itos(connection->remote_endpoint_port()));
+
+    shared_ptr<WebSocketClient> client (new WebSocketClient(connection));
+    m_clients.insert(move(client));
+  };
+
+  mailListener.on_message = [this](shared_ptr<WsServer::Connection> connection, shared_ptr<WsServer::Message> message) {
+    auto message_str = message->string();
+    reportEvent("WS: Received: '" + message_str + "' from " + connection->remote_endpoint_address() + ":" + itos(connection->remote_endpoint_port()));
+    if (message_str.find('=') != string::npos) {
+      if (!allowSubmissions) {
+        reportEvent("WS: Rejected submission from " + connection->remote_endpoint_address() + ":" + itos(connection->remote_endpoint_port()));
+      }
+      string delim = "=";
+
+      string target = message_str.substr(0, message_str.find(delim));
+      message_str.erase(0, message_str.find(delim) + delim.length());
+
+      string value = message_str.substr(0, message_str.find(delim));
+      reportEvent("WS: Setting " + target + " to " + value);
+
+      // Assume the client wants to set a variable and is trusted to do so
+      m_Comms.Notify(target, value);
+    } else {
+      m_Comms.Register(message_str, 0);
+      getClientByConnection(connection)->addSubscribedMail(message_str);
+    }
+  };
+
+  mailListener.on_close = [this](shared_ptr<WsServer::Connection> connection, int status, const string &reason) {
+    reportEvent("WS: Disconnected " + connection->remote_endpoint_address() + ":" + itos(connection->remote_endpoint_port()));
+    m_clients.erase(m_clients.find(getClientByConnection(connection)));
+  };
+
+  mailListener.on_error = [this](shared_ptr<WsServer::Connection> connection, const SimpleWeb::error_code &error_code) {
+    reportEvent("WS: ERRing " + connection->remote_endpoint_address() + ":" + itos(connection->remote_endpoint_port()));
+    m_clients.erase(m_clients.find(getClientByConnection(connection)));
+  };
 }
 
 string WebSocketServer::itos(double ival) {
@@ -181,15 +184,10 @@ string WebSocketServer::itos(double ival) {
 
 void WebSocketServer::checkRegisteredClients(string param, string mail) {
   for (const shared_ptr<WebSocketClient> &client : m_clients) {
-    if (client->getSubscribedMail().count(param) == 0) {
-      return;
+    if (client->getSubscribedMail().count(param) > 0) {
+      client->sendMail(param + "=" + mail);
     }
-    sendMailToClient(client, param + "=" + mail);
   }
-}
-
-void WebSocketServer::sendMailToClient(shared_ptr<WebSocketClient> client, string mail) {
-  client->sendMail(mail);
 }
 
 shared_ptr<WebSocketClient> WebSocketServer::getClientByConnection(shared_ptr<WsServer::Connection> connection) {

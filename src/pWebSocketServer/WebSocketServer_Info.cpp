@@ -1,7 +1,7 @@
 /****************************************************************/
-/*   NAME:                                              */
+/*   NAME: Conlan Cesar                                         */
 /*   ORGN: MIT Cambridge MA                                     */
-/*   FILE: WebSocketServer_Info.cpp                               */
+/*   FILE: WebSocketServer_Info.cpp                             */
 /*   DATE: Dec 29th 1963                                        */
 /****************************************************************/
 
@@ -23,6 +23,7 @@ void showSynopsis()
   blk("  The pWebSocketServer application is used to send MOOS Mail to ");
   blk("  WebSockets, allowing new technologies to read and expand upon ");
   blk("  MOOS information                                              ");
+  blk("                                                                ");
   blk("  REQUIRES C++11 and a few boost libraries to be installed      ");
   blk("                                                                ");
 }
@@ -49,7 +50,7 @@ void showHelpAndExit()
   blk("      Display this help message.                                ");
   mag("  --interface, -i                                               ");
   blk("      Display MOOS publications and subscriptions.              ");
-  mag("  --version,-v                                                  ");
+  mag("  --version, -v                                                 ");
   blk("      Display the release version of pWebSocketServer.        ");
   blk("                                                                ");
   blk("Note: If argv[2] does not otherwise match a known option,       ");
@@ -66,14 +67,15 @@ void showExampleConfigAndExit()
 {
   blk("                                                                ");
   blu("=============================================================== ");
-  blu("pWebSocketServer Example MOOS Configuration                   ");
+  blu("pWebSocketServer Example MOOS Configuration                     ");
   blu("=============================================================== ");
   blk("                                                                ");
-  blk("ProcessConfig = pWebSocketServer                              ");
+  blk("ProcessConfig = pWebSocketServer                                ");
   blk("{                                                               ");
   blk("  AppTick   = 4                                                 ");
   blk("  CommsTick = 4                                                 ");
   blk("  WSPort    = 9090                                              ");
+  blk("  AllowSubmissions = true                                       ");
   blk("}                                                               ");
   blk("                                                                ");
   exit(0);
@@ -94,12 +96,13 @@ void showInterfaceAndExit()
   blk("                                                                ");
   blk("SUBSCRIPTIONS:                                                  ");
   blk("------------------------------------                            ");
-  blk("  NODE_MESSAGE = src_node=alpha,dest_node=bravo,var_name=FOO,   ");
-  blk("                 string_val=BAR                                 ");
+  blk("  This particular MOOS app is special, the subscriptions vary   ");
+  blk("  because they are subscribed to via clients connected through  ");
+  blk("  the web socket.                                               ");
   blk("                                                                ");
   blk("PUBLICATIONS:                                                   ");
   blk("------------------------------------                            ");
-  blk("  Publications are determined by the node message content.      ");
+  blk("  Determined by clients connected to the web socket.            ");
   blk("                                                                ");
   exit(0);
 }
