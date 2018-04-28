@@ -1,0 +1,37 @@
+image: ubuntu:trusty
+
+stages:
+  - dependencies
+  - build
+  - test
+  - deploy
+
+variables:
+  GIT_SUBMODULE_STRATEGY: recursive
+
+build_ivp:
+  stage: dependencies
+  before_script:
+    - apt update && apt install -y subversion g++ cmake xterm libfltk1.3-dev freeglut3-dev libpng12-dev libjpeg-dev libxft-dev libxinerama-dev libtiff5-dev libboost1.55-dev libboost-system1.55-dev
+    - cd ..
+    - svn co https://oceanai.mit.edu/svn/moos-ivp-aro/trunk/ moos-ivp
+  script:
+    - cd moos-ivp
+    - ./build-moos.sh
+    - ./build-ivp.sh
+  cache:
+    paths:
+      - bin/
+      - build/
+
+build_extend:
+  stage: build
+  dependencies:
+    - build_ivp
+  before_script:
+    - export PATH="$PATH:../moos-ivp/bin"
+  script:
+    - ./build.sh
+  artifacts:
+    paths:
+      - bin/
