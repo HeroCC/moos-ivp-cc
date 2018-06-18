@@ -112,9 +112,10 @@ bool WebSocketServer::OnStartUp()
 
     if(param == "WSPORT") {
       wsServer.config.port = stoi(value);
-    }
-    else if(param == "ALLOWSUBMISSIONS") {
-      if (value == "false") allowSubmissions = false;
+    } else if (param == "ALLOWSUBMISSIONS" && value == "false") {
+      allowSubmissions = false;
+    } else if (param == "PASSWORD") {
+      this->password = value;
     }
   }
 
@@ -133,7 +134,7 @@ bool WebSocketServer::OnStartUp()
 }
 
 void WebSocketServer::registerMailEndpoint() {
-  auto &mailListener = wsServer.endpoint["^/mail/?$"];
+  auto &mailListener = wsServer.endpoint["^/listen/?$"];
   mailListener.on_open = [this](shared_ptr<WsServer::Connection> connection) {
     reportEvent("WS: New Mail connection from " + connection->remote_endpoint_address() + ":" + itos(connection->remote_endpoint_port()));
 
@@ -143,24 +144,33 @@ void WebSocketServer::registerMailEndpoint() {
 
   mailListener.on_message = [this](shared_ptr<WsServer::Connection> connection, shared_ptr<WsServer::Message> message) {
     auto message_str = message->string();
+    shared_ptr<WebSocketClient> client = getClientByConnection(connection);
     reportEvent("WS: Received: '" + message_str + "' from " + connection->remote_endpoint_address() + ":" + itos(connection->remote_endpoint_port()));
     if (message_str.find('=') != string::npos) {
-      if (!allowSubmissions) {
+      if (message_str.rfind('$', 0) != string::npos) {
+        // The char '$' can't be included in MOOSMail keys, but it can be in websocket messages
+        // Therefore, it is good as a keyword, signaling that the message is for configuring the client
+        handleInternalMessage(message_str, client);
+      } else if (!allowSubmissions || (!password.empty() && !client->isAuthenticated)) {
+        // If submissions are disabled or the password isn't null and the client is not authenticated
         reportEvent("WS: Rejected submission from " + connection->remote_endpoint_address() + ":" + itos(connection->remote_endpoint_port()));
+      } else {
+        string delim = "=";
+
+        string target = message_str.substr(0, message_str.find(delim));
+        message_str.erase(0, message_str.find(delim) + delim.length());
+
+        reportEvent("WS: Setting " + target + " to " + message_str);
+
+        // Assume the client wants to set a variable and is trusted to do so
+        m_Comms.Notify(target, message_str);
       }
-      string delim = "=";
-
-      string target = message_str.substr(0, message_str.find(delim));
-      message_str.erase(0, message_str.find(delim) + delim.length());
-
-      string value = message_str.substr(0, message_str.find(delim));
-      reportEvent("WS: Setting " + target + " to " + value);
-
-      // Assume the client wants to set a variable and is trusted to do so
-      m_Comms.Notify(target, value);
     } else {
+      client->addSubscribedMail(message_str);
       m_Comms.Register(message_str, 0);
-      getClientByConnection(connection)->addSubscribedMail(message_str);
+
+      // In case we have already subscribed to the mail elsewhere, make sure to forward the most recent value we have
+      //client->sendMail(this->m_MOOSVars.find(message_str)->GetAsString());
     }
   };
 
@@ -173,6 +183,16 @@ void WebSocketServer::registerMailEndpoint() {
     reportEvent("WS: ERRing " + connection->remote_endpoint_address() + ":" + itos(connection->remote_endpoint_port()));
     m_clients.erase(m_clients.find(getClientByConnection(connection)));
   };
+}
+
+void WebSocketServer::handleInternalMessage(string message_str, const shared_ptr<WebSocketClient> client) {
+  string delim = "=";
+  string target = message_str.substr(0, message_str.find(delim));
+  message_str.erase(0, message_str.find(delim) + delim.length());
+
+  if (target == "$SetPassword") {
+    if (message_str == this->password) client->isAuthenticated = true;
+  }
 }
 
 string WebSocketServer::itos(double ival) {
@@ -216,13 +236,13 @@ bool WebSocketServer::buildReport()
   //m_msgs << "File:                                        \n";
   //m_msgs << "============================================ \n";
 
-  ACTable actab(2);
-  actab << "Location | Subscribed Messages";
+  ACTable actab(3);
+  actab << "Location | Subscribed Messages | Auth";
   actab.addHeaderLines();
   //actab << "one" << "two" << "three" << "four";
 
   for (const shared_ptr<WebSocketClient> &client : m_clients) {
-    actab << client->getConnection()->remote_endpoint_address() + ":" + itos(client->getConnection()->remote_endpoint_port()) << itos(client->getSubscribedMail().size());
+    actab << client->getConnection()->remote_endpoint_address() + ":" + itos(client->getConnection()->remote_endpoint_port()) << itos(client->getSubscribedMail().size()) << (client->isAuthenticated);
   }
   m_msgs << actab.getFormattedString();
 

@@ -31,14 +31,16 @@ class WebSocketServer : public AppCastingMOOSApp
    bool buildReport();
 
  protected:
-   void registerVariables();
+    void registerVariables();
     void checkRegisteredClients(std::string param, std::string value);
     void registerMailEndpoint();
+    void handleInternalMessage(std::string message, std::shared_ptr<WebSocketClient> client);
     std::set<std::shared_ptr<WebSocketClient>> m_clients;
     std::string itos(double i);
 
  private: // Configuration variables
-    bool allowSubmissions;
+    bool allowSubmissions = false;
+    std::string password = "";
 
  private: // State variables
     WsServer wsServer;

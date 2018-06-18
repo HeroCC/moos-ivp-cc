@@ -16,11 +16,11 @@ class WebSocketClient {
 private:
 
 protected:
-
     mutable std::set<std::string> m_subscribedMail;
     std::shared_ptr<WsServer::Connection> m_connection;
 
 public:
+    bool isAuthenticated = false;
     WebSocketClient(std::shared_ptr<WsServer::Connection> connection);
     std::set<std::string> getSubscribedMail();
     void addSubscribedMail(std::string key);

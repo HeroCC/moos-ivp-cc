@@ -76,6 +76,7 @@ void showExampleConfigAndExit()
   blk("  CommsTick = 4                                                 ");
   blk("  WSPort    = 9090                                              ");
   blk("  AllowSubmissions = true                                       ");
+  blk("  Password = abcd                                               ");
   blk("}                                                               ");
   blk("                                                                ");
   exit(0);
