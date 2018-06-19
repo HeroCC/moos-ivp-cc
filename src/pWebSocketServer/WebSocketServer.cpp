@@ -54,8 +54,9 @@ bool WebSocketServer::OnNewMail(MOOSMSG_LIST &NewMail)
 
     if (key == "FOO") cout << "great!";
 
-    string sendMe;
-    msg.IsDouble() ? sendMe = std::to_string(msg.GetDouble()) : sendMe = msg.GetString();
+    string sendMe = msg.GetAsString();
+
+    this->m_recentMail[key] = sendMe;
 
     // Forward the rest to clients
     checkRegisteredClients(key, sendMe);
@@ -167,10 +168,11 @@ void WebSocketServer::registerMailEndpoint() {
       }
     } else {
       client->addSubscribedMail(message_str);
+      if (this->m_recentMail.count(message_str)) {
+        // In case we have already subscribed to the mail elsewhere, make sure to forward the most recent value we have
+        client->sendMail(message_str + "=" + this->m_recentMail[message_str]);
+      }
       m_Comms.Register(message_str, 0);
-
-      // In case we have already subscribed to the mail elsewhere, make sure to forward the most recent value we have
-      //client->sendMail(this->m_MOOSVars.find(message_str)->GetAsString());
     }
   };
 

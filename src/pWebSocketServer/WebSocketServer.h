@@ -44,6 +44,7 @@ class WebSocketServer : public AppCastingMOOSApp
 
  private: // State variables
     WsServer wsServer;
+    std::map<std::string, std::string> m_recentMail;
 
     std::shared_ptr<WebSocketClient>
     getClientByConnection(std::shared_ptr<SimpleWeb::SocketServerBase<SimpleWeb::WS>::Connection> connection);
