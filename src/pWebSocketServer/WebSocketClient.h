@@ -8,7 +8,7 @@
 #include <vector>
 #include <string>
 #include <set>
-#include <server_ws.hpp>
+#include "Simple-WebSocket-Server/server_ws.hpp"
 
 typedef SimpleWeb::SocketServer<SimpleWeb::WS> WsServer;
 

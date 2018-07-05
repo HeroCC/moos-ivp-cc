@@ -2,7 +2,7 @@
 // Created by Conlan Cesar on 9/4/17.
 //
 
-#include <server_ws.hpp>
+#include "Simple-WebSocket-Server/server_ws.hpp"
 #include "WebSocketClient.h"
 
 typedef SimpleWeb::SocketServer<SimpleWeb::WS> WsServer;
