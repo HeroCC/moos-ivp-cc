@@ -29,6 +29,8 @@ SET( RUNTIME_OUTPUT_DIRECTORY "${IVP_EXTEND_BIN_DIR}"  CACHE PATH "" )
 find_package(MOOS 10.0)
 INCLUDE_DIRECTORIES(${MOOS_INCLUDE_DIRS})
 
+set (CMAKE_CXX_STANDARD 11)
+
 #=============================================================================
 # Find the "moos-ivp" base directory
 #=============================================================================
@@ -57,6 +59,11 @@ INCLUDE_DIRECTORIES(${IVP_INCLUDE_DIRS})
 FILE(GLOB IVP_LIBRARY_DIRS ${MOOSIVP_SOURCE_TREE_BASE}/lib )
 LINK_DIRECTORIES(${IVP_LIBRARY_DIRS})
 
+if (APPLE)
+   INCLUDE_DIRECTORIES(/opt/local/include)
+   LINK_DIRECTORIES(/opt/local/lib) # Incluse the default MacPorts directory
+endif()
+
 #=============================================================================
 # Specify Compiler Flags
 #=============================================================================
@@ -82,7 +89,7 @@ ELSE( ${WIN32} )
    # Force -fPIC because gcc complains when we don't use it with x86_64 code.
    # Note sure why: -fPIC should only be needed for shared objects, and
    # AFAIK, CMake gets that right when building shared objects. -CJC
-   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -g -Wsign-conversion")
+   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -g")
    IF(CMAKE_COMPILER_IS_GNUCXX)
       # Flags for the GNU C++ Compiler
       SET( WALL_ON OFF CACHE BOOL 

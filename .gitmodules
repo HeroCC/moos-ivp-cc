@@ -1,3 +1,6 @@
 [submodule "src/pWebSocketServer/Simple-WebSocket-Server"]
 	path = src/pWebSocketServer/Simple-WebSocket-Server
-	url = https://github.com/eidheim/Simple-WebSocket-Server.git
+  url = https://github.com/eidheim/Simple-WebSocket-Server.git
+[submodule "src/iMumbleClient/mumlib"]
+	path = src/iMumbleClient/mumlib
+	url = https://github.com/HeroCC/mumlib.git

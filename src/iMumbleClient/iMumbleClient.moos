@@ -1,0 +1,9 @@
+//------------------------------------------------
+// iMumbleClient config block
+
+ProcessConfig = iMumbleClient
+{
+   AppTick   = 4
+   CommsTick = 4
+}
+

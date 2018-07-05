@@ -25,6 +25,7 @@ ADD_SUBDIRECTORY(pPointAssign)
 ADD_SUBDIRECTORY(pGenPath)
 ADD_SUBDIRECTORY(pWebSocketServer)
 ADD_SUBDIRECTORY(uFldHazardMgrX)
+ADD_SUBDIRECTORY(iMumbleClient)
 
 ##############################################################################
 #                           END of CMakeLists.txt
