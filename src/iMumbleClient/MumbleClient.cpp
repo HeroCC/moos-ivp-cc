@@ -14,15 +14,64 @@
 
 using namespace std;
 
+const int SAMPLE_RATE = 48000;
+const int NUM_CHANNELS = 1;
+const int FRAMES_PER_BUFFER = 512;
+const int OPUS_FRAME_SIZE = (SAMPLE_RATE / 1000.0)*20.0;
+const size_t MAX_SAMPLES = 0.5 * SAMPLE_RATE * NUM_CHANNELS;
+
+static int paCallback(const void *_inputBuffer,
+                      void *_outputBuffer,
+                      unsigned long framesPerBuffer,
+                      const PaStreamCallbackTimeInfo* /*timeInfo*/,
+                      PaStreamCallbackFlags /*statusFlags*/,
+                      void *userData) {
+  // Recast the bits lost in transport
+  const auto *paData = (const MumbleClient::AudioBuffers*) userData;
+  auto *inputBuffer = (int16_t*) _inputBuffer;
+  auto *outputBuffer = (int16_t*) _outputBuffer;
+
+  // Dump the input into the send buffer
+  if(inputBuffer != nullptr && paData->shouldRecord) {
+    // Send the samples into the buffer
+    paData->recordBuffer->push(inputBuffer, 0, framesPerBuffer * NUM_CHANNELS);
+  }
+
+  // Do the same for the playback buffer
+  const size_t requested_samples = (framesPerBuffer * NUM_CHANNELS);
+  const size_t available_samples = paData->playBuffer->getRemaining();
+  if(requested_samples > available_samples) {
+    paData->playBuffer->top(outputBuffer, 0, available_samples);
+    for(size_t i = available_samples; i < requested_samples - available_samples; i++) {
+      outputBuffer[i] = 0;
+    }
+  } else {
+    paData->playBuffer->top(outputBuffer, 0, requested_samples);
+  }
+
+  return paContinue;
+}
+
 //---------------------------------------------------------
 // Constructor
 
-MumbleClient::MumbleClient()
-{
-  mumlib::MumlibConfiguration conf;
-  //conf.opusEncoderBitrate = 32000;
-  mum = new mumlib::Mumlib(this->callbackHandler, conf);
-  this->callbackHandler.mum = this->mum;
+MumbleClient::MumbleClient() {
+  audioBuffers.recordBuffer = std::make_shared<RingBuffer<int16_t>>(MAX_SAMPLES);
+  audioBuffers.playBuffer = std::make_shared<RingBuffer<int16_t>>(MAX_SAMPLES);
+
+  Pa_Initialize();
+
+  Pa_OpenDefaultStream(&audioStream,
+                       NUM_CHANNELS,
+                       NUM_CHANNELS,
+                       paInt16,
+                       SAMPLE_RATE,
+                       OPUS_FRAME_SIZE,
+                       paCallback,
+                       &audioBuffers);
+
+  auto err = Pa_StartStream(audioStream);
+  std::cout << Pa_GetErrorText(err) << std::endl;
 }
 
 //---------------------------------------------------------
@@ -55,23 +104,22 @@ bool MumbleClient::OnNewMail(MOOSMSG_LIST &NewMail)
     bool   mstr  = msg.IsString();
 #endif
 
-     if(key == "SEND_AUDIO")
-       m_sendAudio = msg.GetAsString() == "true";
+    if(key == m_sendAudioKey)
+      audioBuffers.shouldRecord = msg.GetAsString() == "true";
 
-     else if(key != "APPCAST_REQ") // handled by AppCastingMOOSApp
-       reportRunWarning("Unhandled Mail: " + key);
-   }
-	
-   return(true);
+    else if(key != "APPCAST_REQ") // handled by AppCastingMOOSApp
+      reportRunWarning("Unhandled Mail: " + key);
+  }
+
+  return(true);
 }
 
 //---------------------------------------------------------
 // Procedure: OnConnectToServer
 
-bool MumbleClient::OnConnectToServer()
-{
-   registerVariables();
-   return(true);
+bool MumbleClient::OnConnectToServer() {
+  registerVariables();
+  return(true);
 }
 
 //---------------------------------------------------------
@@ -120,25 +168,58 @@ bool MumbleClient::OnStartUp()
 
   }
 
-
-  // Start Mumlib
-  thread server_thread([this]() {
-    this->mum->connect("localhost", 64738, this->m_host_community, "");
-    this->mum->run();
-  });
-
-  server_thread.detach();
+  initMumbleLink();
 
   registerVariables();
 
   return(true);
 }
 
+void MumbleClient::initMumbleLink() {
+  // Begin with everything
+  thread server_thread([this]() {
+
+    // Configure Mumble
+    MumbleCallbackHandler cb(this->audioBuffers.playBuffer);
+    mumlib::MumlibConfiguration conf;
+    //conf.opusEncoderBitrate = 48000; // Higher = better quality, more bandwidth
+    this->mum = new mumlib::Mumlib(cb, conf);
+
+      // Now that mumlib is initialized, add a listener for sending audio data
+      thread sendRecordedAudioThread([this]() {
+          auto *out_buf = new int16_t[MAX_SAMPLES];
+          // TODO This block makes sent audio slightly choppy, it needs to be tweaked
+          while (true) {
+            this->audioBuffers.recordBuffer->top(out_buf, 0, OPUS_FRAME_SIZE);
+            if (!this->audioBuffers.recordBuffer->isEmpty() && this->audioBuffers.recordBuffer->getRemaining() >= OPUS_FRAME_SIZE) {
+              if (this->mum->getConnectionState() == mumlib::ConnectionState::CONNECTED) {
+                this->mum->sendAudioData(out_buf, OPUS_FRAME_SIZE);
+              }
+            } else {
+              std::this_thread::sleep_for(std::chrono::milliseconds(250));
+            }
+          }
+      });
+      sendRecordedAudioThread.detach();
+
+    // Attempt to maintain a connection forever
+    while (this->mum->getConnectionState() != mumlib::ConnectionState::CONNECTED) {
+      try {
+        this->mum->connect("localhost", 64738, this->m_host_community, "");
+        this->mum->run();
+      } catch (std::exception &e) {
+        this->reportRunWarning("There was an issue trying to connect Murmur: " + *e.what());
+        std::this_thread::sleep_for(std::chrono::seconds(3)); // How long to wait until retrying
+      }
+    }
+  });
+  server_thread.detach();
+}
+
 //---------------------------------------------------------
 // Procedure: registerVariables
 
-void MumbleClient::registerVariables()
-{
+void MumbleClient::registerVariables() {
   AppCastingMOOSApp::RegisterVariables();
   Register(m_sendAudioKey, .1); // Add a bit of a delay for a debounce
 }
@@ -147,8 +228,7 @@ void MumbleClient::registerVariables()
 //------------------------------------------------------------
 // Procedure: buildReport()
 
-bool MumbleClient::buildReport() 
-{
+bool MumbleClient::buildReport() {
   m_msgs << "============================================ \n";
   m_msgs << "Mumble Client                                \n";
   m_msgs << "============================================ \n";

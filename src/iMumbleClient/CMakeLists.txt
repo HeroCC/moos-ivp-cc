@@ -9,7 +9,7 @@ SET(SRC
   MumbleClient.cpp
   MumbleClient_Info.cpp
   main.cpp
-        MumbleCallbackHandler.cpp)
+        MumbleCallbackHandler.cpp MumbleCallbackHandler.h SimpleRingBuffer.h)
 
 ADD_EXECUTABLE(iMumbleClient ${SRC})
 
