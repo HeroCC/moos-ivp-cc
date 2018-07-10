@@ -12,7 +12,6 @@
 #include "mumlib/include/mumlib.hpp"
 #include "MumbleCallbackHandler.h"
 #include "SimpleRingBuffer.h"
-#include <boost/circular_buffer.hpp>
 
 class MumbleClient : public AppCastingMOOSApp
 {
@@ -37,7 +36,10 @@ class MumbleClient : public AppCastingMOOSApp
     void initMumbleLink();
 
  private: // Configuration variables
-   std::string m_sendAudioKey = "SEND_AUDIO";
+   std::string m_sendAudioKey = "SPEECH_BUTTON";
+   std::string m_mumbleServerAddress = "localhost";
+   int m_mumbleServerPort = 64738;
+   std::string m_mumbleServerUsername; // Defaults to 'this->m_host_community'
 
  private: // State variables
    mumlib::Mumlib* mum;

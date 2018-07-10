@@ -71,7 +71,11 @@ MumbleClient::MumbleClient() {
                        &audioBuffers);
 
   auto err = Pa_StartStream(audioStream);
-  std::cout << Pa_GetErrorText(err) << std::endl;
+  if (err) {
+    string errText = "Error starting audio engine: ";
+    errText.append(Pa_GetErrorText(err));
+    reportRunWarning(errText);
+  }
 }
 
 //---------------------------------------------------------
@@ -104,8 +108,10 @@ bool MumbleClient::OnNewMail(MOOSMSG_LIST &NewMail)
     bool   mstr  = msg.IsString();
 #endif
 
-    if(key == m_sendAudioKey)
-      audioBuffers.shouldRecord = msg.GetAsString() == "true";
+    if(key == m_sendAudioKey) {
+      m_Comms.Notify("AUDIO_TX", msg.GetAsString());
+      audioBuffers.shouldRecord = toupper(msg.GetAsString()) == "TRUE";
+    }
 
     else if(key != "APPCAST_REQ") // handled by AppCastingMOOSApp
       reportRunWarning("Unhandled Mail: " + key);
@@ -142,6 +148,8 @@ bool MumbleClient::OnStartUp()
 {
   AppCastingMOOSApp::OnStartUp();
 
+  this->m_mumbleServerUsername = this->m_host_community;
+
   STRING_LIST sParams;
   m_MissionReader.EnableVerbatimQuoting(false);
   if(!m_MissionReader.GetConfiguration(GetAppName(), sParams))
@@ -155,13 +163,17 @@ bool MumbleClient::OnStartUp()
     string value = line;
 
     bool handled = true;
-    if(param == "START_MAIL_NAME") {
+    if(param == "AUDIO_TX_KEY") {
       m_sendAudioKey = value;
       Register(value);
+    } else if(param == "SERVER_IP") {
+      m_mumbleServerAddress = value;
+    } else if(param == "SERVER_PORT") {
+      m_mumbleServerPort = stoi(value);
+    } else if (param == "CLIENT_USERNAME") {
+      m_mumbleServerUsername = value;
     }
-    else if(param == "BAR") {
-
-    } else { handled = false; }
+    else { handled = false; }
 
     if(!handled)
       reportUnhandledConfigWarning(orig);
@@ -205,10 +217,13 @@ void MumbleClient::initMumbleLink() {
     // Attempt to maintain a connection forever
     while (this->mum->getConnectionState() != mumlib::ConnectionState::CONNECTED) {
       try {
-        this->mum->connect("localhost", 64738, this->m_host_community, "");
+        this->mum->connect(this->m_mumbleServerAddress, this->m_mumbleServerPort, this->m_mumbleServerUsername, "");
         this->mum->run();
       } catch (std::exception &e) {
-        this->reportRunWarning("There was an issue trying to connect Murmur: " + *e.what());
+        string errMessage = "There was an issue trying to connect Murmur: ";
+        errMessage.append(e.what());
+        this->reportRunWarning(errMessage);
+        this->mum->disconnect(); // After recovering from a bad connection, mumlib fails to reset the connection status
         std::this_thread::sleep_for(std::chrono::seconds(3)); // How long to wait until retrying
       }
     }
@@ -233,6 +248,9 @@ bool MumbleClient::buildReport() {
   m_msgs << "Mumble Client                                \n";
   m_msgs << "============================================ \n";
   m_msgs << "                                             \n";
+  m_msgs << "Connected: " << boolToString(this->mum->getConnectionState() == mumlib::ConnectionState::CONNECTED) << endl;
+  m_msgs << "Username: " << this->m_mumbleServerUsername << endl;
+  m_msgs << "Server: " << this->m_mumbleServerAddress << ":" << intToString(this->m_mumbleServerPort) << endl;
 
   return(true);
 }

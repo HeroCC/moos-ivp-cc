@@ -20,8 +20,8 @@ void showSynopsis()
 {
   blk("SYNOPSIS:                                                       ");
   blk("------------------------------------                            ");
-  blk("  The iMumbleClient application is used for               ");
-  blk("                                                                ");
+  blk("  The iMumbleClient application is used for connecting vehicles ");
+  blk("  to a Mumble VoIP server                                       ");
   blk("                                                                ");
   blk("                                                                ");
   blk("                                                                ");
@@ -64,16 +64,21 @@ void showHelpAndExit()
 
 void showExampleConfigAndExit()
 {
+  blk("All configurations in this app are optional, defaults shown");
   blk("                                                                ");
   blu("=============================================================== ");
-  blu("iMumbleClient Example MOOS Configuration                   ");
+  blu("iMumbleClient Example MOOS Configuration                        ");
   blu("=============================================================== ");
   blk("                                                                ");
-  blk("ProcessConfig = iMumbleClient                              ");
+  blk("ProcessConfig = iMumbleClient                                   ");
   blk("{                                                               ");
   blk("  AppTick   = 4                                                 ");
   blk("  CommsTick = 4                                                 ");
   blk("                                                                ");
+  blk("  AUDIO_TX_KEY = SPEECH_BUTTON                                  ");
+  blk("  SERVER_IP = localhost                                         ");
+  blk("  SERVER_PORT = 64738                                           ");
+  blk("  CLIENT_USERNAME = DefaultsToCommunityName                     ");
   blk("}                                                               ");
   blk("                                                                ");
   exit(0);
@@ -94,12 +99,11 @@ void showInterfaceAndExit()
   blk("                                                                ");
   blk("SUBSCRIPTIONS:                                                  ");
   blk("------------------------------------                            ");
-  blk("  NODE_MESSAGE = src_node=alpha,dest_node=bravo,var_name=FOO,   ");
-  blk("                 string_val=BAR                                 ");
+  blk("  SPEECH_BUTTON = true     ");
   blk("                                                                ");
   blk("PUBLICATIONS:                                                   ");
   blk("------------------------------------                            ");
-  blk("  Publications are determined by the node message content.      ");
+  blk("  AUDIO_TX = true/false when audio is being sent      ");
   blk("                                                                ");
   exit(0);
 }

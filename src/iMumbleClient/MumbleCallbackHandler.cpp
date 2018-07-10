@@ -7,8 +7,6 @@
 
 #include "MumbleCallbackHandler.h"
 
-// TODO Convert from the Blocking I/O Direct write to Callback Methods
-
 MumbleCallbackHandler::MumbleCallbackHandler(std::shared_ptr<RingBuffer<int16_t>> pb): playbackBuffer(pb) {
 
 }
