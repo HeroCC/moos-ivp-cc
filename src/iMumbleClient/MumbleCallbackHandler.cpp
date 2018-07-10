@@ -5,11 +5,12 @@
 /*    DATE: Summer 2018                                     */
 /************************************************************/
 
+#include <MBUtils.h>
 #include "MumbleCallbackHandler.h"
 
 MumbleCallbackHandler::MumbleCallbackHandler(std::shared_ptr<RingBuffer<int16_t>> pb): playbackBuffer(pb) {
 
-}
+};
 
 void MumbleCallbackHandler::audio(int target, int sessionId, int sequenceNumber, int16_t *pcm_data, uint32_t pcm_data_size) {
   playbackBuffer->push(pcm_data, 0, pcm_data_size);
@@ -23,4 +24,12 @@ void MumbleCallbackHandler::textMessage(uint32_t actor,
                                         std::string message) {
   //mum->sendTextMessage("someone said: " + message);
 
+}
+
+void MumbleCallbackHandler::channelState(std::string name, int32_t channel_id, int32_t parent, std::string description,
+                  std::vector<uint32_t> links, std::vector<uint32_t> links_add, std::vector<uint32_t> links_remove,
+                  bool temporary, int32_t position) {
+  if (!strContains(this->channelList, "=" + intToString(channel_id) + ",")) {
+    channelList.append(name + '=' + intToString(channel_id) + ',');
+  }
 }

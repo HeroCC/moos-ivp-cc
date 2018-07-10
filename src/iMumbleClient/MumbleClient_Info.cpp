@@ -79,6 +79,7 @@ void showExampleConfigAndExit()
   blk("  SERVER_IP = localhost                                         ");
   blk("  SERVER_PORT = 64738                                           ");
   blk("  CLIENT_USERNAME = DefaultsToCommunityName                     ");
+  blk("  CHANNEL_ID = -1                                               ");
   blk("}                                                               ");
   blk("                                                                ");
   exit(0);

@@ -135,7 +135,12 @@ bool MumbleClient::OnConnectToServer() {
 bool MumbleClient::Iterate()
 {
   AppCastingMOOSApp::Iterate();
-  // Do your thing here!
+  if (!joinedDefaultChannel &&
+      this->m_mumbleServerChannelId != -1 &&
+      this->mum->getConnectionState() == mumlib::ConnectionState::CONNECTED) {
+    this->joinedDefaultChannel = true;
+    this->mum->joinChannel(this->m_mumbleServerChannelId);
+  }
   AppCastingMOOSApp::PostReport();
   return(true);
 }
@@ -172,6 +177,8 @@ bool MumbleClient::OnStartUp()
       m_mumbleServerPort = stoi(value);
     } else if (param == "CLIENT_USERNAME") {
       m_mumbleServerUsername = value;
+    } else if (param == "CHANNEL_ID") {
+      m_mumbleServerChannelId = stoi(value);
     }
     else { handled = false; }
 
@@ -192,10 +199,10 @@ void MumbleClient::initMumbleLink() {
   thread server_thread([this]() {
 
     // Configure Mumble
-    MumbleCallbackHandler cb(this->audioBuffers.playBuffer);
+    this->cb = new MumbleCallbackHandler(this->audioBuffers.playBuffer);
     mumlib::MumlibConfiguration conf;
     //conf.opusEncoderBitrate = 48000; // Higher = better quality, more bandwidth
-    this->mum = new mumlib::Mumlib(cb, conf);
+    this->mum = new mumlib::Mumlib(*cb, conf);
 
       // Now that mumlib is initialized, add a listener for sending audio data
       thread sendRecordedAudioThread([this]() {
@@ -216,10 +223,11 @@ void MumbleClient::initMumbleLink() {
 
     // Attempt to maintain a connection forever
     while (this->mum->getConnectionState() != mumlib::ConnectionState::CONNECTED) {
+      this->joinedDefaultChannel = false;
       try {
         this->mum->connect(this->m_mumbleServerAddress, this->m_mumbleServerPort, this->m_mumbleServerUsername, "");
         this->mum->run();
-      } catch (std::exception &e) {
+      } catch (mumlib::MumlibException &e) {
         string errMessage = "There was an issue trying to connect Murmur: ";
         errMessage.append(e.what());
         this->reportRunWarning(errMessage);
@@ -244,13 +252,15 @@ void MumbleClient::registerVariables() {
 // Procedure: buildReport()
 
 bool MumbleClient::buildReport() {
-  m_msgs << "============================================ \n";
-  m_msgs << "Mumble Client                                \n";
-  m_msgs << "============================================ \n";
-  m_msgs << "                                             \n";
-  m_msgs << "Connected: " << boolToString(this->mum->getConnectionState() == mumlib::ConnectionState::CONNECTED) << endl;
-  m_msgs << "Username: " << this->m_mumbleServerUsername << endl;
-  m_msgs << "Server: " << this->m_mumbleServerAddress << ":" << intToString(this->m_mumbleServerPort) << endl;
+  m_msgs << "Speaking:   " << boolToString(this->audioBuffers.shouldRecord) << endl;
+  m_msgs << endl;
+  m_msgs << "Connected:  " << boolToString(this->mum->getConnectionState() == mumlib::ConnectionState::CONNECTED) << endl;
+  // TODO This data is what the values are desired to be, consult with mumlib::userState for real information
+  m_msgs << "Username:   " << this->m_mumbleServerUsername << endl;
+  m_msgs << "Server:     " << this->m_mumbleServerAddress << ":" << intToString(this->m_mumbleServerPort) << endl;
+  m_msgs << "Channel ID: " << intToString(this->m_mumbleServerChannelId) << endl;
+  m_msgs << endl;
+  m_msgs << "Channels:   " << this->cb->channelList << endl;
 
   return(true);
 }
