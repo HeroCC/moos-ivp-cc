@@ -5,5 +5,11 @@ ProcessConfig = iMumbleClient
 {
    AppTick   = 4
    CommsTick = 4
+
+   AUDIO_TX_KEY = SPEECH_BUTTON
+   SERVER_IP = localhost
+   SERVER_PORT = 64738
+   CLIENT_USERNAME = DefaultsToCommunityName
+   CHANNEL_ID = -1
 }
 
