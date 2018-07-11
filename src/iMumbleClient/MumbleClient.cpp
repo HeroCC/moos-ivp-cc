@@ -66,7 +66,7 @@ MumbleClient::MumbleClient() {
                        NUM_CHANNELS,
                        paInt16,
                        SAMPLE_RATE,
-                       OPUS_FRAME_SIZE,
+                       FRAMES_PER_BUFFER,
                        paCallback,
                        &audioBuffers);
 
@@ -204,23 +204,6 @@ void MumbleClient::initMumbleLink() {
     //conf.opusEncoderBitrate = 48000; // Higher = better quality, more bandwidth
     this->mum = new mumlib::Mumlib(*cb, conf);
 
-      // Now that mumlib is initialized, add a listener for sending audio data
-      thread sendRecordedAudioThread([this]() {
-          auto *out_buf = new int16_t[MAX_SAMPLES];
-          // TODO This block makes sent audio slightly choppy, it needs to be tweaked
-          while (true) {
-            this->audioBuffers.recordBuffer->top(out_buf, 0, OPUS_FRAME_SIZE);
-            if (!this->audioBuffers.recordBuffer->isEmpty() && this->audioBuffers.recordBuffer->getRemaining() >= OPUS_FRAME_SIZE) {
-              if (this->mum->getConnectionState() == mumlib::ConnectionState::CONNECTED) {
-                this->mum->sendAudioData(out_buf, OPUS_FRAME_SIZE);
-              }
-            } else {
-              std::this_thread::sleep_for(std::chrono::milliseconds(250));
-            }
-          }
-      });
-      sendRecordedAudioThread.detach();
-
     // Attempt to maintain a connection forever
     while (this->mum->getConnectionState() != mumlib::ConnectionState::CONNECTED) {
       this->joinedDefaultChannel = false;
@@ -237,6 +220,23 @@ void MumbleClient::initMumbleLink() {
     }
   });
   server_thread.detach();
+
+
+  // Now that mumlib is initialized, add a listener for sending audio data
+  thread sendRecordedAudioThread([this]() {
+      auto *out_buf = new int16_t[MAX_SAMPLES];
+      while (true) {
+        if (!this->audioBuffers.recordBuffer->isEmpty() && this->audioBuffers.recordBuffer->getRemaining() >= OPUS_FRAME_SIZE) {
+          this->audioBuffers.recordBuffer->top(out_buf, 0, OPUS_FRAME_SIZE);
+          if (this->mum != nullptr && this->mum->getConnectionState() == mumlib::ConnectionState::CONNECTED) {
+            this->mum->sendAudioData(out_buf, OPUS_FRAME_SIZE);
+          }
+        } else {
+          std::this_thread::sleep_for(std::chrono::milliseconds(20));
+        }
+      }
+  });
+  sendRecordedAudioThread.detach();
 }
 
 //---------------------------------------------------------
