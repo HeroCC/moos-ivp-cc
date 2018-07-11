@@ -18,7 +18,7 @@ class GenPath : public AppCastingMOOSApp
    GenPath();
    ~GenPath();
 
- protected: // Standard MOOSApp functions to overload  
+ protected: // Standard MOOSApp functions to overload
    bool OnNewMail(MOOSMSG_LIST &NewMail);
    bool Iterate();
    bool OnConnectToServer();
@@ -27,7 +27,7 @@ class GenPath : public AppCastingMOOSApp
 
  protected:
    void RegisterVariables();
-    double pointDistance(double x1, double x2, double y1, double y2);
+    double pointDistance(double x1, double y1, double x2, double y2);
 
  private: // Configuration variables
     XYSegList points;
@@ -43,4 +43,4 @@ class GenPath : public AppCastingMOOSApp
     bool checkPointRange(double x1, double y1, double x2, double y2);
 };
 
-#endif 
+#endif
