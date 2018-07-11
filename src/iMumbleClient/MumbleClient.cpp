@@ -253,6 +253,7 @@ void MumbleClient::registerVariables() {
 
 bool MumbleClient::buildReport() {
   m_msgs << "Speaking:   " << boolToString(this->audioBuffers.shouldRecord) << endl;
+  m_msgs << "Trigger:    " << this->m_sendAudioKey << endl;
   m_msgs << endl;
   m_msgs << "Connected:  " << boolToString(this->mum->getConnectionState() == mumlib::ConnectionState::CONNECTED) << endl;
   // TODO This data is what the values are desired to be, consult with mumlib::userState for real information
