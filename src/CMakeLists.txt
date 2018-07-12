@@ -14,6 +14,10 @@ INCLUDE_DIRECTORIES(${LOCAL_LIBRARY_DIRS})
 #============================================================================
 # List the subdirectories to build...
 #============================================================================
+
+#SET(BUILD_LABS please) # Uncomment this to build the labs
+
+IF(BUILD_LABS)
 ADD_SUBDIRECTORY(lib_behaviors-test)
 ADD_SUBDIRECTORY(pXRelayTest)
 ADD_SUBDIRECTORY(pExampleApp)
@@ -23,8 +27,10 @@ ADD_SUBDIRECTORY(pPrimeFactorTester)
 ADD_SUBDIRECTORY(pOdometry)
 ADD_SUBDIRECTORY(pPointAssign)
 ADD_SUBDIRECTORY(pGenPath)
-ADD_SUBDIRECTORY(pWebSocketServer)
 ADD_SUBDIRECTORY(uFldHazardMgrX)
+ENDIF()
+
+ADD_SUBDIRECTORY(pWebSocketServer)
 ADD_SUBDIRECTORY(iMumbleClient)
 
 ##############################################################################
