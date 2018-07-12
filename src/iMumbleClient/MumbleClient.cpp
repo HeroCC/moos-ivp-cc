@@ -4,7 +4,7 @@
 /*    FILE: MumbleClient.cpp                                */
 /*    DATE: Summer 2018                                     */
 /*    Attributions: Hunter522's mumpi, Slomkowski's mumlib, */
-/*                  The Mumble team, and Misha
+/*                  The Mumble team, and Misha              */
 /************************************************************/
 
 #include <iterator>

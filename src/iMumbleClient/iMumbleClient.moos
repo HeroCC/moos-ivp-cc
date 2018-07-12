@@ -9,7 +9,7 @@ ProcessConfig = iMumbleClient
    AUDIO_TX_KEY = SPEECH_BUTTON
    SERVER_IP = localhost
    SERVER_PORT = 64738
-   CLIENT_USERNAME = DefaultsToCommunityName
+   //CLIENT_USERNAME = DefaultsToCommunityName
    CHANNEL_ID = -1
 }
 
