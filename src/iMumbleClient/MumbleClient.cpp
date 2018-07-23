@@ -138,10 +138,17 @@ bool MumbleClient::Iterate()
 {
   AppCastingMOOSApp::Iterate();
   if (!joinedDefaultChannel &&
-      this->m_mumbleServerChannelId != -1 &&
+      this->m_mumbleServerChannelId != "-1" &&
       this->mum->getConnectionState() == mumlib::ConnectionState::CONNECTED) {
+    if (isInteger(this->m_mumbleServerChannelId)) {
+      cout << "this thing" << endl;
+      this->mum->joinChannel(stoi(this->m_mumbleServerChannelId));
+    } else {
+      string channelId = tokStringParse(this->cb->channelList, this->m_mumbleServerChannelId, ',', '=');
+      cout << ("Found channel ID " + channelId + " matching " + m_mumbleServerChannelId) << endl;
+      this->mum->joinChannel(stoi(channelId));
+    }
     this->joinedDefaultChannel = true;
-    this->mum->joinChannel(this->m_mumbleServerChannelId);
   }
   AppCastingMOOSApp::PostReport();
   return(true);
@@ -180,7 +187,7 @@ bool MumbleClient::OnStartUp()
     } else if (param == "CLIENT_USERNAME") {
       m_mumbleServerUsername = value;
     } else if (param == "CHANNEL_ID") {
-      m_mumbleServerChannelId = stoi(value);
+      m_mumbleServerChannelId = value;
     }
     else { handled = false; }
 
@@ -261,12 +268,19 @@ bool MumbleClient::buildReport() {
   // TODO This data is what the values are desired to be, consult with mumlib::userState for real information
   m_msgs << "Username:   " << this->m_mumbleServerUsername << endl;
   m_msgs << "Server:     " << this->m_mumbleServerAddress << ":" << intToString(this->m_mumbleServerPort) << endl;
-  m_msgs << "Channel ID: " << intToString(this->m_mumbleServerChannelId) << endl;
+  m_msgs << "Channel ID: " << this->m_mumbleServerChannelId << endl;
   m_msgs << endl;
   m_msgs << "Channels:   " << this->cb->channelList << endl;
 
   return(true);
 }
 
+bool MumbleClient::isInteger(const std::string& s) {
+  // Thanks https://stackoverflow.com/a/2845275/1709894
+  if (s.empty() || ((!isdigit(s[0])) && (s[0] != '-') && (s[0] != '+'))) return false;
 
+  char* p;
+  strtol(s.c_str(), &p, 10);
 
+  return (*p == 0);
+}
