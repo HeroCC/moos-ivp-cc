@@ -7,6 +7,7 @@
 /*                  The Mumble team, and Misha              */
 /************************************************************/
 
+#include <thread>
 #include <iterator>
 #include "MBUtils.h"
 #include "ACTable.h"
