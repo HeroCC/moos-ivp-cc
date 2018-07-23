@@ -141,11 +141,10 @@ bool MumbleClient::Iterate()
       this->m_mumbleServerChannelId != "-1" &&
       this->mum->getConnectionState() == mumlib::ConnectionState::CONNECTED) {
     if (isInteger(this->m_mumbleServerChannelId)) {
-      cout << "this thing" << endl;
       this->mum->joinChannel(stoi(this->m_mumbleServerChannelId));
     } else {
       string channelId = tokStringParse(this->cb->channelList, this->m_mumbleServerChannelId, ',', '=');
-      cout << ("Found channel ID " + channelId + " matching " + m_mumbleServerChannelId) << endl;
+      reportEvent("Found channel ID " + channelId + " matching " + m_mumbleServerChannelId);
       this->mum->joinChannel(stoi(channelId));
     }
     this->joinedDefaultChannel = true;
