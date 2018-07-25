@@ -234,13 +234,22 @@ void MumbleClient::initMumbleLink() {
   // Now that mumlib is initialized, add a listener for sending audio data
   thread sendRecordedAudioThread([this]() {
       auto *out_buf = new int16_t[MAX_SAMPLES];
+      bool notifiedSendingAudio = false;
       while (true) {
         if (!this->audioBuffers.recordBuffer->isEmpty() && this->audioBuffers.recordBuffer->getRemaining() >= OPUS_FRAME_SIZE) {
+          if (!notifiedSendingAudio) {
+            Notify("SENDING_VOIP_AUDIO", "status=TRUE,chan=" + this->m_mumbleServerChannelId);
+            notifiedSendingAudio = true;
+          }
           this->audioBuffers.recordBuffer->top(out_buf, 0, OPUS_FRAME_SIZE);
           if (this->mum != nullptr && this->mum->getConnectionState() == mumlib::ConnectionState::CONNECTED) {
             this->mum->sendAudioData(out_buf, OPUS_FRAME_SIZE);
           }
         } else {
+          if (notifiedSendingAudio && !this->audioBuffers.shouldRecord) {
+            Notify("SENDING_VOIP_AUDIO", "status=FALSE,chan=" + this->m_mumbleServerChannelId);
+            notifiedSendingAudio = false;
+          }
           std::this_thread::sleep_for(std::chrono::milliseconds(20));
         }
       }
