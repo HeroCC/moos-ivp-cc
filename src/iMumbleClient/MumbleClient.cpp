@@ -150,6 +150,17 @@ bool MumbleClient::Iterate()
     }
     this->joinedDefaultChannel = true;
   }
+
+  // Tell the DB we are hearing things
+  if (this->audioBuffers.playBuffer->isEmpty() && this->notifiedHearingAudio) {
+    // Not hearing anything, need to notify
+    Notify("HEARING_VOIP_AUDIO", "status=FALSE,inChan=" + this->m_mumbleServerChannelId);
+    this->notifiedHearingAudio = false;
+  } else if (!this->audioBuffers.playBuffer->isEmpty() && !this->notifiedHearingAudio) {
+    // Hearing things, need to notify
+    Notify("HEARING_VOIP_AUDIO", "status=TRUE,inChan=" + this->m_mumbleServerChannelId);
+    this->notifiedHearingAudio = true;
+  }
   AppCastingMOOSApp::PostReport();
   return(true);
 }
@@ -238,7 +249,7 @@ void MumbleClient::initMumbleLink() {
       while (true) {
         if (!this->audioBuffers.recordBuffer->isEmpty() && this->audioBuffers.recordBuffer->getRemaining() >= OPUS_FRAME_SIZE) {
           if (!notifiedSendingAudio) {
-            Notify("SENDING_VOIP_AUDIO", "status=TRUE,chan=" + this->m_mumbleServerChannelId);
+            Notify("SENDING_VOIP_AUDIO", "status=TRUE,inChan=" + this->m_mumbleServerChannelId);
             notifiedSendingAudio = true;
           }
           this->audioBuffers.recordBuffer->top(out_buf, 0, OPUS_FRAME_SIZE);
@@ -247,7 +258,7 @@ void MumbleClient::initMumbleLink() {
           }
         } else {
           if (notifiedSendingAudio && !this->audioBuffers.shouldRecord) {
-            Notify("SENDING_VOIP_AUDIO", "status=FALSE,chan=" + this->m_mumbleServerChannelId);
+            Notify("SENDING_VOIP_AUDIO", "status=FALSE,inChan=" + this->m_mumbleServerChannelId);
             notifiedSendingAudio = false;
           }
           std::this_thread::sleep_for(std::chrono::milliseconds(20));

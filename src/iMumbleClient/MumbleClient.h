@@ -49,6 +49,7 @@ class MumbleClient : public AppCastingMOOSApp
    AudioBuffers audioBuffers;
    MumbleCallbackHandler* cb;
    bool joinedDefaultChannel = false;
+   bool notifiedHearingAudio = false;
 };
 
 #endif
