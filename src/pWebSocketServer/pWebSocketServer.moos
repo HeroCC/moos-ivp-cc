@@ -6,6 +6,9 @@ ProcessConfig = pWebSocketServer
    AppTick   = 4
    CommsTick = 4
    WSPort = 9090
-   AllowSubmissions = true
+   AllowSubmissions = true // Allow submissions from clients
+   Password = YOUR_PASSWORD // Restrict submissions with a password
+   Replay = APPCAST
+   Replay = VIEW_MARKER
 }
 

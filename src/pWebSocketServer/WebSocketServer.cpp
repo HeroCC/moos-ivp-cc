@@ -58,6 +58,10 @@ bool WebSocketServer::OnNewMail(MOOSMSG_LIST &NewMail)
 
     this->m_recentMail[key] = sendMe;
 
+    if (this->m_playbackMail.count(key) != 0) {
+      this->m_playbackMail[key]->push(sendMe);
+    }
+
     // Forward the rest to clients
     checkRegisteredClients(key, sendMe);
 
@@ -117,6 +121,13 @@ bool WebSocketServer::OnStartUp()
       allowSubmissions = false;
     } else if (param == "PASSWORD") {
       this->password = value;
+    } else if (param == "REPLAY_SIZE") {
+      this->maxReplaySize = stoi(value);
+    } else if (param == "REPLAY") {
+      m_Comms.Register(value);
+
+      shared_ptr<RingBuffer<string>> playbackBuffer (new RingBuffer<string>(this->maxReplaySize));
+      this->m_playbackMail[value] = move(playbackBuffer);
     }
   }
 
@@ -126,6 +137,7 @@ bool WebSocketServer::OnStartUp()
 
   reportEvent("Attempting to start WebSocket server on: " + wsServer.config.address + ":" + itos(wsServer.config.port));
   thread server_thread([this]() {
+    // TODO Catch address / port already in use
     this->wsServer.start();
   });
 
@@ -167,6 +179,17 @@ void WebSocketServer::registerMailEndpoint() {
         m_Comms.Notify(target, message_str);
       }
     } else {
+      if (this->m_playbackMail.count(message_str) != 0
+          && this->m_playbackMail[message_str]->getRemaining() != 0
+          && client->getSubscribedMail().count(message_str) == 0) {
+        string bufferedReplay[this->m_playbackMail[message_str]->getRemaining()];
+        this->m_playbackMail[message_str]->topRemaining(bufferedReplay);
+
+        for (int i = 0; i < this->m_playbackMail[message_str]->getRemaining(); ++i) {
+          client->sendMail(message_str + '=' + bufferedReplay[i]);
+        }
+      }
+
       client->addSubscribedMail(message_str);
       if (this->m_recentMail.count(message_str)) {
         // In case we have already subscribed to the mail elsewhere, make sure to forward the most recent value we have
@@ -193,7 +216,7 @@ void WebSocketServer::handleInternalMessage(string message_str, const shared_ptr
   message_str.erase(0, message_str.find(delim) + delim.length());
 
   if (target == "$SetPassword") {
-    if (message_str == this->password) client->isAuthenticated = true;
+    if (message_str == this->password) client->isAuthenticated = true; // IDEs say this does nothing. IDEs are wrong
   }
 }
 
@@ -234,9 +257,9 @@ void WebSocketServer::registerVariables()
 
 bool WebSocketServer::buildReport() 
 {
-  //m_msgs << "============================================ \n";
-  //m_msgs << "File:                                        \n";
-  //m_msgs << "============================================ \n";
+
+  m_msgs << "Max Replay Size: " << intToString(this->maxReplaySize) << endl;
+  m_msgs << endl;
 
   ACTable actab(3);
   actab << "Location | Subscribed Messages | Auth";

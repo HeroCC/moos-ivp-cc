@@ -10,6 +10,7 @@
 
 #include "MOOS/libMOOS/Thirdparty/AppCasting/AppCastingMOOSApp.h"
 #include "WebSocketClient.h"
+#include "SimpleRingBuffer.h"
 
 /* WebSocket libraries:
  * https://github.com/eidheim/Simple-WebSocket-Server
@@ -41,10 +42,12 @@ class WebSocketServer : public AppCastingMOOSApp
  private: // Configuration variables
     bool allowSubmissions = false;
     std::string password = "";
+    short unsigned int maxReplaySize = 20; // Max is 65535
 
  private: // State variables
     WsServer wsServer;
     std::map<std::string, std::string> m_recentMail;
+    std::map<std::string, std::shared_ptr<RingBuffer<std::string>>> m_playbackMail;
 
     std::shared_ptr<WebSocketClient>
     getClientByConnection(std::shared_ptr<SimpleWeb::SocketServerBase<SimpleWeb::WS>::Connection> connection);

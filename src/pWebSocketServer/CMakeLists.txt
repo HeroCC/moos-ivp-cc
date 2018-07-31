@@ -7,10 +7,10 @@ add_subdirectory(Simple-WebSocket-Server)
 
 
 SET(SRC
-  WebSocketServer.cpp
-  WebSocketServer_Info.cpp
+  WebSocketServer.cpp WebSocketServer_Info.cpp
   main.cpp
-        WebSocketClient.cpp WebSocketClient.h)
+  WebSocketClient.cpp WebSocketClient.h
+  SimpleRingBuffer.h)
 
 ADD_EXECUTABLE(pWebSocketServer ${SRC})
 
