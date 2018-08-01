@@ -104,8 +104,12 @@ void showInterfaceAndExit()
   blk("                                                                ");
   blk("PUBLICATIONS:                                                   ");
   blk("------------------------------------                            ");
-  blk("  AUDIO_TX = true/false when audio is being sent      ");
-  blk("                                                                ");
+  blk("  VOIP_AUDIO_TX = true/false when audio is being sent      ");
+  blk("  VOIP_HEARING_AUDIO = status=TRUE,inChan=blue       ");
+  blk("       Status is true/false when we are sending audio,"
+      "       InChan is the name or ID of the channel we think we are in");
+  blk("  VOIP_SENDING_AUDIO = status=TRUE,inChan=blue      ");
+  blk("       Same as above                  ");
   exit(0);
 }
 

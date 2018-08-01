@@ -112,7 +112,7 @@ bool MumbleClient::OnNewMail(MOOSMSG_LIST &NewMail)
 #endif
 
     if(key == m_sendAudioKey) {
-      m_Comms.Notify("AUDIO_TX", msg.GetAsString());
+      m_Comms.Notify("VOIP_AUDIO_TX", msg.GetAsString());
       audioBuffers.shouldRecord = toupper(msg.GetAsString()) == "TRUE";
     }
 
@@ -154,11 +154,11 @@ bool MumbleClient::Iterate()
   // Tell the DB we are hearing things
   if (this->audioBuffers.playBuffer->isEmpty() && this->notifiedHearingAudio) {
     // Not hearing anything, need to notify
-    Notify("HEARING_VOIP_AUDIO", "status=FALSE,inChan=" + this->m_mumbleServerChannelId);
+    Notify("VOIP_HEARING_AUDIO", "status=FALSE,inChan=" + this->m_mumbleServerChannelId);
     this->notifiedHearingAudio = false;
   } else if (!this->audioBuffers.playBuffer->isEmpty() && !this->notifiedHearingAudio) {
     // Hearing things, need to notify
-    Notify("HEARING_VOIP_AUDIO", "status=TRUE,inChan=" + this->m_mumbleServerChannelId);
+    Notify("VOIP_HEARING_AUDIO", "status=TRUE,inChan=" + this->m_mumbleServerChannelId);
     this->notifiedHearingAudio = true;
   }
   AppCastingMOOSApp::PostReport();
@@ -249,7 +249,7 @@ void MumbleClient::initMumbleLink() {
       while (true) {
         if (!this->audioBuffers.recordBuffer->isEmpty() && this->audioBuffers.recordBuffer->getRemaining() >= OPUS_FRAME_SIZE) {
           if (!notifiedSendingAudio) {
-            Notify("SENDING_VOIP_AUDIO", "status=TRUE,inChan=" + this->m_mumbleServerChannelId);
+            Notify("VOIP_SENDING_AUDIO", "status=TRUE,inChan=" + this->m_mumbleServerChannelId);
             notifiedSendingAudio = true;
           }
           this->audioBuffers.recordBuffer->top(out_buf, 0, OPUS_FRAME_SIZE);
@@ -258,7 +258,7 @@ void MumbleClient::initMumbleLink() {
           }
         } else {
           if (notifiedSendingAudio && !this->audioBuffers.shouldRecord) {
-            Notify("SENDING_VOIP_AUDIO", "status=FALSE,inChan=" + this->m_mumbleServerChannelId);
+            Notify("VOIP_SENDING_AUDIO", "status=FALSE,inChan=" + this->m_mumbleServerChannelId);
             notifiedSendingAudio = false;
           }
           std::this_thread::sleep_for(std::chrono::milliseconds(20));
