@@ -140,6 +140,7 @@ bool MumbleClient::Iterate()
   AppCastingMOOSApp::Iterate();
   if (!joinedDefaultChannel &&
       this->m_mumbleServerChannelId != "-1" &&
+      this->mum != nullptr &&
       this->mum->getConnectionState() == mumlib::ConnectionState::CONNECTED) {
     if (isInteger(this->m_mumbleServerChannelId)) {
       this->mum->joinChannel(stoi(this->m_mumbleServerChannelId));

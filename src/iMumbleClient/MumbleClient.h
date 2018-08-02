@@ -48,7 +48,7 @@ class MumbleClient : public AppCastingMOOSApp
    PaStream* audioStream;
    AudioBuffers audioBuffers;
    MumbleCallbackHandler* cb;
-   bool joinedDefaultChannel = false;
+   bool joinedDefaultChannel = true; // Starts as true to avoid issues with Iterate and Thread race conditions
    bool notifiedHearingAudio = false;
 };
 
