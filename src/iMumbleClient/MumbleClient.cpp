@@ -9,6 +9,7 @@
 
 #include <thread>
 #include <iterator>
+#include <mutex>
 #include "MBUtils.h"
 #include "ACTable.h"
 #include "MumbleClient.h"
@@ -16,6 +17,8 @@
 #include "portaudio.h"
 
 using namespace std;
+
+mutex mumLibLock;
 
 const int SAMPLE_RATE = 48000;
 const int NUM_CHANNELS = 1;
@@ -139,6 +142,7 @@ bool MumbleClient::Iterate()
 {
   AppCastingMOOSApp::Iterate();
   if (!joinedDefaultChannel &&
+      mumLibLock.try_lock() &&
       this->m_mumbleServerChannelId != "-1" &&
       this->mum != nullptr &&
       this->mum->getConnectionState() == mumlib::ConnectionState::CONNECTED) {
@@ -150,6 +154,7 @@ bool MumbleClient::Iterate()
       this->mum->joinChannel(stoi(channelId));
     }
     this->joinedDefaultChannel = true;
+    mumLibLock.unlock();
   }
 
   // Tell the DB we are hearing things
@@ -218,6 +223,7 @@ bool MumbleClient::OnStartUp()
 void MumbleClient::initMumbleLink() {
   // Begin with everything
   thread server_thread([this]() {
+    mumLibLock.lock();
 
     // Configure Mumble
     this->cb = new MumbleCallbackHandler(this->audioBuffers.playBuffer);
@@ -227,9 +233,10 @@ void MumbleClient::initMumbleLink() {
 
     // Attempt to maintain a connection forever
     while (this->mum->getConnectionState() != mumlib::ConnectionState::CONNECTED) {
-      this->joinedDefaultChannel = false;
       try {
         this->mum->connect(this->m_mumbleServerAddress, this->m_mumbleServerPort, this->m_mumbleServerUsername, "");
+        this->joinedDefaultChannel = false;
+        mumLibLock.unlock();
         this->mum->run();
       } catch (mumlib::MumlibException &e) {
         string errMessage = "There was an issue trying to connect Murmur: ";
@@ -285,7 +292,9 @@ bool MumbleClient::buildReport() {
   m_msgs << "Speaking:   " << boolToString(this->audioBuffers.shouldRecord) << endl;
   m_msgs << "Trigger:    " << this->m_sendAudioKey << endl;
   m_msgs << endl;
+  mumLibLock.lock();
   m_msgs << "Connected:  " << boolToString(this->mum->getConnectionState() == mumlib::ConnectionState::CONNECTED) << endl;
+  mumLibLock.unlock();
   // TODO This data is what the values are desired to be, consult with mumlib::userState for real information
   m_msgs << "Username:   " << this->m_mumbleServerUsername << endl;
   m_msgs << "Server:     " << this->m_mumbleServerAddress << ":" << intToString(this->m_mumbleServerPort) << endl;
