@@ -223,12 +223,11 @@ bool MumbleClient::OnStartUp()
 void MumbleClient::initMumbleLink() {
   // Begin with everything
   thread server_thread([this]() {
-    mumLibLock.lock();
-
     // Configure Mumble
     this->cb = new MumbleCallbackHandler(this->audioBuffers.playBuffer);
     mumlib::MumlibConfiguration conf;
     //conf.opusEncoderBitrate = 48000; // Higher = better quality, more bandwidth
+    mumLibLock.lock();
     this->mum = new mumlib::Mumlib(*cb, conf);
 
     // Attempt to maintain a connection forever
@@ -290,6 +289,7 @@ void MumbleClient::registerVariables() {
 
 bool MumbleClient::buildReport() {
   m_msgs << "Speaking:   " << boolToString(this->audioBuffers.shouldRecord) << endl;
+  m_msgs << "Hearing:    " << boolToString(this->notifiedHearingAudio) << endl;
   m_msgs << "Trigger:    " << this->m_sendAudioKey << endl;
   m_msgs << endl;
   mumLibLock.lock();
