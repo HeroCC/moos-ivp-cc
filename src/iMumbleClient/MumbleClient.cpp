@@ -7,6 +7,10 @@
 /*                  The Mumble team, and Misha              */
 /************************************************************/
 
+#ifdef DUMP_CORE
+#include <sys/resource.h>
+#endif
+
 #include <thread>
 #include <iterator>
 #include <mutex>
@@ -58,10 +62,29 @@ static int paCallback(const void *_inputBuffer,
   return paContinue;
 }
 
+static bool isInteger(const std::string& s) {
+  // Thanks https://stackoverflow.com/a/2845275/1709894
+  if (s.empty() || ((!isdigit(s[0])) && (s[0] != '-') && (s[0] != '+'))) return false;
+
+  char* p;
+  strtol(s.c_str(), &p, 10);
+
+  return (*p == 0);
+}
+
 //---------------------------------------------------------
 // Constructor
 
 MumbleClient::MumbleClient() {
+  #ifdef DUMP_CORE
+  // https://stackoverflow.com/a/15395871/1709894
+  reportConfigWarning("Core Dumps Enabled: " + intToString(getpid()));
+  cout << "PID:" << getpid() << endl;
+  struct rlimit core_limits;
+  core_limits.rlim_cur = core_limits.rlim_max = RLIM_INFINITY;
+  setrlimit(RLIMIT_CORE, &core_limits);
+  #endif
+
   audioBuffers.recordBuffer = std::make_shared<RingBuffer<int16_t>>(MAX_SAMPLES);
   audioBuffers.playBuffer = std::make_shared<RingBuffer<int16_t>>(MAX_SAMPLES);
 
@@ -131,6 +154,7 @@ bool MumbleClient::OnNewMail(MOOSMSG_LIST &NewMail)
 
 bool MumbleClient::OnConnectToServer() {
   registerVariables();
+  initMumbleLink();
   return(true);
 }
 
@@ -141,22 +165,6 @@ bool MumbleClient::OnConnectToServer() {
 bool MumbleClient::Iterate()
 {
   AppCastingMOOSApp::Iterate();
-  if (!joinedDefaultChannel &&
-      mumLibLock.try_lock() &&
-      this->m_mumbleServerChannelId != "-1" &&
-      this->mum != nullptr &&
-      this->mum->getConnectionState() == mumlib::ConnectionState::CONNECTED) {
-    if (isInteger(this->m_mumbleServerChannelId)) {
-      this->mum->joinChannel(stoi(this->m_mumbleServerChannelId));
-    } else {
-      string channelId = tokStringParse(this->cb->channelList, this->m_mumbleServerChannelId, ',', '=');
-      reportEvent("Found channel ID " + channelId + " matching " + m_mumbleServerChannelId);
-      this->mum->joinChannel(stoi(channelId));
-    }
-    this->joinedDefaultChannel = true;
-    mumLibLock.unlock();
-  }
-
   // Tell the DB we are hearing things
   if (this->audioBuffers.playBuffer->isEmpty() && this->notifiedHearingAudio) {
     // Not hearing anything, need to notify
@@ -167,6 +175,27 @@ bool MumbleClient::Iterate()
     Notify("VOIP_HEARING_AUDIO", "status=TRUE,inChan=" + this->m_mumbleServerChannelId);
     this->notifiedHearingAudio = true;
   }
+
+  if (this->m_mumbleServerChannelId != "-1" && !joinedDefaultChannel && this->mumConnected && mumLibLock.try_lock()) {
+    if (isInteger(this->m_mumbleServerChannelId)) {
+      this->mum->joinChannel(stoi(this->m_mumbleServerChannelId));
+      this->joinedDefaultChannel = true;
+    } else {
+      string channelId = tokStringParse(this->cb->channelList, this->m_mumbleServerChannelId, ',', '=');
+      if (!channelId.empty()) {
+        reportEvent("Found channel ID " + channelId + " matching " + m_mumbleServerChannelId);
+        this->mum->joinChannel(stoi(channelId));
+        this->joinedDefaultChannel = true;
+      }
+    }
+    mumLibLock.unlock();
+  }
+
+  mumLibLock.lock();
+  this->mumConnected = (this->mum != nullptr && this->cb != nullptr
+    && this->cb->connectedOnce && this->mum->getConnectionState() == mumlib::ConnectionState::CONNECTED);
+  mumLibLock.unlock();
+
   AppCastingMOOSApp::PostReport();
   return(true);
 }
@@ -213,8 +242,6 @@ bool MumbleClient::OnStartUp()
 
   }
 
-  initMumbleLink();
-
   registerVariables();
 
   return(true);
@@ -227,21 +254,25 @@ void MumbleClient::initMumbleLink() {
     this->cb = new MumbleCallbackHandler(this->audioBuffers.playBuffer);
     mumlib::MumlibConfiguration conf;
     //conf.opusEncoderBitrate = 48000; // Higher = better quality, more bandwidth
-    mumLibLock.lock();
     this->mum = new mumlib::Mumlib(*cb, conf);
 
     // Attempt to maintain a connection forever
-    while (this->mum->getConnectionState() != mumlib::ConnectionState::CONNECTED) {
+    while (!mumConnected) {
       try {
+        mumLibLock.lock();
         this->mum->connect(this->m_mumbleServerAddress, this->m_mumbleServerPort, this->m_mumbleServerUsername, "");
         this->joinedDefaultChannel = false;
+        this->mumConnected = true;
         mumLibLock.unlock();
         this->mum->run();
       } catch (mumlib::MumlibException &e) {
+        this->mumConnected = false;
         string errMessage = "There was an issue trying to connect Murmur: ";
         errMessage.append(e.what());
         this->reportRunWarning(errMessage);
         this->mum->disconnect(); // After recovering from a bad connection, mumlib fails to reset the connection status
+        mumLibLock.unlock();
+        this->audioBuffers.recordBuffer->empty(); // Clear the buffer
         std::this_thread::sleep_for(std::chrono::seconds(3)); // How long to wait until retrying
       }
     }
@@ -260,7 +291,7 @@ void MumbleClient::initMumbleLink() {
             notifiedSendingAudio = true;
           }
           this->audioBuffers.recordBuffer->top(out_buf, 0, OPUS_FRAME_SIZE);
-          if (this->mum != nullptr && this->mum->getConnectionState() == mumlib::ConnectionState::CONNECTED) {
+          if (this->mumConnected) {
             this->mum->sendAudioData(out_buf, OPUS_FRAME_SIZE);
           }
         } else {
@@ -288,13 +319,13 @@ void MumbleClient::registerVariables() {
 // Procedure: buildReport()
 
 bool MumbleClient::buildReport() {
-  m_msgs << "Speaking:   " << boolToString(this->audioBuffers.shouldRecord) << endl;
-  m_msgs << "Hearing:    " << boolToString(this->notifiedHearingAudio) << endl;
+  m_msgs << "Speaking:   " << boolToString(this->audioBuffers.shouldRecord) <<
+         " (" << ulintToString(this->audioBuffers.recordBuffer->getRemaining()) << ")" << endl;
+  m_msgs << "Hearing:    " << boolToString(this->notifiedHearingAudio) <<
+         " (" << ulintToString(this->audioBuffers.playBuffer->getRemaining()) << ")" << endl;
   m_msgs << "Trigger:    " << this->m_sendAudioKey << endl;
   m_msgs << endl;
-  mumLibLock.lock();
-  m_msgs << "Connected:  " << boolToString(this->mum->getConnectionState() == mumlib::ConnectionState::CONNECTED) << endl;
-  mumLibLock.unlock();
+  m_msgs << "Connected:  " << boolToString(this->mumConnected) << endl;
   // TODO This data is what the values are desired to be, consult with mumlib::userState for real information
   m_msgs << "Username:   " << this->m_mumbleServerUsername << endl;
   m_msgs << "Server:     " << this->m_mumbleServerAddress << ":" << intToString(this->m_mumbleServerPort) << endl;
@@ -303,14 +334,4 @@ bool MumbleClient::buildReport() {
   m_msgs << "Channels:   " << this->cb->channelList << endl;
 
   return(true);
-}
-
-bool MumbleClient::isInteger(const std::string& s) {
-  // Thanks https://stackoverflow.com/a/2845275/1709894
-  if (s.empty() || ((!isdigit(s[0])) && (s[0] != '-') && (s[0] != '+'))) return false;
-
-  char* p;
-  strtol(s.c_str(), &p, 10);
-
-  return (*p == 0);
 }

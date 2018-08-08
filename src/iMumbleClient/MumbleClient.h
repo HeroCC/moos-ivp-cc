@@ -34,7 +34,6 @@ class MumbleClient : public AppCastingMOOSApp
 
  protected:
     void initMumbleLink();
-    bool isInteger(const std::string& s);
 
  private: // Configuration variables
    std::string m_sendAudioKey = "SPEECH_BUTTON";
@@ -48,6 +47,7 @@ class MumbleClient : public AppCastingMOOSApp
    PaStream* audioStream;
    AudioBuffers audioBuffers;
    MumbleCallbackHandler* cb;
+   bool mumConnected = false; // Mumlib isn't super thread safe, so avoid triggering calls to it
    bool joinedDefaultChannel = true; // Starts as true to avoid issues with Iterate and Thread race conditions
    bool notifiedHearingAudio = false;
 };

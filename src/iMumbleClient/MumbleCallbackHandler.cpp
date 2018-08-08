@@ -33,3 +33,8 @@ void MumbleCallbackHandler::channelState(std::string name, int32_t channel_id, i
     channelList.append(name + '=' + intToString(channel_id) + ',');
   }
 }
+
+void MumbleCallbackHandler::serverSync(std::string welcome_text, int32_t session, int32_t max_bandwidth,
+                                       int64_t permissions) {
+  connectedOnce = true;
+}

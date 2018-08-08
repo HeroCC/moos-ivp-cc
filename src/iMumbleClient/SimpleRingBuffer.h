@@ -19,6 +19,7 @@ public:
     size_t topRemaining(T* outbuf);
     void push(T val);
     void push(T* src, int offset, size_t len);
+    void empty();
     bool isEmpty();
     size_t getSize() const { return _size; };
     size_t getRemaining() const;
@@ -160,6 +161,16 @@ void RingBuffer<T>::push(T* src, int offset, size_t len) {
   // for(unsigned i = 0; i < _size; i++) {
   //     printf("buf[%d] = %d\n", i, _array[i]);
   // }
+}
+
+template <class T>
+void RingBuffer<T>::empty() {
+  std::unique_lock<std::recursive_mutex> lock(_mutex);
+  delete[] _array;
+  _array = new T[_size];
+  _front = 0;
+  _back = 0;
+  _remaining = 0;
 }
 
 template <class T>

@@ -26,8 +26,14 @@ public:
                       std::vector<uint32_t> links_remove,
                       bool temporary,
                       int32_t position) override;
+    void serverSync(
+      std::string welcome_text,
+      int32_t session,
+      int32_t max_bandwidth,
+      int64_t permissions) override;
 
     std::string channelList; // Mostly for debugging and setting channel IDs after restructuring Murmur's layout
+    bool connectedOnce = false;
 
 protected:
     std::shared_ptr<RingBuffer<int16_t>> playbackBuffer;
