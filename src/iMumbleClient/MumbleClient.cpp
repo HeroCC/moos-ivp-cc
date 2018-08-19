@@ -41,22 +41,22 @@ static int paCallback(const void *_inputBuffer,
   auto *inputBuffer = (int16_t*) _inputBuffer;
   auto *outputBuffer = (int16_t*) _outputBuffer;
 
-  // Dump the input into the send buffer
-  if(inputBuffer != nullptr && paData->shouldRecord) {
-    // Send the samples into the buffer
-    paData->recordBuffer->push(inputBuffer, 0, framesPerBuffer * NUM_CHANNELS);
-  }
-
-  // Do the same for the playback buffer
+  // Play the audio we have received
   const size_t requested_samples = (framesPerBuffer * NUM_CHANNELS);
   const size_t available_samples = paData->playBuffer->getRemaining();
   if(requested_samples > available_samples) {
     paData->playBuffer->top(outputBuffer, 0, available_samples);
-    for(size_t i = available_samples; i < requested_samples - available_samples; i++) {
+    for(size_t i = available_samples; i < requested_samples; i++) {
       outputBuffer[i] = 0;
     }
   } else {
     paData->playBuffer->top(outputBuffer, 0, requested_samples);
+  }
+
+  // And send the audio we recorded
+  if(inputBuffer != nullptr && paData->shouldRecord) {
+    // Send the samples into the buffer
+    paData->recordBuffer->push(inputBuffer, 0, framesPerBuffer * NUM_CHANNELS);
   }
 
   return paContinue;
@@ -87,32 +87,45 @@ MumbleClient::MumbleClient() {
 
   audioBuffers.recordBuffer = std::make_shared<RingBuffer<int16_t>>(MAX_SAMPLES);
   audioBuffers.playBuffer = std::make_shared<RingBuffer<int16_t>>(MAX_SAMPLES);
+}
 
-  Pa_Initialize();
+//---------------------------------------------------------
+// Destructor
 
-  Pa_OpenDefaultStream(&audioStream,
+MumbleClient::~MumbleClient() {
+  this->mum->disconnect();
+  Pa_Terminate();
+}
+
+// This is unfortunately very overkill
+void MumbleClient::initPortAudio(bool killOld = false) {
+  reportEvent("Initializing Audio System");
+
+  if (killOld) {
+    if (Pa_AbortStream(audioStream) != paNoError) reportRunWarning("Error Stopping Stream");
+    if (Pa_Terminate() != paNoError) reportRunWarning("Error Terminating Port Audio");
+  }
+
+  audioBuffers.recordBuffer->empty();
+  audioBuffers.playBuffer->empty();
+
+  if (Pa_Initialize() != paNoError) reportRunWarning("Error Initializing Port Audio");
+
+  if (Pa_OpenDefaultStream(&audioStream,
                        NUM_CHANNELS,
                        NUM_CHANNELS,
                        paInt16,
                        SAMPLE_RATE,
                        FRAMES_PER_BUFFER,
                        paCallback,
-                       &audioBuffers);
+                       &audioBuffers) != paNoError) reportRunWarning("Error Opening PA Stream");
 
   auto err = Pa_StartStream(audioStream);
   if (err) {
-    string errText = "Error starting audio engine: ";
+    string errText = "Error starting stream: ";
     errText.append(Pa_GetErrorText(err));
     reportRunWarning(errText);
   }
-}
-
-//---------------------------------------------------------
-// Destructor
-
-MumbleClient::~MumbleClient()
-{
-  Pa_Terminate();
 }
 
 //---------------------------------------------------------
@@ -154,7 +167,6 @@ bool MumbleClient::OnNewMail(MOOSMSG_LIST &NewMail)
 
 bool MumbleClient::OnConnectToServer() {
   registerVariables();
-  initMumbleLink();
   return(true);
 }
 
@@ -165,6 +177,14 @@ bool MumbleClient::OnConnectToServer() {
 bool MumbleClient::Iterate()
 {
   AppCastingMOOSApp::Iterate();
+
+  if (this->audioBuffers.playBuffer->getRemaining() >= this->audioBuffers.playBuffer->getSize()) {
+    // Reset PortAudio, all buffers, all streams, and start over
+    // Ideally this will not happen, but should prevent some edge case scenarios where PortAudio locks up
+    reportRunWarning("Audio Buffer filled");
+    initPortAudio(true);
+  }
+
   // Tell the DB we are hearing things
   if (this->audioBuffers.playBuffer->isEmpty() && this->notifiedHearingAudio) {
     // Not hearing anything, need to notify
@@ -192,8 +212,12 @@ bool MumbleClient::Iterate()
   }
 
   mumLibLock.lock();
-  this->mumConnected = (this->mum != nullptr && this->cb != nullptr
-    && this->cb->connectedOnce && this->mum->getConnectionState() == mumlib::ConnectionState::CONNECTED);
+  if (this->mum != nullptr && this->cb != nullptr && this->cb->connectedOnce) {
+    if (!mumConnected) std::this_thread::sleep_for(std::chrono::milliseconds(250));
+    this->mumConnected = this->mum->getConnectionState() == mumlib::ConnectionState::CONNECTED;
+  } else {
+    mumConnected = false;
+  }
   mumLibLock.unlock();
 
   AppCastingMOOSApp::PostReport();
@@ -244,21 +268,24 @@ bool MumbleClient::OnStartUp()
 
   registerVariables();
 
+  initPortAudio();
+  initMumbleLink();
+
   return(true);
 }
 
 void MumbleClient::initMumbleLink() {
   // Begin with everything
   thread server_thread([this]() {
-    // Configure Mumble
-    this->cb = new MumbleCallbackHandler(this->audioBuffers.playBuffer);
-    mumlib::MumlibConfiguration conf;
-    //conf.opusEncoderBitrate = 48000; // Higher = better quality, more bandwidth
-    this->mum = new mumlib::Mumlib(*cb, conf);
-
     // Attempt to maintain a connection forever
     while (!mumConnected) {
       try {
+        // Configure Mumble
+        this->cb = new MumbleCallbackHandler(this->audioBuffers.playBuffer);
+        mumlib::MumlibConfiguration conf;
+        //conf.opusEncoderBitrate = 48000; // Higher = better quality, more bandwidth
+        this->mum = new mumlib::Mumlib(*cb, conf);
+
         mumLibLock.lock();
         this->mum->connect(this->m_mumbleServerAddress, this->m_mumbleServerPort, this->m_mumbleServerUsername, "");
         this->joinedDefaultChannel = false;
@@ -267,6 +294,7 @@ void MumbleClient::initMumbleLink() {
         this->mum->run();
       } catch (mumlib::MumlibException &e) {
         this->mumConnected = false;
+        this->cb->connectedOnce = false;
         string errMessage = "There was an issue trying to connect Murmur: ";
         errMessage.append(e.what());
         this->reportRunWarning(errMessage);
@@ -319,6 +347,7 @@ void MumbleClient::registerVariables() {
 // Procedure: buildReport()
 
 bool MumbleClient::buildReport() {
+  m_msgs << "Streaming:  " << boolToString(Pa_IsStreamStopped(audioStream) == 0) << Pa_GetStreamTime() << endl;
   m_msgs << "Speaking:   " << boolToString(this->audioBuffers.shouldRecord) <<
          " (" << ulintToString(this->audioBuffers.recordBuffer->getRemaining()) << ")" << endl;
   m_msgs << "Hearing:    " << boolToString(this->notifiedHearingAudio) <<
