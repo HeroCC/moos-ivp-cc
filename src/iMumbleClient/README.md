@@ -4,7 +4,7 @@ A C++ application for MOOS IvP to connect clients together via a Mumble VoIP ser
 
 ## Dependencies
 
-On a Mac with MacPorts, install all requirements with: `sudo port install portaudio libsndfile boost protobuf3-cpp log4cpp`
+On a Mac with MacPorts, install all requirements with: `sudo port install portaudio libsndfile boost libopus protobuf3-cpp log4cpp`
 
 ## Usage
 
