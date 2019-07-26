@@ -32,6 +32,7 @@ ENDIF()
 
 ADD_SUBDIRECTORY(pWebSocketServer)
 ADD_SUBDIRECTORY(iMumbleClient)
+ADD_SUBDIRECTORY(uVcGenMon)
 
 ##############################################################################
 #                           END of CMakeLists.txt

@@ -1,0 +1,11 @@
+//------------------------------------------------
+// uVcGenMon config block
+
+ProcessConfig = uVcGenMon
+{
+   AppTick   = 1
+   CommsTick = 1
+
+   Temperature_Threshold = 70 // Degrees Celsius, -1 to disable
+}
+
