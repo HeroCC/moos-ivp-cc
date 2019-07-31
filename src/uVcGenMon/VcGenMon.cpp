@@ -17,6 +17,9 @@ using namespace std;
 
 VcGenMon::VcGenMon()
 {
+  temperatureWarnThreshold = 70;
+  reportedVcgenFailure = false;
+  reportedTemperatureThreshSurpassed = false;
 }
 
 //---------------------------------------------------------
@@ -85,8 +88,8 @@ bool VcGenMon::Iterate() {
     long armClockSpeed = vcCmd.getClockSpeed();
     string throttleState = vcCmd.getThrottleHex();
 
-    m_Comms.Notify("SYSTEM_TEMPERATURE", voltage);
-    m_Comms.Notify("VIDEOCORE_VOLTAGE", temperature);
+    m_Comms.Notify("SYSTEM_TEMPERATURE", temperature);
+    m_Comms.Notify("VIDEOCORE_VOLTAGE", voltage);
     m_Comms.Notify("THROTTLE_STATE", throttleState);
     m_Comms.Notify("ARM_CLOCK_SPEED", armClockSpeed);
 
@@ -130,7 +133,7 @@ bool VcGenMon::OnStartUp()
 
     bool handled = false;
     if(param == "temperature_threshold") {
-      temperatureWarnThreshold = stoi(value);
+      temperatureWarnThreshold = atof(value.c_str());
       handled = true;
     }
     else if(param == "bar") {
@@ -165,6 +168,8 @@ bool VcGenMon::buildReport()
   if (reportedVcgenFailure)
     return true; // Don't get the rest of the information, it isn't there to get
 
+
+  // TODO make a [1m, 5m, 10m] average shown
   m_msgs << endl;
   m_msgs << "Temperature: " << vcCmd.getTemperature() << "°C" << endl;
   m_msgs << "GPU Voltage: " << vcCmd.getVoltage() << "V" << endl;
@@ -182,19 +187,16 @@ bool VcGenMon::buildReport()
   m_msgs << "CURRENTLY" << endl;
   m_msgs << "ARM Frequency Capped: " << binaryThrottle.at(1) << endl;
   m_msgs << "Temperature Limited:  " << binaryThrottle.at(3) << endl;
-  m_msgs << "Turbo Throttled:     " << binaryThrottle.at(2) << endl;
-  m_msgs << "Under-voltage: " << binaryThrottle.at(0) << endl;
+  m_msgs << "Under-voltage:  " << binaryThrottle.at(0) << endl;
+  m_msgs << "Turbo Disabled: " << binaryThrottle.at(2) << endl;
   m_msgs << endl;
 
   m_msgs << "PREVIOUSLY " << endl;
   m_msgs << "ARM Frequency Capped: " << binaryThrottle.at(18) << endl;
   m_msgs << "Temperature Limited:  " << binaryThrottle.at(19) << endl;
-  m_msgs << "Under-voltage:   " << binaryThrottle.at(16) << endl;
-  m_msgs << "Turbo Throttled: " << binaryThrottle.at(17) << endl;
+  m_msgs << "Under-voltage:  " << binaryThrottle.at(16) << endl;
+  m_msgs << "Turbo Disabled: " << binaryThrottle.at(17) << endl;
+  m_msgs << endl;
 
   return(true);
 }
-
-
-
-

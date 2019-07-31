@@ -31,11 +31,11 @@ class VcGenMon : public AppCastingMOOSApp
    VCGenCmd vcCmd;
 
  private: // Configuration variables
-    float temperatureWarnThreshold = 70;
+    float temperatureWarnThreshold;
 
  private: // State variables
-    bool reportedVcgenFailure = false;
-    bool reportedTemperatureThreshSurpassed = false;
+    bool reportedVcgenFailure;
+    bool reportedTemperatureThreshSurpassed;
 };
 
 #endif 

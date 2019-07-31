@@ -18,3 +18,4 @@ TARGET_LINK_LIBRARIES(uVcGenMon
    m
    pthread)
 
+set_property(TARGET uVcGenMon PROPERTY CXX_STANDARD 11)
