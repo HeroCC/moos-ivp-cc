@@ -1,13 +1,12 @@
 /****************************************************************/
 /*   NAME: Conlan Cesar                                         */
 /*   ORGN: MIT Cambridge MA                                     */
-/*   FILE: VcGenMon_Info.cpp                                    */
+/*   FILE: VCGenCmd.cpp                                    */
 /*   DATE: Summer 2019                                          */
 /****************************************************************/
 
 #include <stdio.h>
 #include <iostream>
-#include <unistd.h>
 #include <sstream>
 #include <vector>
 #include "VCGenCmd.h"

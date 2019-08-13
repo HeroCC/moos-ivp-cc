@@ -7,9 +7,7 @@
 
 #include <string>
 #include "MBUtils.h"
-#include "ColorParse.h"
-#include "VcGenMon.h"
-#include "VcGenMon_Info.h"
+#include "RaspiMon.h"
 
 using namespace std;
 
@@ -40,10 +38,10 @@ int main(int argc, char *argv[])
     showHelpAndExit();
 
   cout << termColor("green");
-  cout << "uVcGenMon launching as " << run_command << endl;
+  cout << "uRaspiMon launching as " << run_command << endl;
   cout << termColor() << endl;
 
-  VcGenMon VcGenMon;
+  RaspiMon VcGenMon;
 
   VcGenMon.Run(run_command.c_str(), mission_file.c_str());
   

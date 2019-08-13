@@ -1,15 +1,12 @@
 /****************************************************************/
 /*   NAME: Conlan Cesar                                         */
 /*   ORGN: MIT Cambridge MA                                     */
-/*   FILE: VcGenMon_Info.cpp                                    */
+/*   FILE: RaspiMon_Info.cpp                                    */
 /*   DATE: July 9 2019                                          */
 /****************************************************************/
 
 #include <cstdlib>
 #include <iostream>
-#include "VcGenMon_Info.h"
-#include "ColorParse.h"
-#include "ReleaseInfo.h"
 
 using namespace std;
 
@@ -20,7 +17,7 @@ void showSynopsis()
 {
   blk("SYNOPSIS:                                                       ");
   blk("------------------------------------                            ");
-  blk("  The uVcGenMon application is used to monitor Broadcom / RasPI ");
+  blk("  The uRaspiMon application is used to monitor Broadcom / RasPI ");
   blk("  system metrics via a wrapper for the VideoCore General Monitor");
   blk("  command line application, vcgenmon.                           ");
   blk("                                                                ");
@@ -35,15 +32,15 @@ void showHelpAndExit()
 {
   blk("                                                                ");
   blu("=============================================================== ");
-  blu("Usage: uVcGenMon file.moos [OPTIONS]                   ");
+  blu("Usage: uRaspiMon file.moos [OPTIONS]                   ");
   blu("=============================================================== ");
   blk("                                                                ");
   showSynopsis();
   blk("                                                                ");
   blk("Options:                                                        ");
   mag("  --alias","=<ProcessName>                                      ");
-  blk("      Launch uVcGenMon with the given process name         ");
-  blk("      rather than uVcGenMon.                           ");
+  blk("      Launch uRaspiMon with the given process name         ");
+  blk("      rather than uRaspiMon.                           ");
   mag("  --example, -e                                                 ");
   blk("      Display example MOOS configuration block.                 ");
   mag("  --help, -h                                                    ");
@@ -51,7 +48,7 @@ void showHelpAndExit()
   mag("  --interface, -i                                               ");
   blk("      Display MOOS publications and subscriptions.              ");
   mag("  --version,-v                                                  ");
-  blk("      Display the release version of uVcGenMon.        ");
+  blk("      Display the release version of uRaspiMon.        ");
   blk("                                                                ");
   blk("Note: If argv[2] does not otherwise match a known option,       ");
   blk("      then it will be interpreted as a run alias. This is       ");
@@ -67,14 +64,15 @@ void showExampleConfigAndExit()
 {
   blk("                                                                ");
   blu("=============================================================== ");
-  blu("uVcGenMon Example MOOS Configuration                   ");
+  blu("uRaspiMon Example MOOS Configuration                   ");
   blu("=============================================================== ");
   blk("                                                                ");
-  blk("ProcessConfig = uVcGenMon                              ");
+  blk("ProcessConfig = uRaspiMon                              ");
   blk("{                                                               ");
   blk("  AppTick   = 1                                                 ");
   blk("  CommsTick = 1                                                 ");
   blk("                                                                ");
+  blk("  Temperature_Threshold = 70 // Degrees Celsius, -1 to disable  ");
   blk("}                                                               ");
   blk("                                                                ");
   exit(0);
@@ -88,7 +86,7 @@ void showInterfaceAndExit()
 {
   blk("                                                                ");
   blu("=============================================================== ");
-  blu("uVcGenMon INTERFACE                                    ");
+  blu("uRaspiMon INTERFACE                                    ");
   blu("=============================================================== ");
   blk("                                                                ");
   showSynopsis();
@@ -110,7 +108,7 @@ void showInterfaceAndExit()
 
 void showReleaseInfoAndExit()
 {
-  showReleaseInfo("uVcGenMon", "gpl");
+  showReleaseInfo("uRaspiMon", "gpl");
   exit(0);
 }
 

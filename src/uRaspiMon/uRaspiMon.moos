@@ -1,7 +1,7 @@
 //------------------------------------------------
-// uVcGenMon config block
+// uRaspiMon config block
 
-ProcessConfig = uVcGenMon
+ProcessConfig = uRaspiMon
 {
    AppTick   = 1
    CommsTick = 1

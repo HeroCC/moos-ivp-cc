@@ -1,21 +1,21 @@
 /****************************************************************/
 /*   NAME: Conlan Cesar                                         */
 /*   ORGN: MIT Cambridge MA                                     */
-/*   FILE: VCGenMon.h                                           */
+/*   FILE: RaspiMon.h                                           */
 /*   DATE: Summer 2019                                          */
 /****************************************************************/
 
 #include <iterator>
 #include "MBUtils.h"
 #include "ACTable.h"
-#include "VcGenMon.h"
+#include "RaspiMon.h"
 
 using namespace std;
 
 //---------------------------------------------------------
 // Constructor
 
-VcGenMon::VcGenMon()
+RaspiMon::RaspiMon()
 {
   temperatureWarnThreshold = 70;
   reportedVcgenFailure = false;
@@ -25,14 +25,14 @@ VcGenMon::VcGenMon()
 //---------------------------------------------------------
 // Destructor
 
-VcGenMon::~VcGenMon()
+RaspiMon::~RaspiMon()
 {
 }
 
 //---------------------------------------------------------
 // Procedure: OnNewMail
 
-bool VcGenMon::OnNewMail(MOOSMSG_LIST &NewMail)
+bool RaspiMon::OnNewMail(MOOSMSG_LIST &NewMail)
 {
   AppCastingMOOSApp::OnNewMail(NewMail);
 
@@ -64,7 +64,7 @@ bool VcGenMon::OnNewMail(MOOSMSG_LIST &NewMail)
 //---------------------------------------------------------
 // Procedure: OnConnectToServer
 
-bool VcGenMon::OnConnectToServer()
+bool RaspiMon::OnConnectToServer()
 {
    registerVariables();
    return(true);
@@ -74,7 +74,7 @@ bool VcGenMon::OnConnectToServer()
 // Procedure: Iterate()
 //            happens AppTick times per second
 
-bool VcGenMon::Iterate() {
+bool RaspiMon::Iterate() {
   AppCastingMOOSApp::Iterate();
   if (!reportedVcgenFailure && !vcCmd.sanityCheck()) {
     reportEvent("VCGenCmd not found, not reporting metrics");
@@ -120,7 +120,7 @@ bool VcGenMon::Iterate() {
 // Procedure: OnStartUp()
 //            happens before connection is open
 
-bool VcGenMon::OnStartUp()
+bool RaspiMon::OnStartUp()
 {
   AppCastingMOOSApp::OnStartUp();
 
@@ -157,7 +157,7 @@ bool VcGenMon::OnStartUp()
 //---------------------------------------------------------
 // Procedure: registerVariables
 
-void VcGenMon::registerVariables()
+void RaspiMon::registerVariables()
 {
   AppCastingMOOSApp::RegisterVariables();
   // Register("FOOBAR", 0);
@@ -167,7 +167,7 @@ void VcGenMon::registerVariables()
 //------------------------------------------------------------
 // Procedure: buildReport()
 
-bool VcGenMon::buildReport() 
+bool RaspiMon::buildReport()
 {
   m_msgs << "VCGenCmd Found: " << std::boolalpha << !reportedVcgenFailure << std::noboolalpha << endl;
   if (reportedVcgenFailure)

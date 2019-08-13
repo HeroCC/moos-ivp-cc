@@ -1,22 +1,22 @@
 /****************************************************************/
 /*   NAME: Conlan Cesar                                         */
 /*   ORGN: MIT Cambridge MA                                     */
-/*   FILE: VCGenMon.h                                           */
+/*   FILE: RaspiMon.h                                           */
 /*   DATE: Summer 2019                                          */
 /****************************************************************/
 
-#ifndef VcGenMon_HEADER
-#define VcGenMon_HEADER
+#ifndef RaspiMon_HEADER
+#define RaspiMon_HEADER
 
 #include <deque>
 #include "MOOS/libMOOS/Thirdparty/AppCasting/AppCastingMOOSApp.h"
 #include "VCGenCmd.h"
 
-class VcGenMon : public AppCastingMOOSApp
+class RaspiMon : public AppCastingMOOSApp
 {
  public:
-   VcGenMon();
-   ~VcGenMon();
+   RaspiMon();
+   ~RaspiMon();
 
  protected: // Standard MOOSApp functions to overload  
    bool OnNewMail(MOOSMSG_LIST &NewMail);

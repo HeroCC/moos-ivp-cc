@@ -1,21 +1,21 @@
 #--------------------------------------------------------
-# The CMakeLists.txt for:                       uVcGenMon
+# The CMakeLists.txt for:                       uRaspiMon
 # Author(s):                              
 #--------------------------------------------------------
 
 SET(SRC
-  VcGenMon.cpp
-  VcGenMon_Info.cpp
+        RaspiMon.cpp
+        RaspiMon_Info.cpp
   main.cpp
         VCGenCmd.cpp VCGenCmd.h)
 
-ADD_EXECUTABLE(uVcGenMon ${SRC})
+ADD_EXECUTABLE(uRaspiMon ${SRC})
 
-TARGET_LINK_LIBRARIES(uVcGenMon
+TARGET_LINK_LIBRARIES(uRaspiMon
    ${MOOS_LIBRARIES}
    apputil
    mbutil
    m
    pthread)
 
-set_property(TARGET uVcGenMon PROPERTY CXX_STANDARD 11)
+set_property(TARGET uRaspiMon PROPERTY CXX_STANDARD 11)

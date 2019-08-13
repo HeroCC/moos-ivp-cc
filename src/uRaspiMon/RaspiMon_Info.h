@@ -1,12 +1,12 @@
 /****************************************************************/
 /*   NAME:                                              */
 /*   ORGN: MIT Cambridge MA                                     */
-/*   FILE: VcGenMon_Info.h                                      */
+/*   FILE: RaspiMon_Info.h                                      */
 /*   DATE: Dec 29th 1963                                        */
 /****************************************************************/
 
-#ifndef VcGenMon_INFO_HEADER
-#define VcGenMon_INFO_HEADER
+#ifndef RaspiMon_INFO_HEADER
+#define RaspiMon_INFO_HEADER
 
 void showSynopsis();
 void showHelpAndExit();
