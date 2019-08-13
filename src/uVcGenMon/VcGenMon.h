@@ -8,6 +8,7 @@
 #ifndef VcGenMon_HEADER
 #define VcGenMon_HEADER
 
+#include <deque>
 #include "MOOS/libMOOS/Thirdparty/AppCasting/AppCastingMOOSApp.h"
 #include "VCGenCmd.h"
 
@@ -36,6 +37,7 @@ class VcGenMon : public AppCastingMOOSApp
  private: // State variables
     bool reportedVcgenFailure;
     bool reportedTemperatureThreshSurpassed;
+    std::deque<float> tempHistory;
 };
 
 #endif 

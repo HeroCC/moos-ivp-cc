@@ -82,32 +82,37 @@ bool VcGenMon::Iterate() {
   }
   AppCastingMOOSApp::PostReport();
 
-  if (!reportedVcgenFailure) {
-    float voltage = vcCmd.getVoltage();
-    float temperature = vcCmd.getTemperature();
-    long armClockSpeed = vcCmd.getClockSpeed();
-    string throttleState = vcCmd.getThrottleHex();
+  if (reportedVcgenFailure) { return true; }
 
-    m_Comms.Notify("SYSTEM_TEMPERATURE", temperature);
-    m_Comms.Notify("VIDEOCORE_VOLTAGE", voltage);
-    m_Comms.Notify("THROTTLE_STATE", throttleState);
-    m_Comms.Notify("ARM_CLOCK_SPEED", armClockSpeed);
+  float voltage = vcCmd.getVoltage();
+  float temperature = vcCmd.getTemperature();
+  long armClockSpeed = vcCmd.getClockSpeed();
+  string throttleState = vcCmd.getThrottleHex();
 
-    if (temperatureWarnThreshold != -1) {
-      const string surpassWarningString = "Temperature surpassed limit of " + floatToString(temperatureWarnThreshold);
+  m_Comms.Notify("SYSTEM_TEMPERATURE", temperature);
+  m_Comms.Notify("VIDEOCORE_VOLTAGE", voltage);
+  m_Comms.Notify("THROTTLE_STATE", throttleState);
+  m_Comms.Notify("ARM_CLOCK_SPEED", armClockSpeed);
 
-      if (temperature >= temperatureWarnThreshold && !reportedTemperatureThreshSurpassed) {
-        reportRunWarning(surpassWarningString);
-        reportedTemperatureThreshSurpassed = true;
-      } else if (temperature < temperatureWarnThreshold && reportedTemperatureThreshSurpassed) {
-        retractRunWarning(surpassWarningString);
-        reportEvent("Temperature was above " + floatToString(temperatureWarnThreshold) +
-                    ", but now it's below. Recalled Run Warning");
-        reportedTemperatureThreshSurpassed = false;
-      }
+  if (temperatureWarnThreshold != -1) {
+    const string surpassWarningString = "Temperature surpassed limit of " + floatToString(temperatureWarnThreshold);
+
+    if (temperature >= temperatureWarnThreshold && !reportedTemperatureThreshSurpassed) {
+      reportRunWarning(surpassWarningString);
+      reportedTemperatureThreshSurpassed = true;
+    } else if (temperature < temperatureWarnThreshold && reportedTemperatureThreshSurpassed) {
+      retractRunWarning(surpassWarningString);
+      reportEvent("Temperature was above " + floatToString(temperatureWarnThreshold) +
+                  ", but now it's below. Recalled Run Warning");
+      reportedTemperatureThreshSurpassed = false;
     }
-
   }
+
+  if (tempHistory.size() >= 60 * 10 * m_time_warp) { // Store 10 mins worth of samples
+    tempHistory.pop_back();
+  }
+  tempHistory.push_front(temperature);
+
   return(true);
 }
 
@@ -168,10 +173,19 @@ bool VcGenMon::buildReport()
   if (reportedVcgenFailure)
     return true; // Don't get the rest of the information, it isn't there to get
 
+  float temp1m = 0;
+  float temp5m = 0;
+  float temp10m = 0;
 
-  // TODO make a [1m, 5m, 10m] average shown
+  for(size_t a = 0; a < tempHistory.size(); a++) {
+    float temp = tempHistory.at(a);
+    if (a < 60 * 1 * m_time_warp && tempHistory.size() > 60 * 1 * m_time_warp) temp1m += temp;
+    if (a < 60 * 5 * m_time_warp && tempHistory.size() > 60 * 5 * m_time_warp) temp5m += temp;
+    if (a < 60 * 10 * m_time_warp && tempHistory.size() > 60 * 10 * m_time_warp) temp10m += temp;
+  }
+
   m_msgs << endl;
-  m_msgs << "Temperature: " << vcCmd.getTemperature() << "°C" << endl;
+  m_msgs << "Temperature: " << vcCmd.getTemperature() << "°C [ " << temp1m << " | " << temp5m << " | " << temp10m << " ]" << endl;
   m_msgs << "GPU Voltage: " << vcCmd.getVoltage() << "V" << endl;
   m_msgs << "ARM Clock:   " << vcCmd.getClockSpeed() << "Hz" << endl;
   m_msgs << endl;
