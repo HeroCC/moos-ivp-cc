@@ -7,6 +7,7 @@
 
 #include <stdio.h>
 #include <iostream>
+#include <unistd.h>
 #include <sstream>
 #include <vector>
 #include "VCGenCmd.h"

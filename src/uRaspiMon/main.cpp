@@ -7,7 +7,9 @@
 
 #include <string>
 #include "MBUtils.h"
+#include "ColorParse.h"
 #include "RaspiMon.h"
+#include "RaspiMon_Info.h"
 
 using namespace std;
 

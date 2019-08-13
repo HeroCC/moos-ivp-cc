@@ -7,6 +7,9 @@
 
 #include <cstdlib>
 #include <iostream>
+#include "RaspiMon_Info.h"
+#include "ColorParse.h"
+#include "ReleaseInfo.h"
 
 using namespace std;
 
