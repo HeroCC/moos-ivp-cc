@@ -6,7 +6,7 @@ The home of my extensions and trinkets related to MOOS-IvP
 
 The libraries this tree uses have dependencies of their own, in addition to normal MOOS and Aquaticus dependencies. You should make sure your compiler of choice supports C++11 or greater, and then install them like so:
  * MacPorts: `sudo port install portaudio libsndfile boost boost-build protobuf3-cpp grpc log4cpp`
- * Debian Variants: `sudo apt install libsndfile-dev libboost-all-dev libportaudiocpp0 libssl-dev libprotobuf-dev libgrpc++-dev liblog4cpp5-dev`
+ * Debian Variants: `sudo apt install libsndfile-dev libboost-all-dev portaudio19-dev libssl-dev libprotobuf-dev libgrpc++-dev liblog4cpp5-dev`
 
 ## Installing
 
