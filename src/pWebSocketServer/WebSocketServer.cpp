@@ -216,7 +216,7 @@ void WebSocketServer::handleInternalMessage(string message_str, const shared_ptr
   message_str.erase(0, message_str.find(delim) + delim.length());
 
   if (target == "$SetPassword") {
-    if (message_str == this->password) client->isAuthenticated = true; // IDEs say this does nothing. IDEs are wrong
+    if (message_str == this->password && !this->password.empty()) client->isAuthenticated = true; // IDEs say this does nothing. IDEs are wrong
   }
 }
 
