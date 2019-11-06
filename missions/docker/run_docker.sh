@@ -16,7 +16,7 @@ main() {
   if [ -z $NETWORK_ID ]; then
     # We must create the network
     echo "Creating network $NETWORK_NAME"
-    docker network create moos
+    docker network create "$NETWORK_NAME"
     NETWORK_ID="$(docker network ls -q -f name=${NETWORK_NAME})"
   else
     echo "Found network $NETWORK_NAME as $NETWORK_ID"
