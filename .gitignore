@@ -1,4 +1,5 @@
 .svn/
+.git/
 MOOSLog*
 bin/
 build/
@@ -7,4 +8,4 @@ lib/
 LOG_*/
 cmake-build-debug/
 targ_*
-.moos++
+#.moos++
