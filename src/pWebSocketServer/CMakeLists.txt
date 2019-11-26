@@ -21,3 +21,6 @@ TARGET_LINK_LIBRARIES(pWebSocketServer
    m
    pthread
         simple-websocket-server)
+
+
+set_property(TARGET pWebSocketServer PROPERTY CXX_STANDARD 11)

@@ -29,8 +29,6 @@ SET( RUNTIME_OUTPUT_DIRECTORY "${IVP_EXTEND_BIN_DIR}"  CACHE PATH "" )
 find_package(MOOS 10.0)
 INCLUDE_DIRECTORIES(${MOOS_INCLUDE_DIRS})
 
-set (CMAKE_CXX_STANDARD 11)
-
 #=============================================================================
 # Find the "moos-ivp" base directory
 #=============================================================================

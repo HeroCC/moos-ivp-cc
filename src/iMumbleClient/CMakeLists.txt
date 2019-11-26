@@ -24,3 +24,4 @@ TARGET_LINK_LIBRARIES(iMumbleClient
         mumlib
         portaudio)
 
+set_property(TARGET iMumbleClient PROPERTY CXX_STANDARD 11)
