@@ -115,9 +115,6 @@ bool FrontNMEABridge::OnNewMail(MOOSMSG_LIST &NewMail)
 
 bool FrontNMEABridge::OnConnectToServer()
 {
-  // WARNING: This line is ignored by debuggers
-  signal(SIGPIPE, SIG_IGN); // TODO this prevents crashing on MacOS due to lack of MSG_NOSIGNAL support. Remove once a better solution is found
-
   if (!m_server.create()) {
     reportRunWarning("Failed to create socket");
     return false;
@@ -167,8 +164,7 @@ bool FrontNMEABridge::Iterate()
         std::string err = strerror(retval);
         reportRunWarning("Unable to send to socket: " + err);
       } else if (retval == EPIPE) {
-        // EPIPE is ignored on Linux, but MacOS can't ignore it
-        // It essentially means the socket is closed, so we should mark it as so
+        // EPIPE essentially means the socket is closed, so we should mark it explicitly
         socket->close();
       }
 

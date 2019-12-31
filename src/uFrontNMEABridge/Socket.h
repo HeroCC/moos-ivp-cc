@@ -6,9 +6,9 @@
 #ifndef Socket_HEADER
 #define Socket_HEADER
 
-// MacOS doesn't have MSG_NOSIGNAL, default to 0 -- yay magic values :)
+// MacOS doesn't have MSG_NOSIGNAL, default to 0 / nothing
 #if defined(__APPLE__) && !defined(MSG_NOSIGNAL)
-#define MSG_NOSIGNAL 0 // TODO Maybe SO_SIGNOPIPE? https://stackoverflow.com/q/108183/1709894
+#define MSG_NOSIGNAL 0
 #endif
 
 

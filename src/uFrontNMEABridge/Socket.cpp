@@ -26,9 +26,12 @@ bool Socket::create() {
     return false;
   }
 
+  int on = 1;
+  #if defined(SO_NOSIGPIPE)
+  setsockopt(m_sock, SOL_SOCKET, SO_NOSIGPIPE, (const char *) &on, sizeof(on));
+  #endif
 
   // TIME_WAIT - argh
-  int on = 1;
   return setsockopt(m_sock, SOL_SOCKET, SO_REUSEADDR, (const char *) &on, sizeof(on)) != -1;
 }
 
