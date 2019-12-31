@@ -9,10 +9,8 @@
 #define FrontNMEABridge_HEADER
 
 #include "MOOS/libMOOS/Thirdparty/AppCasting/AppCastingMOOSApp.h"
+#include "Socket.h"
 #include <iostream>
-#include <asio.hpp>
-
-class TCPServer;
 
 class FrontNMEABridge : public AppCastingMOOSApp
 {
@@ -34,15 +32,12 @@ class FrontNMEABridge : public AppCastingMOOSApp
 
  protected:
     void registerVariables();
-    void startAccept(asio::io_service& svc, asio::ip::tcp::acceptor& acc);
-    void handleWrite(const std::error_code&, size_t);
 
  private: // Configuration variables
 
  private: // State variables
-    std::shared_ptr<asio::streambuf> data = std::make_shared<asio::streambuf>();
-    asio::io_context m_svc;
-    std::shared_ptr<asio::ip::tcp::acceptor> m_acc;
+    Socket m_server;
+    std::vector<std::shared_ptr<Socket>> sockets;
 
     time_t m_last_updated_time = -1;
     double m_latest_heading = 0;

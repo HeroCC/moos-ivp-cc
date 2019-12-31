@@ -7,8 +7,7 @@ SET(SRC
   FrontNMEABridge.cpp
   FrontNMEABridge_Info.cpp
   main.cpp
-        #TCPServer.cpp TCPServer.h TCPConnection.cpp TCPConnection.h
-        )
+  Socket.cpp Socket.h)
 
 ADD_EXECUTABLE(uFrontNMEABridge ${SRC})
 

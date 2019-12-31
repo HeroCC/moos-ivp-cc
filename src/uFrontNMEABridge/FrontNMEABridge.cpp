@@ -10,7 +10,6 @@
 #include "MBUtils.h"
 #include "ACTable.h"
 #include "FrontNMEABridge.h"
-#include "TCPServer.h"
 
 using namespace std;
 
@@ -116,7 +115,20 @@ bool FrontNMEABridge::OnNewMail(MOOSMSG_LIST &NewMail)
 
 bool FrontNMEABridge::OnConnectToServer()
 {
-  m_acc = std::make_shared<tcp::acceptor>(m_svc, tcp::endpoint(asio::ip::tcp::v4(), m_port));
+  if (!m_server.create()) {
+    reportRunWarning("Failed to create socket");
+    return false;
+  }
+  if (!m_server.bind(m_port)) {
+    reportRunWarning("Failed to bind to port " + intToString(m_port));
+    return false;
+  }
+  if (!m_server.listen()) {
+    reportRunWarning("Failed to listen to socket");
+    return false;
+  }
+  m_server.set_non_blocking(true);
+
   registerVariables();
   return(true);
 }
@@ -132,19 +144,34 @@ bool FrontNMEABridge::Iterate()
 
   Notify("GENERATED_NMEA_STRING", nmea);
 
-  try {
-    tcp::socket socket(m_svc);
-    m_acc->async_accept(socket, &FrontNMEABridge::startAccept);
+  // Check for new incoming connections
+  std::shared_ptr<Socket> client = std::make_shared<Socket>(); // TODO for safety, make this a unique_ptr
+  if (m_server.accept(*client)) {
+    client->send("JOINED\n");
+    sockets.push_back(std::move(client));
+  }
 
-    asio::error_code err;
-    asio::write(socket, asio::buffer(nmea + "\n\r"), err);
-    if (err) {
-      reportRunWarning(err.message());
+  // Remove invalid sockets
+  // Good tip from https://www.fluentcpp.com/2018/09/18/how-to-remove-pointers-from-a-vector-in-cpp/
+  // It's inefficient to loop over the array twice, but we'll usually only have 2 clients at most so it's not too bad
+  sockets.erase(std::remove_if(sockets.begin(), sockets.end(), [](const shared_ptr<Socket>& socket){ return !socket->is_valid(); }), sockets.end());
+
+  for (const shared_ptr<Socket>& socket : sockets) {
+    if (socket->is_valid()) {
+      // Tx NMEA String to all attached clients
+      int retval = socket->send(nmea + "\n");
+      if (retval) {
+        std::string err = strerror(retval);
+        reportRunWarning("Unable to send to socket: " + err);
+      }
+
+      // Rx
+      std::string rx;
+      int len = socket->recv(rx); // TODO explicit error checking
+      if (len > 0) {
+        reportEvent(rx);
+      }
     }
-    //m_svc.run_for(std::chrono::seconds(1));
-  } catch (std::exception& e) {
-    cerr << e.what() << endl;
-    reportRunWarning(e.what());
   }
 
   AppCastingMOOSApp::PostReport();
@@ -209,39 +236,8 @@ void FrontNMEABridge::registerVariables()
 
 bool FrontNMEABridge::buildReport() 
 {
+  m_msgs << "Attached Clients: " << sockets.size() << endl;
   m_msgs << genNMEAString() << endl;
 
   return(true);
-}
-
-void FrontNMEABridge::startAccept(asio::io_service& svc, tcp::acceptor& acc) {
-  // per-connection lifetimes:
-  std::shared_ptr<tcp::socket> sock = make_shared<tcp::socket>(svc);
-
-  acc.async_accept(*sock, [this,sock,&svc,&acc](error_code ec) {
-    // Handle Accept
-      if (!ec) {
-        //std::string message = "bla";
-        //message.append()
-        //message << "connection from " << sock->remote_endpoint() << "\n";
-
-        //reportEvent(sock->remote_endpoint() + " has connected")
-
-
-        // now write the whole story
-        asio::async_write(*sock, *data, std::bind(&FrontNMEABridge::handleWrite, this,
-                                                  std::placeholders::_1,
-                                                  std::placeholders::_2));
-
-        // accept new connections too
-        startAccept(svc, acc);
-      }
-  });
-}
-
-void FrontNMEABridge::handleWrite(const std::error_code& error, size_t bytes_tx) {
-  if (error) {
-    std::string msg = "ERR Writing " + std::to_string(error.value()) + ": " + error.message();
-    reportRunWarning(msg);
-  }
 }
