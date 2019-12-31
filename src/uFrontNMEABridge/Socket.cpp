@@ -16,9 +16,7 @@ Socket::Socket() : m_sock(-1) {
 }
 
 Socket::~Socket() {
-  if (is_valid()) {
-    ::close(m_sock);
-  }
+  close();
 }
 
 bool Socket::create() {
@@ -63,6 +61,17 @@ bool Socket::listen() const {
   return listen_return != -1;
 }
 
+int Socket::close() {
+  if (!is_valid()) {
+    return 0;
+  }
+
+  errno = 0;
+  int closeret = ::close(m_sock);
+  m_sock = -1;
+  return (closeret == -1) ? errno : 0;
+}
+
 
 bool Socket::accept(Socket &new_socket) const {
   errno = 0;
@@ -79,7 +88,7 @@ int Socket::send(const std::string s) const {
   errno = 0;
   int status = ::send(m_sock, s.c_str(), s.size(), MSG_NOSIGNAL);
   //return status != -1;
-  return (status != -1) ? 0 : errno;
+  return (status == -1) ? errno : 0;
 }
 
 

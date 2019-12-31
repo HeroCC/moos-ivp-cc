@@ -8,7 +8,7 @@
 
 // MacOS doesn't have MSG_NOSIGNAL, default to 0 -- yay magic values :)
 #if defined(__APPLE__) && !defined(MSG_NOSIGNAL)
-#define MSG_NOSIGNAL 0
+#define MSG_NOSIGNAL 0 // TODO Maybe SO_SIGNOPIPE? https://stackoverflow.com/q/108183/1709894
 #endif
 
 
@@ -28,6 +28,8 @@ class Socket {
 public:
     Socket();
     virtual ~Socket();
+
+    int close();
 
     // Server initialization
     bool create();
