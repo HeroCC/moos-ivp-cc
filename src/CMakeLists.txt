@@ -33,6 +33,7 @@ ENDIF()
 ADD_SUBDIRECTORY(pWebSocketServer)
 ADD_SUBDIRECTORY(iMumbleClient)
 ADD_SUBDIRECTORY(uRaspiMon)
+ADD_SUBDIRECTORY(uFrontNMEABridge)
 
 ##############################################################################
 #                           END of CMakeLists.txt

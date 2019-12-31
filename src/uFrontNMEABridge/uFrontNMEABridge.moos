@@ -1,0 +1,9 @@
+//------------------------------------------------
+// uFrontNMEABridge config block
+
+ProcessConfig = uFrontNMEABridge
+{
+   AppTick   = 4
+   CommsTick = 4
+}
+
