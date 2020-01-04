@@ -54,7 +54,7 @@ string genNMEAChecksum(string nmeaString) {
 string FrontNMEABridge::genNMEAString() {
   // Very similar to CPNVG from https://oceanai.mit.edu/herons/docs/ClearpathWireProtocolV0.2.pdf
   // $MONVG,timestampOfLastMessage,lat,,lon,,quality(1good 0bad),altitude,depth,heading,speed_over_ground*
-  string nmea = "$MORMV,";
+  string nmea = "$MONVG,";
   std::stringstream ss;
   ss << std::put_time(std::localtime(&m_last_updated_time), "%H%M%S.00,");
   nmea += ss.str();
@@ -62,6 +62,40 @@ string FrontNMEABridge::genNMEAString() {
     "," + doubleToString(m_latest_depth) + "," + doubleToString(m_latest_heading) +  "," + doubleToString(m_latest_speed) + "*";
   nmea += genNMEAChecksum(nmea);
   return nmea;
+}
+
+void FrontNMEABridge::handleIncomingNMEA(const string _rx) {
+  string rx = _rx;
+  MOOSTrimWhiteSpace(rx);
+
+  // Verify Checksum
+  string nmeaNoChecksum = rx;
+  string checksum = rbiteString(nmeaNoChecksum, '*');
+  string expected = genNMEAChecksum(nmeaNoChecksum);
+  if (!MOOSStrCmp(expected, checksum) && validate_checksum) {
+    reportRunWarning("Expected checksum " + expected + " but got " + checksum + ", ignoring message");
+    //reportEvent(rx);
+    return;
+  }
+
+  // Process Message
+  string key = biteStringX(nmeaNoChecksum, ',');
+  if (MOOSStrCmp(key, "$UVDEV")) {
+    // $UVDEV,hhmmss.ss,heading,speed,depth*XX
+    // Unmanned Vehicle DEsired Velocity(?)
+    string sent_time = biteStringX(nmeaNoChecksum, ',');
+    double heading = stod(biteStringX(nmeaNoChecksum, ','));
+    double speed = stod(biteStringX(nmeaNoChecksum, ','));
+    double depth = stod(biteStringX(nmeaNoChecksum, ','));
+
+    // TODO Time difference checking
+
+    m_Comms.Notify("DESIRED_HEADING", heading);
+    m_Comms.Notify("DESIRED_SPEED", speed);
+    m_Comms.Notify("DESIRED_DEPTH", depth);
+  } else {
+    reportRunWarning("Unhandled Command: " + key);
+  }
 }
 
 //---------------------------------------------------------
@@ -172,7 +206,14 @@ bool FrontNMEABridge::Iterate()
       std::string rx;
       int len = socket->recv(rx); // TODO explicit error checking
       if (len > 0) {
-        reportEvent(rx);
+        // Check if we have a valid NMEA string
+        if (rx.rfind('$', 0) == 0) {
+          // Process NMEA string
+          handleIncomingNMEA(rx);
+        } else {
+          MOOSTrimWhiteSpace(rx);
+          reportEvent(rx);
+        }
       }
     }
   }
