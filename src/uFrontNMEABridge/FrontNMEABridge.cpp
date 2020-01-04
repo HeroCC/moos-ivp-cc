@@ -202,8 +202,18 @@ bool FrontNMEABridge::OnStartUp()
     string value = line;
 
     bool handled = false;
-    if(param == "foo") {
-      handled = true;
+    if(param == "port") {
+      int port = stoi(value);
+      if (port > 65535 || port < 1) {
+        reportRunWarning("Port " + value + " is outside valid port range 1-65535");
+      } else {
+        try {
+          m_port = stoi(value);
+          handled = true;
+        } catch (const invalid_argument &e) {
+          reportRunWarning("Unable to parse requested port " + value + " to int");
+        }
+      }
     }
     else if(param == "bar") {
       handled = true;
