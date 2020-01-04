@@ -49,6 +49,8 @@ public:
 
     bool is_valid() const { return m_sock != -1; }
 
+    sockaddr_in get_addr() const { return m_addr; }
+
 private:
     int m_sock;
     sockaddr_in m_addr;

@@ -3,7 +3,6 @@
 /*    ORGN: MIT                                             */
 /*    FILE: FrontNMEABridge.cpp                             */
 /*    DATE: Winter 2019                                     */
-/*    Bits and pieces taken from Alon's iM200 Code          */
 /************************************************************/
 
 #include <iterator>
@@ -27,6 +26,7 @@ FrontNMEABridge::~FrontNMEABridge()
 {
 }
 
+// Algorithm from Alon's iM200 code, thank you!
 string genNMEAChecksum(string nmeaString) {
   unsigned char xCheckSum = 0;
   string::iterator p;
@@ -319,8 +319,9 @@ void FrontNMEABridge::registerVariables()
 
 bool FrontNMEABridge::buildReport() 
 {
+  m_msgs << "Listening on:     " << inet_ntoa(m_server.get_addr().sin_addr) << ":" << m_port << endl;
   m_msgs << "Attached Clients: " << sockets.size() << endl;
-  m_msgs << genNMEAString() << endl;
+  //m_msgs << genNMEAString() << endl;
 
   return(true);
 }
