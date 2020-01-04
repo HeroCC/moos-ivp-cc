@@ -259,19 +259,33 @@ bool FrontNMEABridge::OnStartUp()
 
     bool handled = false;
     if(param == "port") {
-      int port = stoi(value);
-      if (port > 65535 || port < 1) {
-        reportRunWarning("Port " + value + " is outside valid port range 1-65535");
-      } else {
-        try {
+      if (isNumber(value)) {
+        int port = stoi(value);
+        if (port > 65535 || port < 1) {
+          reportConfigWarning("Port " + value + " is outside valid port range 1-65535");
+        } else {
           m_port = stoi(value);
-          handled = true;
-        } catch (const invalid_argument &e) {
-          reportRunWarning("Unable to parse requested port " + value + " to int");
         }
+      } else {
+        reportConfigWarning("Unable to parse requested port " + value + " to int");
       }
-    }
-    else if(param == "bar") {
+      handled = true;
+    } else if (param == "validatechecksum") {
+      value = tolower(value);
+      if (value == "false") {
+        validate_checksum = false;
+      } else if (value == "true") {
+        validate_checksum = true;
+      } else {
+        reportConfigWarning(param + " is not set to true or false, skipping");
+      }
+      handled = true;
+    } else if (param == "maximumtimedifference" || param == "maximumtimedelta") {
+      if (isNumber(value)) {
+        maximum_time_delta = stod(value);
+      } else {
+        reportConfigWarning(param + " is not a number, skipping");
+      }
       handled = true;
     }
 
