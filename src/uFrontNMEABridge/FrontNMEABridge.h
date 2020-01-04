@@ -36,7 +36,7 @@ class FrontNMEABridge : public AppCastingMOOSApp
 
  private: // Configuration variables
     bool validate_checksum = true;
-    int maximum_time_delta = 3; // Seconds
+    double maximum_time_delta = 3; // Seconds
 
  private: // State variables
     Socket m_server;

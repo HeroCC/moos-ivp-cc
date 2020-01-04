@@ -88,7 +88,22 @@ void FrontNMEABridge::handleIncomingNMEA(const string _rx) {
     double speed = stod(biteStringX(nmeaNoChecksum, ','));
     double depth = stod(biteStringX(nmeaNoChecksum, ','));
 
-    // TODO Time difference checking
+    // Check Time
+    if (maximum_time_delta >= 0) {
+      const time_t currtime = std::time(nullptr);
+
+      struct std::tm* tm = localtime(&currtime); // Assume we have the same date
+      std::istringstream ss(sent_time);
+      ss >> std::get_time(tm, "%H%M%S"); // Override hour, minute, second
+      //strptime(sent_time.c_str(), "%H%M%S", &tm);
+      time_t tx_unix_time = mktime(tm);
+
+      long diff = abs(currtime - tx_unix_time);
+      if (diff >= maximum_time_delta) {
+        reportRunWarning("Time difference " + doubleToString(diff) + ">" + doubleToString(maximum_time_delta) + ", ignoring message");
+        return;
+      }
+    }
 
     m_Comms.Notify("DESIRED_HEADING", heading);
     m_Comms.Notify("DESIRED_SPEED", speed);
