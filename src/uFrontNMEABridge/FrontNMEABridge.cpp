@@ -271,19 +271,12 @@ bool FrontNMEABridge::OnStartUp()
       }
       handled = true;
     } else if (param == "validatechecksum") {
-      value = tolower(value);
-      if (value == "false") {
-        validate_checksum = false;
-      } else if (value == "true") {
-        validate_checksum = true;
-      } else {
+      if (!setBooleanOnString(validate_checksum, value)) {
         reportConfigWarning(param + " is not set to true or false, skipping");
       }
       handled = true;
     } else if (param == "maximumtimedifference" || param == "maximumtimedelta") {
-      if (isNumber(value)) {
-        maximum_time_delta = stod(value);
-      } else {
+      if (!setDoubleOnString(maximum_time_delta, value)) {
         reportConfigWarning(param + " is not a number, skipping");
       }
       handled = true;
