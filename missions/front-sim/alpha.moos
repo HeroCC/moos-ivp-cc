@@ -6,7 +6,7 @@
 ServerHost   = localhost
 ServerPort   = 9000
 Community    = alpha
-MOOSTimeWarp = 1
+MOOSTimeWarp = $(WARP)
 
 // Forest Lake
 LatOrigin  = 43.825300 
@@ -26,7 +26,9 @@ ProcessConfig = ANTLER
   Run = pLogger          @ NewConsole = false
   Run = uSimMarine	     @ NewConsole = false
   Run = pMarinePID       @ NewConsole = false
+#ifdef GUI yes
   Run = pMarineViewer	   @ NewConsole = false
+#endif
   Run = uProcessWatch	   @ NewConsole = false
   Run = pNodeReporter	   @ NewConsole = false
   Run = uFrontNMEABridge @ NewConsole = false
