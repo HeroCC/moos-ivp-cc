@@ -11,6 +11,7 @@ trap "kill -- -$$" EXIT SIGTERM SIGHUP SIGINT SIGKILL
 TIME_WARP=1
 COMMUNITY="alpha"
 GUI="yes"
+cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 #----------------------------------------------------------
 #  Part 2: Check for and handle command-line arguments
