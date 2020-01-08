@@ -51,7 +51,7 @@ string genNMEAChecksum(string nmeaString) {
   return sExpected;
 }
 
-string FrontNMEABridge::genNMEAString() {
+string FrontNMEABridge::genMONVGString() {
   // Very similar to CPNVG from https://oceanai.mit.edu/herons/docs/ClearpathWireProtocolV0.2.pdf
   // $MONVG,timestampOfLastMessage,lat,,lon,,quality(1good 0bad),altitude,depth,heading,speed_over_ground*
   string nmea = "$MONVG,";
@@ -74,7 +74,6 @@ void FrontNMEABridge::handleIncomingNMEA(const string _rx) {
   string expected = genNMEAChecksum(nmeaNoChecksum);
   if (!MOOSStrCmp(expected, checksum) && validate_checksum) {
     reportRunWarning("Expected checksum " + expected + " but got " + checksum + ", ignoring message");
-    //reportEvent(rx);
     return;
   }
 
@@ -100,7 +99,7 @@ void FrontNMEABridge::handleIncomingNMEA(const string _rx) {
 
       long diff = abs(currtime - tx_unix_time);
       if (diff >= maximum_time_delta) {
-        reportRunWarning("Time difference " + doubleToString(diff) + ">" + doubleToString(maximum_time_delta) + ", ignoring message");
+        reportRunWarning("Time difference " + doubleToString(diff) + ">" + doubleToString(maximum_time_delta) + ", ignoring message " + key);
         return;
       }
     }
@@ -189,9 +188,9 @@ bool FrontNMEABridge::OnConnectToServer()
 bool FrontNMEABridge::Iterate()
 {
   AppCastingMOOSApp::Iterate();
-  string nmea = genNMEAString();
+  string nmea = genMONVGString();
 
-  Notify("GENERATED_NMEA_STRING", nmea);
+  Notify("GENERATED_NMEA_MONVG", nmea);
 
   // Check for new incoming connections
   std::shared_ptr<Socket> client = std::make_shared<Socket>(); // TODO for safety, make this a unique_ptr
@@ -224,6 +223,7 @@ bool FrontNMEABridge::Iterate()
         // Check if we have a valid NMEA string
         if (rx.rfind('$', 0) == 0) {
           // Process NMEA string
+          Notify("INCOMING_NMEA", rx);
           handleIncomingNMEA(rx);
         } else {
           MOOSTrimWhiteSpace(rx);

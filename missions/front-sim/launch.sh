@@ -1,8 +1,8 @@
 #!/bin/bash -e
 #----------------------------------------------------------
 #  Script: launch.sh
-#  Author: Michael Benjamin
-#  LastEd: May 20th 2019
+#  Author: Michael Benjamin, Conlan Cesar
+#  LastEd: Winter 2019
 
 #----------------------------------------------------------
 #  Part 1: Set Exit actions and declare global var defaults

@@ -18,9 +18,6 @@ class FrontNMEABridge : public AppCastingMOOSApp
    FrontNMEABridge();
    ~FrontNMEABridge();
 
-    std::string genNMEAString();
-    unsigned short m_port = 10110;
-
  protected: // Standard MOOSApp functions to overload  
    bool OnNewMail(MOOSMSG_LIST &NewMail);
    bool Iterate();
@@ -31,10 +28,12 @@ class FrontNMEABridge : public AppCastingMOOSApp
    bool buildReport();
 
  protected:
+    std::string genMONVGString();
     void registerVariables();
     void handleIncomingNMEA(std::string);
 
  private: // Configuration variables
+    unsigned short m_port = 10110;
     bool validate_checksum = true;
     double maximum_time_delta = 3; // Seconds
 
