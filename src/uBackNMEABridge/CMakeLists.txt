@@ -23,3 +23,4 @@ TARGET_LINK_LIBRARIES(uBackNMEABridge
    #geometry
    )
 
+set_property(TARGET uBackNMEABridge PROPERTY CXX_STANDARD 11)

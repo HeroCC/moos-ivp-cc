@@ -56,7 +56,7 @@ string FrontNMEABridge::genMONVGString() {
   // $MONVG,timestampOfLastMessage,lat,,lon,,quality(1good 0bad),altitude,depth,heading,speed_over_ground*
   string nmea = "$MONVG,";
   std::stringstream ss;
-  ss << std::put_time(std::gmtime(&m_last_updated_time), "%H%M%S.00,");
+  ss << std::put_time(std::localtime(&m_last_updated_time), "%H%M%S.00,");
   nmea += ss.str();
   nmea += doubleToString(m_latest_lat) + ",," + doubleToString(m_latest_long) + ",,1," + doubleToString(m_latest_alt) +
     "," + doubleToString(m_latest_depth) + "," + doubleToString(m_latest_heading) +  "," + doubleToString(m_latest_speed) + "*";
@@ -91,14 +91,14 @@ void FrontNMEABridge::handleIncomingNMEA(const string _rx) {
     if (maximum_time_delta >= 0) {
       const time_t currtime = std::time(nullptr);
 
-      struct std::tm* tm = gmtime(&currtime); // Assume we have the same date
+      struct std::tm* tm = localtime(&currtime); // Assume we have the same date
       std::istringstream ss(sent_time);
       ss >> std::get_time(tm, "%H%M%S"); // Override hour, minute, second
       //strptime(sent_time.c_str(), "%H%M%S", &tm);
       time_t tx_unix_time = mktime(tm);
 
       long diff = abs(currtime - tx_unix_time);
-      if (diff >= maximum_time_delta) {
+      if (diff > maximum_time_delta) {
         reportRunWarning("Time difference " + doubleToString(diff) + ">" + doubleToString(maximum_time_delta) + ", ignoring message " + key);
         return;
       }
@@ -151,7 +151,7 @@ bool FrontNMEABridge::OnNewMail(MOOSMSG_LIST &NewMail)
      } else if(key != "APPCAST_REQ") { // handled by AppCastingMOOSApp
        reportRunWarning("Unhandled Mail: " + key);
      }
-     m_last_updated_time = m_curr_time;
+     m_last_updated_time = std::time(nullptr);
 
    }
 	
