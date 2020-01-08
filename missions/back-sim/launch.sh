@@ -9,8 +9,10 @@
 #----------------------------------------------------------
 trap "kill -- -$$" EXIT SIGTERM SIGHUP SIGINT SIGKILL
 TIME_WARP=1
-COMMUNITY="alpha"
+COMMUNITY="back"
 GUI="yes"
+NMEA_HOST="localhost"
+NMEA_PORT=10110
 
 cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
@@ -36,7 +38,9 @@ done
 #----------------------------------------------------------
 #  Part 3: Build the targ_*.moos file
 #----------------------------------------------------------
-nsplug $COMMUNITY.moos targ_${COMMUNITY}.moos -f GUI=$GUI WARP=$TIME_WARP
+nsplug $COMMUNITY.moos targ_${COMMUNITY}.moos -f \
+  GUI=$GUI WARP=$TIME_WARP COMMUNITY=$COMMUNITY \
+  NMEA_HOST=$NMEA_HOST NMEA_PORT=$NMEA_PORT
 
 #----------------------------------------------------------
 #  Part 4: Launch the processes

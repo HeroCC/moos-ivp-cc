@@ -1,11 +1,10 @@
 /-------------------------------------------------
 // NAME: M. Benjamin & C. Cesar, MIT CSAIL
-// FILE: alpha.moos
+// FILE: back.moos
 //-------------------------------------------------
-
 ServerHost   = localhost
-ServerPort   = 9000
-Community    = alpha
+ServerPort   = 9005
+Community    = $(COMMUNITY)
 MOOSTimeWarp = $(WARP)
 
 // Forest Lake
@@ -22,31 +21,44 @@ ProcessConfig = ANTLER
 {
   MSBetweenLaunches = 200
 
-  Run = MOOSDB           @ NewConsole = false
-  Run = pLogger          @ NewConsole = false
-  Run = uSimMarine	     @ NewConsole = false
-  Run = pMarinePID       @ NewConsole = false
-#ifdef GUI yes
-  Run = pMarineViewer	   @ NewConsole = false
-#endif
-  Run = uProcessWatch	   @ NewConsole = false
-  Run = pNodeReporter	   @ NewConsole = false
-  Run = uFrontNMEABridge @ NewConsole = false
-  Run = pHelmIvP         @ NewConsole = false
+  Run = MOOSDB          @ NewConsole = false
+  Run = pLogger         @ NewConsole = false
+  //Run = uSimMarine	 @ NewConsole = false
+  Run = pMarinePID      @ NewConsole = false
+  Run = pHelmIvP        @ NewConsole = false
+  Run = pMarineViewer	@ NewConsole = false
+  Run = uProcessWatch	@ NewConsole = false
+  Run = pNodeReporter	@ NewConsole = false
+  Run = uBackNMEABridge @ NewConsole = false
+  Run = uMemWatch       @ NewConsole = false
+}
+
+//------------------------------------------------
+// uBackNMEABridge config block
+
+ProcessConfig = uBackNMEABridge
+{
+  AppTick   = 4
+  CommsTick = 4
+
+  Port = $(NMEA_PORT)
+  Host = $(NMEA_HOST)
+  ValidateChecksum = true
+  MaximumTimeDifference = 3 // Seconds, -1 to ignore
 }
 
 //------------------------------------------
-// uFrontNMEABridge config block
+// uMemWatch config block
 
-ProcessConfig = uFrontNMEABridge
-{
-  AppTick = 4
-  CommsTick = 4
+ProcessConfig = uMemWatch                                       
+{                                                               
+  AppTick   = 4                                                 
+  CommsTick = 4                                                 
+                                                                
+  absolute_time_gap = 1   // In Seconds, Default is 4
 
-  Port = 10110
-  ValidateChecksum = true // default true
-  MaximumTimeDifference = 3 // Seconds, -1 to ignore
-}
+  watch_only = pHelmIvP,pMarineViewer
+}                                  
 
 //------------------------------------------
 // pLogger config block
@@ -114,7 +126,7 @@ ProcessConfig = pHelmIvP
 
   bhv_dir_not_found_ok = true
 
-  behaviors  = alpha.bhv
+  behaviors  = $(COMMUNITY).bhv
   domain     = course:0:359:360
   domain     = speed:0:4:41
 }
