@@ -10,12 +10,16 @@ SET(SRC
         Socket.h Socket.cpp
 )
 
+
 ADD_EXECUTABLE(uBackNMEABridge ${SRC})
 
 TARGET_LINK_LIBRARIES(uBackNMEABridge
+   ${MOOSGeodesy_LIBRARIES}
    ${MOOS_LIBRARIES}
    apputil
    mbutil
    m
-   pthread)
+   pthread
+   #geometry
+   )
 

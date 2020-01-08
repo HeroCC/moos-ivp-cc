@@ -107,6 +107,15 @@ void BackNMEABridge::handleIncomingNMEA(const string _rx) {
       }
     }
 
+    if (m_geo_initialized) {
+      double x;
+      double y;
+      m_geo.LatLong2LocalUTM(lat, lon, y, x);
+
+      m_Comms.Notify("NAV_X", x);
+      m_Comms.Notify("NAV_Y", y);
+    }
+
     m_Comms.Notify("NAV_HEADING", heading);
     m_Comms.Notify("NAV_SPEED", speed);
     m_Comms.Notify("NAV_DEPTH", depth);
@@ -163,6 +172,15 @@ bool BackNMEABridge::OnNewMail(MOOSMSG_LIST &NewMail)
 
 bool BackNMEABridge::OnConnectToServer()
 {
+  double latOrigin = 0.0;
+  double lonOrigin = 0.0;
+  if (!(m_MissionReader.GetValue("LatOrigin", latOrigin) && m_MissionReader.GetValue("LongOrigin", lonOrigin)
+        && (m_geo_initialized = m_geo.Initialise(latOrigin, lonOrigin)))) {
+    reportRunWarning("Error calculating datum! XY Local Grid Unavaliable");
+  }
+
+
+
   if (!m_server.create()) {
     reportRunWarning("Failed to create socket");
     return false;

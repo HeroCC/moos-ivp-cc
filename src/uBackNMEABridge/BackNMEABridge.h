@@ -10,6 +10,8 @@
 
 #include "Socket.h"
 #include "MOOS/libMOOS/Thirdparty/AppCasting/AppCastingMOOSApp.h"
+#include "MOOS/libMOOSGeodesy/MOOSGeodesy.h"
+
 
 class BackNMEABridge : public AppCastingMOOSApp
 {
@@ -39,19 +41,15 @@ class BackNMEABridge : public AppCastingMOOSApp
 
  private: // State variables
     Socket m_server;
+    CMOOSGeodesy m_geo;
+
+    bool m_geo_initialized = false;
 
     time_t m_last_updated_time = -1;
 
     double m_desired_heading = 0;
     double m_desired_speed = 0;
     double m_desired_depth = 0;
-
-    double m_latest_heading = 0;
-    double m_latest_speed = 0;
-    double m_latest_depth = 0;
-    double m_latest_long = -1;
-    double m_latest_alt = -1;
-    double m_latest_lat = -1;
 };
 
 #endif 
