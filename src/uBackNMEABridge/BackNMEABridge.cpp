@@ -1,8 +1,8 @@
 /************************************************************/
-/*    NAME:                                               */
+/*    NAME: Conlan Cesar                                    */
 /*    ORGN: MIT                                             */
-/*    FILE: BackNMEABridge.cpp                                        */
-/*    DATE:                                                 */
+/*    FILE: BackNMEABridge.cpp                              */
+/*    DATE: Winter 2019-20                                  */
 /************************************************************/
 
 #include <iterator>
@@ -24,6 +24,97 @@ BackNMEABridge::BackNMEABridge()
 
 BackNMEABridge::~BackNMEABridge()
 {
+  m_server.close();
+}
+
+string genNMEAChecksum(string nmeaString) {
+  unsigned char xCheckSum = 0;
+  string::iterator p;
+
+  // Get the text between the $ and *
+  MOOSChomp(nmeaString,"$");
+  string sToCheck = MOOSChomp(nmeaString,"*");
+
+  // XOR every byte as a checksum
+  for (p = sToCheck.begin(); p != sToCheck.end(); p++) {
+    xCheckSum ^= *p;
+  }
+
+  ostringstream os;
+  os.flags(ios::hex);
+  os << (int) xCheckSum;
+  string sExpected = os.str();
+
+  if (sExpected.length() < 2)
+    sExpected = "0" + sExpected;
+
+  return sExpected;
+}
+
+string BackNMEABridge::genUVDEVString() {
+  string nmea = "$UVDEV,";
+  std::stringstream ss;
+  ss << std::put_time(std::gmtime(&m_last_updated_time), "%H%M%S.00,");
+  nmea += ss.str();
+  nmea += doubleToString(m_desired_heading) + "," + doubleToString(m_desired_speed) + "," + doubleToString(m_desired_depth) + "*";
+  nmea += genNMEAChecksum(nmea);
+  return nmea;
+}
+
+void BackNMEABridge::handleIncomingNMEA(const string _rx) {
+  string rx = _rx;
+  MOOSTrimWhiteSpace(rx);
+
+  // Verify Checksum
+  string nmeaNoChecksum = rx;
+  string checksum = rbiteString(nmeaNoChecksum, '*');
+  string expected = genNMEAChecksum(nmeaNoChecksum);
+  if (!MOOSStrCmp(expected, checksum) && validate_checksum) {
+    reportRunWarning("Expected checksum " + expected + " but got " + checksum + ", ignoring message");
+    return;
+  }
+
+  // Process Message
+  string key = biteStringX(nmeaNoChecksum, ',');
+  if (MOOSStrCmp(key, "$MONVG")) {
+    // $MONVG,timestampOfLastMessage,lat,,lon,,quality(1good 0bad),altitude,depth,heading,speed*
+    string sent_time = biteStringX(nmeaNoChecksum, ',');
+    double lat = stod(biteStringX(nmeaNoChecksum, ','));
+    biteStringX(nmeaNoChecksum, ','); // blank
+    double lon = stod(biteStringX(nmeaNoChecksum, ','));
+    biteStringX(nmeaNoChecksum, ','); // blank
+    bool gps_quality = false;
+    setBooleanOnString(gps_quality, biteStringX(nmeaNoChecksum, ','));
+    double altitude = stod(biteStringX(nmeaNoChecksum, ','));
+    double depth = stod(biteStringX(nmeaNoChecksum, ','));
+    double heading = stod(biteStringX(nmeaNoChecksum, ','));
+    double speed = stod(biteStringX(nmeaNoChecksum, ','));
+
+    // Check Time
+    if (maximum_time_delta >= 0) {
+      const time_t currtime = std::time(nullptr);
+
+      struct std::tm* tm = gmtime(&currtime); // Assume we have the same date
+      std::istringstream ss(sent_time);
+      ss >> std::get_time(tm, "%H%M%S"); // Override hour, minute, second
+      //strptime(sent_time.c_str(), "%H%M%S", &tm);
+      time_t tx_unix_time = mktime(tm);
+
+      long diff = abs(currtime - tx_unix_time);
+      if (diff >= maximum_time_delta) {
+        reportRunWarning("Time difference " + doubleToString(diff) + ">" + doubleToString(maximum_time_delta) + ", ignoring message " + key);
+        return;
+      }
+    }
+
+    m_Comms.Notify("NAV_HEADING", heading);
+    m_Comms.Notify("NAV_SPEED", speed);
+    m_Comms.Notify("NAV_DEPTH", depth);
+    m_Comms.Notify("NAV_LAT", lat);
+    m_Comms.Notify("NAV_LONG", lon);
+  } else {
+    reportRunWarning("Unhandled Command: " + key);
+  }
 }
 
 //---------------------------------------------------------
@@ -48,11 +139,20 @@ bool BackNMEABridge::OnNewMail(MOOSMSG_LIST &NewMail)
     bool   mstr  = msg.IsString();
 #endif
 
-     if(key == "FOO") 
-       cout << "great!";
+    if (key == "APPCAST_REQ") return true;
 
-     else if(key != "APPCAST_REQ") // handled by AppCastingMOOSApp
-       reportRunWarning("Unhandled Mail: " + key);
+    if(key == "DESIRED_HEADING") {
+      m_desired_heading = msg.GetDouble();
+    } else if (key == "DESIRED_SPEED") {
+      m_desired_speed = msg.GetDouble();
+    } else if (key == "DESIRED_DEPTH") {
+      m_desired_depth = msg.GetDouble();
+    } else if(key != "APPCAST_REQ") { // handled by AppCastingMOOSApp
+      reportRunWarning("Unhandled Mail: " + key);
+      return true;
+    }
+    m_last_updated_time = m_curr_time;
+
    }
 	
    return(true);
@@ -63,8 +163,18 @@ bool BackNMEABridge::OnNewMail(MOOSMSG_LIST &NewMail)
 
 bool BackNMEABridge::OnConnectToServer()
 {
-   registerVariables();
-   return(true);
+  if (!m_server.create()) {
+    reportRunWarning("Failed to create socket");
+    return false;
+  }
+  if (!m_server.connect(m_connect_addr, m_connect_port)) {
+    reportRunWarning("Failed to connect to  " + m_connect_addr + intToString(m_connect_port));
+    return false;
+  }
+  m_server.set_non_blocking(true);
+
+  registerVariables();
+  return(true);
 }
 
 //---------------------------------------------------------
@@ -74,7 +184,38 @@ bool BackNMEABridge::OnConnectToServer()
 bool BackNMEABridge::Iterate()
 {
   AppCastingMOOSApp::Iterate();
-  // Do your thing here!
+
+  string nmea = genUVDEVString();
+  Notify("GENERATED_NMEA_UVDEV", nmea);
+
+  if (m_server.is_valid()) {
+    // Tx NMEA String to server
+    int retval = m_server.send(nmea + "\n");
+    if (retval && retval != EPIPE) {
+      std::string err = strerror(retval);
+      reportRunWarning("Unable to send to socket: " + err);
+    } else if (retval == EPIPE) {
+      // EPIPE essentially means the socket is closed, so we should mark it explicitly
+      reportRunWarning("Server quit! Please Restart"); // TODO auto reconnect
+      m_server.close();
+    }
+
+    // Rx
+    std::string rx;
+    int len = m_server.recv(rx); // TODO explicit error checking
+    if (len > 0) {
+      // Check if we have a valid NMEA string
+      if (rx.rfind('$', 0) == 0) {
+        // Process NMEA string
+        Notify("INCOMING_NMEA", rx);
+        handleIncomingNMEA(rx);
+      } else {
+        MOOSTrimWhiteSpace(rx);
+        reportEvent(rx);
+      }
+    }
+  }
+
   AppCastingMOOSApp::PostReport();
   return(true);
 }
@@ -100,10 +241,30 @@ bool BackNMEABridge::OnStartUp()
     string value = line;
 
     bool handled = false;
-    if(param == "foo") {
+    if(param == "port") {
+      if (isNumber(value)) {
+        int port = stoi(value);
+        if (port > 65535 || port < 1) {
+          reportConfigWarning("Port " + value + " is outside valid port range 1-65535");
+        } else {
+          m_connect_port = stoi(value);
+        }
+      } else {
+        reportConfigWarning("Unable to parse requested port " + value + " to int");
+      }
       handled = true;
-    }
-    else if(param == "bar") {
+    } else if (param == "host") {
+      m_connect_addr = value;
+      handled = true;
+    } else if (param == "validatechecksum") {
+      if (!setBooleanOnString(validate_checksum, value)) {
+        reportConfigWarning(param + " is not set to true or false, skipping");
+      }
+      handled = true;
+    } else if (param == "maximumtimedifference" || param == "maximumtimedelta") {
+      if (!setDoubleOnString(maximum_time_delta, value)) {
+        reportConfigWarning(param + " is not a number, skipping");
+      }
       handled = true;
     }
 
@@ -122,7 +283,9 @@ bool BackNMEABridge::OnStartUp()
 void BackNMEABridge::registerVariables()
 {
   AppCastingMOOSApp::RegisterVariables();
-  // Register("FOOBAR", 0);
+  Register("DESIRED_HEADING", 0);
+  Register("DESIRED_DEPTH", 0);
+  Register("DESIRED_SPEED", 0);
 }
 
 
@@ -131,15 +294,9 @@ void BackNMEABridge::registerVariables()
 
 bool BackNMEABridge::buildReport() 
 {
-  m_msgs << "============================================" << endl;
-  m_msgs << "File:                                       " << endl;
-  m_msgs << "============================================" << endl;
-
-  ACTable actab(4);
-  actab << "Alpha | Bravo | Charlie | Delta";
-  actab.addHeaderLines();
-  actab << "one" << "two" << "three" << "four";
-  m_msgs << actab.getFormattedString();
+  m_msgs << "Valid Connection: " << boolToString(m_server.is_valid()) << endl;
+  m_msgs << "Host: " << m_connect_addr << endl;
+  m_msgs << "Port: " << intToString(m_connect_port) << endl;
 
   return(true);
 }

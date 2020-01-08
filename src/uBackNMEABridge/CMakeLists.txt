@@ -7,6 +7,7 @@ SET(SRC
   BackNMEABridge.cpp
   BackNMEABridge_Info.cpp
   main.cpp
+        Socket.h Socket.cpp
 )
 
 ADD_EXECUTABLE(uBackNMEABridge ${SRC})

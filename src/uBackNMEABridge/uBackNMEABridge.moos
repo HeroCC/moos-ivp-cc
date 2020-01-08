@@ -3,7 +3,12 @@
 
 ProcessConfig = uBackNMEABridge
 {
-   AppTick   = 4
-   CommsTick = 4
+  AppTick   = 4
+  CommsTick = 4
+
+  Port = 10110
+  Host = localhost
+  ValidateChecksum = true
+  MaximumTimeDifference = 3 // Seconds, -1 to ignore
 }
 
