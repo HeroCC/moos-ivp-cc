@@ -160,7 +160,7 @@ bool BackNMEABridge::OnNewMail(MOOSMSG_LIST &NewMail)
       reportRunWarning("Unhandled Mail: " + key);
       return true;
     }
-    m_last_updated_time = std::time(nullptr);
+    std::time(&m_last_updated_time);
 
    }
 	
@@ -179,20 +179,36 @@ bool BackNMEABridge::OnConnectToServer()
     reportRunWarning("Error calculating datum! XY Local Grid Unavaliable");
   }
 
+  ConnectToNMEAServer();
 
+  registerVariables();
+  return(true);
+}
+
+//---------------------------------------------------------
+// Procedure: ConnectToNMEAServer
+
+bool BackNMEABridge::ConnectToNMEAServer()
+{
+  std::time(&m_last_nmea_connect_time);
+  m_server.close();
+
+  std::string niceAddr = m_connect_addr + ":" + intToString(m_connect_port);
+  reportEvent("Attempting to connect to server @ " + niceAddr);
 
   if (!m_server.create()) {
     reportRunWarning("Failed to create socket");
+    m_server.close();
     return false;
   }
   if (!m_server.connect(m_connect_addr, m_connect_port)) {
-    reportRunWarning("Failed to connect to  " + m_connect_addr + intToString(m_connect_port));
+    reportRunWarning("Failed to connect to server");
+    m_server.close();
     return false;
   }
   m_server.set_non_blocking(true);
 
-  registerVariables();
-  return(true);
+  return true;
 }
 
 //---------------------------------------------------------
@@ -209,12 +225,9 @@ bool BackNMEABridge::Iterate()
   if (m_server.is_valid()) {
     // Tx NMEA String to server
     int retval = m_server.send(nmea + "\n");
-    if (retval && retval != EPIPE) {
+    if (retval) {
       std::string err = strerror(retval);
-      reportRunWarning("Unable to send to socket: " + err);
-    } else if (retval == EPIPE) {
-      // EPIPE essentially means the socket is closed, so we should mark it explicitly
-      reportRunWarning("Server quit! Please Restart"); // TODO auto reconnect
+      reportRunWarning("Lost connection to server: " + err);
       m_server.close();
     }
 
@@ -229,8 +242,12 @@ bool BackNMEABridge::Iterate()
         handleIncomingNMEA(rx);
       } else {
         MOOSTrimWhiteSpace(rx);
-        reportEvent(rx);
+        reportEvent("NMEA NOTE: " + rx);
       }
+    }
+  } else {
+    if (std::time(nullptr) - m_last_nmea_connect_time >= attempt_reconnect_interval) {
+      ConnectToNMEAServer();
     }
   }
 
@@ -273,6 +290,9 @@ bool BackNMEABridge::OnStartUp()
       handled = true;
     } else if (param == "host") {
       m_connect_addr = value;
+      handled = true;
+    } else if (param == "reconnectinterval") {
+      attempt_reconnect_interval = stod(value);
       handled = true;
     } else if (param == "validatechecksum") {
       if (!setBooleanOnString(validate_checksum, value)) {

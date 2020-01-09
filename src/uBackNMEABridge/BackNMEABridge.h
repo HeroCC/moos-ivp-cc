@@ -32,12 +32,14 @@ class BackNMEABridge : public AppCastingMOOSApp
    void registerVariables();
    std::string genUVDEVString();
    void handleIncomingNMEA(std::string);
+   bool ConnectToNMEAServer();
 
  private: // Configuration variables
     std::string m_connect_addr = "localhost";
     unsigned short m_connect_port = 10110;
     bool validate_checksum = true;
     double maximum_time_delta = 3; // Seconds
+    double attempt_reconnect_interval = 3;
 
  private: // State variables
     Socket m_server;
@@ -46,6 +48,7 @@ class BackNMEABridge : public AppCastingMOOSApp
     bool m_geo_initialized = false;
 
     time_t m_last_updated_time = -1;
+    time_t m_last_nmea_connect_time = -1;
 
     double m_desired_heading = 0;
     double m_desired_speed = 0;
