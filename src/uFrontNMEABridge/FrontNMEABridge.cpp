@@ -136,9 +136,9 @@ bool FrontNMEABridge::OnNewMail(MOOSMSG_LIST &NewMail)
 
     if (key == "APPCAST_REQ") return true;
 
-     if(key == "NAV_HEADING_OVER_GROUND") {
+     if(key == "NAV_HEADING_OVER_GROUND" || key == "NAV_HEADING") {
        m_latest_heading = msg.GetDouble();
-     } else if (key == "NAV_SPEED_OVER_GROUND") {
+     } else if (key == "NAV_SPEED_OVER_GROUND" || key == "NAV_SPEED") {
        m_latest_speed = msg.GetDouble();
      } else if (key == "NAV_DEPTH") {
        m_latest_depth = msg.GetDouble();
@@ -298,8 +298,10 @@ void FrontNMEABridge::registerVariables()
 {
   AppCastingMOOSApp::RegisterVariables();
 
-  Register("NAV_HEADING_OVER_GROUND", 0);
-  Register("NAV_SPEED_OVER_GROUND", 0);
+  Register("NAV_SPEED", 0);
+  Register("NAV_HEADING", 0);
+  //Register("NAV_HEADING_OVER_GROUND", 0);
+  //Register("NAV_SPEED_OVER_GROUND", 0);
   Register("NAV_DEPTH", 0);
   Register("NAV_LAT", 0);
   Register("NAV_LONG", 0);

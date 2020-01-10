@@ -118,7 +118,7 @@ void BackNMEABridge::handleIncomingNMEA(const string _rx) {
     }
 
     m_Comms.Notify("NAV_HEADING", heading);
-    m_Comms.Notify("NAV_SPEED_OVER_GROUND", speed);
+    m_Comms.Notify("NAV_SPEED", speed);
     m_Comms.Notify("NAV_DEPTH", depth);
     m_Comms.Notify("NAV_LAT", lat);
     m_Comms.Notify("NAV_LONG", lon);
