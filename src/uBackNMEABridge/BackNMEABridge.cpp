@@ -244,6 +244,8 @@ bool BackNMEABridge::Iterate()
         reportEvent("NMEA NOTE: " + rx);
       }
     }
+
+    retractRunWarning("Failed to connect to server"); // If we're connected, we no longer need the warning
   } else {
     if (std::time(nullptr) - m_last_nmea_connect_time >= attempt_reconnect_interval) {
       ConnectToNMEAServer();
