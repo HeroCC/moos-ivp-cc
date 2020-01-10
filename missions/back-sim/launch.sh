@@ -11,8 +11,8 @@ trap "kill -- -$$" EXIT SIGTERM SIGHUP SIGINT SIGKILL
 TIME_WARP=1
 COMMUNITY="back"
 GUI="yes"
-NMEA_HOST="localhost"
-NMEA_PORT=10110
+NMEA_HOST="${NMEA_HOST:-localhost}"
+NMEA_PORT="${NMEA_PORT:-10110}"
 
 cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
