@@ -23,16 +23,13 @@ ProcessConfig = ANTLER
 
   Run = MOOSDB          @ NewConsole = false
   Run = pLogger         @ NewConsole = false
-  //Run = uSimMarine	 @ NewConsole = false
-  Run = pMarinePID      @ NewConsole = false
+  Run = uBackNMEABridge @ NewConsole = false
   Run = pHelmIvP        @ NewConsole = false
 #ifdef GUI yes
-  Run = pMarineViewer	@ NewConsole = false
-#endif
   Run = uProcessWatch	@ NewConsole = false
+  Run = pMarineViewer	@ NewConsole = false
   Run = pNodeReporter	@ NewConsole = false
-  Run = uBackNMEABridge @ NewConsole = false
-  Run = uMemWatch       @ NewConsole = false
+#endif
 }
 
 //------------------------------------------------
@@ -46,21 +43,8 @@ ProcessConfig = uBackNMEABridge
   Port = $(NMEA_PORT)
   Host = $(NMEA_HOST)
   ValidateChecksum = true
-  MaximumTimeDifference = -1 // Seconds, -1 to ignore
+  MaximumTimeDifference = 3 // Seconds, -1 to ignore
 }
-
-//------------------------------------------
-// uMemWatch config block
-
-ProcessConfig = uMemWatch                                       
-{                                                               
-  AppTick   = 4                                                 
-  CommsTick = 4                                                 
-                                                                
-  absolute_time_gap = 1   // In Seconds, Default is 4
-
-  watch_only = pHelmIvP,pMarineViewer
-}                                  
 
 //------------------------------------------
 // pLogger config block
@@ -99,26 +83,6 @@ ProcessConfig = uProcessWatch
 }
 
 //------------------------------------------
-// uSimMarine config block
-
-ProcessConfig = uSimMarine
-{
-  AppTick  	= 4
-  CommsTick	= 4
-
-  start_x       = 0
-  start_y       = -20
-  start_heading = 180
-  start_speed   = 0
-
-  prefix        = NAV
-
-  turn_rate     = 40
-  thrust_map    = 0:0, 20:1, 40:2, 60:3, 80:4, 100:5
-  thrust_reflect = true
-}
-
-//------------------------------------------
 // pHelmIvP config block
 
 ProcessConfig = pHelmIvP
@@ -131,40 +95,6 @@ ProcessConfig = pHelmIvP
   behaviors  = $(COMMUNITY).bhv
   domain     = course:0:359:360
   domain     = speed:0:4:41
-}
-
-//------------------------------------------
-// pMarinePID config block
-
-ProcessConfig = pMarinePID
-{
-  AppTick    = 20
-  CommsTick  = 20
-
-  verbose       = true
-  depth_control = false
-
-  // SIM_INSTABILITY = 20
-
-  // Yaw PID controller
-  yaw_pid_kp		 = 1.2
-  yaw_pid_kd		 = 0.0
-  yaw_pid_ki		 = 0.3
-  yaw_pid_integral_limit = 0.07
-
-  // Speed PID controller
-  speed_pid_kp		 = 1.0
-  speed_pid_kd		 = 0.0
-  speed_pid_ki		 = 0.0
-  speed_pid_integral_limit = 0.07
-
-  //MAXIMUMS
-  maxrudder    = 100
-  maxthrust    = 100
-
-  // A non-zero SPEED_FACTOR overrides use of SPEED_PID
-  // Will set DESIRED_THRUST = DESIRED_SPEED * SPEED_FACTOR
-  speed_factor = 20
 }
 
 //------------------------------------------
