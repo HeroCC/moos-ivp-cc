@@ -181,6 +181,8 @@ bool BackNMEABridge::OnNewMail(MOOSMSG_LIST &NewMail)
       m_desired_speed = msg.GetDouble();
     } else if (key == "DESIRED_DEPTH") {
       m_desired_depth = msg.GetDouble();
+    } else if (key == "IVPHELM_STATE") {
+      // Heartbeat, means helm is alive so it's safe to set last updated time
     } else if(key != "APPCAST_REQ") { // handled by AppCastingMOOSApp
       reportRunWarning("Unhandled Mail: " + key);
       return true;
@@ -352,6 +354,7 @@ void BackNMEABridge::registerVariables()
   Register("DESIRED_HEADING", 0);
   Register("DESIRED_DEPTH", 0);
   Register("DESIRED_SPEED", 0);
+  Register("IVPHELM_STATE", 0); // Heartbeat
 }
 
 

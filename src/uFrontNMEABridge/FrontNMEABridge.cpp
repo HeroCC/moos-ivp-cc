@@ -100,7 +100,7 @@ void FrontNMEABridge::handleIncomingNMEA(const string _rx) {
 
       long diff = abs(currtime - tx_unix_time);
       if (diff > maximum_time_delta) {
-        reportRunWarning("Time difference " + doubleToString(diff) + ">" + doubleToString(maximum_time_delta) + ", ignoring message " + key);
+        reportRunWarning("Time difference " + doubleToString(diff, 0) + ">" + doubleToString(maximum_time_delta, 0) + " (" + sent_time + "), ignoring message " + key);
         return;
       }
     }
