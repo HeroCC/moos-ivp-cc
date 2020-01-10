@@ -52,11 +52,12 @@ string genNMEAChecksum(string nmeaString) {
 }
 
 string BackNMEABridge::genUVDEVString() {
+  const int precision = 7;
   string nmea = "$UVDEV,";
   std::stringstream ss;
   ss << std::put_time(std::localtime(&m_last_updated_time), "%H%M%S.00,");
   nmea += ss.str();
-  nmea += doubleToString(m_desired_heading) + "," + doubleToString(m_desired_speed) + "," + doubleToString(m_desired_depth) + "*";
+  nmea += doubleToString(m_desired_heading, precision) + "," + doubleToString(m_desired_speed, precision) + "," + doubleToString(m_desired_depth, precision) + "*";
   nmea += genNMEAChecksum(nmea);
   return nmea;
 }
@@ -117,7 +118,7 @@ void BackNMEABridge::handleIncomingNMEA(const string _rx) {
     }
 
     m_Comms.Notify("NAV_HEADING", heading);
-    m_Comms.Notify("NAV_SPEED", speed);
+    m_Comms.Notify("NAV_SPEED_OVER_GROUND", speed);
     m_Comms.Notify("NAV_DEPTH", depth);
     m_Comms.Notify("NAV_LAT", lat);
     m_Comms.Notify("NAV_LONG", lon);
@@ -178,8 +179,6 @@ bool BackNMEABridge::OnConnectToServer()
         && (m_geo_initialized = m_geo.Initialise(latOrigin, lonOrigin)))) {
     reportRunWarning("Error calculating datum! XY Local Grid Unavaliable");
   }
-
-  ConnectToNMEAServer();
 
   registerVariables();
   return(true);
