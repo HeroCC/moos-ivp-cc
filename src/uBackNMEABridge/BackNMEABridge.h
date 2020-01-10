@@ -33,13 +33,15 @@ class BackNMEABridge : public AppCastingMOOSApp
    std::string genUVDEVString();
    void handleIncomingNMEA(std::string);
    bool ConnectToNMEAServer();
+   bool failsTimeCheck(const std::string&, double& diff);
+   double timeDifferenceFromNow(const std::string&);
 
  private: // Configuration variables
     std::string m_connect_addr = "localhost";
     unsigned short m_connect_port = 10110;
     bool validate_checksum = true;
     double maximum_time_delta = 3; // Seconds
-    double attempt_reconnect_interval = 3;
+    double attempt_reconnect_interval = 5;
 
  private: // State variables
     Socket m_server;

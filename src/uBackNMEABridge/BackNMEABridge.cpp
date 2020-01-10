@@ -55,11 +55,32 @@ string BackNMEABridge::genUVDEVString() {
   const int precision = 7;
   string nmea = "$UVDEV,";
   std::stringstream ss;
-  ss << std::put_time(std::localtime(&m_last_updated_time), "%H%M%S.00,");
+  ss << std::put_time(std::localtime(&m_last_updated_time), "%H%M%S,");
   nmea += ss.str();
   nmea += doubleToString(m_desired_heading, precision) + "," + doubleToString(m_desired_speed, precision) + "," + doubleToString(m_desired_depth, precision) + "*";
   nmea += genNMEAChecksum(nmea);
   return nmea;
+}
+
+double BackNMEABridge::timeDifferenceFromNow(const string& t2) {
+  const time_t currtime = m_curr_time;
+
+  struct std::tm* tm = localtime(&currtime); // Assume we have the same timezone
+  std::istringstream ss(t2);
+  ss >> std::get_time(tm, "%H%M%S"); // Override hour, minute, second
+  //strptime(sent_time.c_str(), "%H%M%S", &tm);
+  time_t tx_unix_time = mktime(tm);
+
+  return abs(currtime - tx_unix_time);
+}
+
+bool BackNMEABridge::failsTimeCheck(const string& t2, double& diff) {
+  if (maximum_time_delta < 0) {
+    return false; // If time delta is below zero, consider it disabled
+  }
+  double df = timeDifferenceFromNow(t2);
+  diff = df;
+  return (df > maximum_time_delta);
 }
 
 void BackNMEABridge::handleIncomingNMEA(const string _rx) {
@@ -72,14 +93,24 @@ void BackNMEABridge::handleIncomingNMEA(const string _rx) {
   string expected = genNMEAChecksum(nmeaNoChecksum);
   if (!MOOSStrCmp(expected, checksum) && validate_checksum) {
     reportRunWarning("Expected checksum " + expected + " but got " + checksum + ", ignoring message");
+    reportEvent("Dropped Message: " + rx);
     return;
   }
+  // All messages follow $KEYHI,TimestampSent,the rest*XX
 
   // Process Message
   string key = biteStringX(nmeaNoChecksum, ',');
+  string sent_time = biteStringX(nmeaNoChecksum, ',');
+
+  // Check Time
+  double diff = -1;
+  if (failsTimeCheck(sent_time, diff)) {
+    reportRunWarning("Time difference " + doubleToString(diff) + ">" + doubleToString(maximum_time_delta) + ", ignoring message " + key);
+    return;
+  }
+
   if (MOOSStrCmp(key, "$MONVG")) {
     // $MONVG,timestampOfLastMessage,lat,,lon,,quality(1good 0bad),altitude,depth,heading,speed*
-    string sent_time = biteStringX(nmeaNoChecksum, ',');
     double lat = stod(biteStringX(nmeaNoChecksum, ','));
     biteStringX(nmeaNoChecksum, ','); // blank
     double lon = stod(biteStringX(nmeaNoChecksum, ','));
@@ -90,23 +121,6 @@ void BackNMEABridge::handleIncomingNMEA(const string _rx) {
     double depth = stod(biteStringX(nmeaNoChecksum, ','));
     double heading = stod(biteStringX(nmeaNoChecksum, ','));
     double speed = stod(biteStringX(nmeaNoChecksum, ','));
-
-    // Check Time
-    if (maximum_time_delta >= 0) {
-      const time_t currtime = std::time(nullptr);
-
-      struct std::tm* tm = localtime(&currtime); // Assume we have the same date
-      std::istringstream ss(sent_time);
-      ss >> std::get_time(tm, "%H%M%S"); // Override hour, minute, second
-      //strptime(sent_time.c_str(), "%H%M%S", &tm);
-      time_t tx_unix_time = mktime(tm);
-
-      long diff = abs(currtime - tx_unix_time);
-      if (diff > maximum_time_delta) {
-        reportRunWarning("Time difference " + doubleToString(diff) + ">" + doubleToString(maximum_time_delta) + ", ignoring message " + key);
-        return;
-      }
-    }
 
     if (m_geo_initialized) {
       double x;
@@ -122,6 +136,16 @@ void BackNMEABridge::handleIncomingNMEA(const string _rx) {
     m_Comms.Notify("NAV_DEPTH", depth);
     m_Comms.Notify("NAV_LAT", lat);
     m_Comms.Notify("NAV_LONG", lon);
+  } else if (MOOSStrCmp(key, "$MOPOK")) {
+    // $MONVG,timestampOfLastMessage,KEY=val*
+    // Poke a MoosDB message
+    string mail = biteStringX(nmeaNoChecksum, '=');
+    string val = nmeaNoChecksum; // the only remaining text should be the value to set
+    if (isNumber(val)) {
+      Notify(mail, stod(val));
+    } else {
+      Notify(mail, val);
+    }
   } else {
     reportRunWarning("Unhandled Command: " + key);
   }
@@ -161,7 +185,7 @@ bool BackNMEABridge::OnNewMail(MOOSMSG_LIST &NewMail)
       reportRunWarning("Unhandled Mail: " + key);
       return true;
     }
-    std::time(&m_last_updated_time);
+    m_last_updated_time = m_curr_time;
 
    }
 	
@@ -189,7 +213,7 @@ bool BackNMEABridge::OnConnectToServer()
 
 bool BackNMEABridge::ConnectToNMEAServer()
 {
-  std::time(&m_last_nmea_connect_time);
+  m_last_nmea_connect_time = m_curr_time;
   m_server.close();
 
   std::string niceAddr = m_connect_addr + ":" + intToString(m_connect_port);
@@ -247,7 +271,7 @@ bool BackNMEABridge::Iterate()
 
     retractRunWarning("Failed to connect to server"); // If we're connected, we no longer need the warning
   } else {
-    if (std::time(nullptr) - m_last_nmea_connect_time >= attempt_reconnect_interval) {
+    if (m_curr_time - m_last_nmea_connect_time >= attempt_reconnect_interval) {
       ConnectToNMEAServer();
     }
   }

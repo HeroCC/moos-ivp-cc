@@ -57,7 +57,7 @@ string FrontNMEABridge::genMONVGString() {
   // $MONVG,timestampOfLastMessage,lat,,lon,,quality(1good 0bad),altitude,depth,heading,speed_over_ground*
   string nmea = "$MONVG,";
   std::stringstream ss;
-  ss << std::put_time(std::localtime(&m_last_updated_time), "%H%M%S.00,");
+  ss << std::put_time(std::localtime(&m_last_updated_time), "%H%M%S,");
   nmea += ss.str();
   nmea += doubleToString(m_latest_lat, precision) + ",," + doubleToString(m_latest_long, precision) + ",,1," + doubleToString(m_latest_alt, precision) +
     "," + doubleToString(m_latest_depth, precision) + "," + doubleToString(m_latest_heading, precision) +  "," + doubleToString(m_latest_speed, precision) + "*";
@@ -90,7 +90,7 @@ void FrontNMEABridge::handleIncomingNMEA(const string _rx) {
 
     // Check Time
     if (maximum_time_delta >= 0) {
-      const time_t currtime = std::time(nullptr);
+      const time_t currtime = m_curr_time;
 
       struct std::tm* tm = localtime(&currtime); // Assume we have the same date
       std::istringstream ss(sent_time);
@@ -152,7 +152,7 @@ bool FrontNMEABridge::OnNewMail(MOOSMSG_LIST &NewMail)
      } else if(key != "APPCAST_REQ") { // handled by AppCastingMOOSApp
        reportRunWarning("Unhandled Mail: " + key);
      }
-     m_last_updated_time = std::time(nullptr);
+     m_last_updated_time = m_curr_time;
 
    }
 	
