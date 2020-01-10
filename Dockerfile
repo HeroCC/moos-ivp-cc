@@ -7,8 +7,8 @@ ENV PATH="/home/moos/${MOOS}/bin:${PATH}"
 ENV IVP_BEHAVIOR_DIRS="${IVP_BEHAVIOR_DIRS}:/home/moos/${MOOS}/lib"
 
 USER root
-RUN apt-get -y update && DEBIAN_FRONTEND=noninteractive apt-get install -y tzdata libsndfile-dev libopus-dev portaudio19-dev libboost-all-dev libssl-dev libprotobuf-dev protobuf-compiler liblog4cpp5-dev && apt-get -y clean
-RUN echo "America/New_York" > /etc/timezone && dpkg-reconfigure -f noninteractive tzdata
+RUN apt-get -y update && DEBIAN_FRONTEND=noninteractive apt-get install -y sudo libsndfile-dev libopus-dev portaudio19-dev libboost-all-dev libssl-dev libprotobuf-dev protobuf-compiler liblog4cpp5-dev && apt-get -y clean
+RUN echo "moos" | passwd --stdin moos
 USER moos
 
 COPY --chown=moos:moos "." "/home/moos/${MOOS}"
