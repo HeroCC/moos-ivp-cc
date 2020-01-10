@@ -221,14 +221,17 @@ bool FrontNMEABridge::Iterate()
       std::string rx;
       int len = socket->recv(rx); // TODO explicit error checking
       if (len > 0) {
-        // Check if we have a valid NMEA string
-        if (rx.rfind('$', 0) == 0) {
-          // Process NMEA string
-          Notify("INCOMING_NMEA", rx);
-          handleIncomingNMEA(rx);
-        } else {
-          MOOSTrimWhiteSpace(rx);
-          reportEvent(rx);
+        // Check if we have multiple incoming strings
+        for (string& rxi : parseString(rx, "\n")) {
+          // Check if we have a valid NMEA string
+          if (rxi.rfind('$', 0) == 0) {
+            // Process NMEA string
+            Notify("INCOMING_NMEA", rxi);
+            handleIncomingNMEA(rxi);
+          } else {
+            MOOSTrimWhiteSpace(rxi);
+            reportEvent("NMEA NOTE: " + rxi);
+          }
         }
       }
     }
