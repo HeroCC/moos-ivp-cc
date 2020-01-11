@@ -197,6 +197,7 @@ bool FrontNMEABridge::Iterate()
   std::shared_ptr<Socket> client = std::make_shared<Socket>(); // TODO for safety, make this a unique_ptr
   if (m_server.accept(*client)) {
     client->send("JOINED\n");
+    client->set_non_blocking(true); // This may be necessary for Docker (or Linux in general?)
     sockets.push_back(std::move(client));
   }
 
