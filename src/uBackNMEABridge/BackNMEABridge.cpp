@@ -226,8 +226,12 @@ bool BackNMEABridge::ConnectToNMEAServer()
     m_server.close();
     return false;
   }
-  if (!m_server.connect(m_connect_addr, m_connect_port)) {
+
+  int retval = m_server.connect(m_connect_addr, m_connect_port);
+  if (retval) {
     reportRunWarning("Failed to connect to server");
+    std::string err = strerror(retval);
+    reportEvent("Failure Reason: " + err);
     m_server.close();
     return false;
   }

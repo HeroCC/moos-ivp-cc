@@ -114,7 +114,7 @@ int Socket::recv(std::string &s) const {
 }
 
 
-bool Socket::connect(const std::string host, const int port) {
+int Socket::connect(const std::string host, const int port) {
   if (!is_valid()) return false;
 
   m_addr.sin_family = AF_INET;
@@ -124,9 +124,10 @@ bool Socket::connect(const std::string host, const int port) {
 
   if (errno == EAFNOSUPPORT) return false;
 
+  errno = 0;
   status = ::connect(m_sock, (sockaddr *) &m_addr, sizeof(m_addr));
 
-  return status == 0;
+  return errno;
 }
 
 void Socket::set_non_blocking(const bool b) {

@@ -38,7 +38,7 @@ public:
     bool accept (Socket&) const;
 
     // Client initialization
-    bool connect (const std::string host, const int port);
+    int connect (const std::string host, const int port);
 
     // Data Transimission
     int send (const std::string) const;
