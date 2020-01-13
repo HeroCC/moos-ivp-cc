@@ -227,7 +227,24 @@ bool BackNMEABridge::ConnectToNMEAServer()
     return false;
   }
 
-  int retval = m_server.connect(m_connect_addr, m_connect_port);
+  std::string host = m_connect_addr;
+
+  if (inet_pton(AF_INET, host.c_str(), nullptr) != 1) {
+    // IP address conversion failed, attempt to resolve as hostname
+    struct addrinfo* result;
+    int error = getaddrinfo(host.c_str(), nullptr, nullptr, &result);
+    if (error) {
+      std::string errstr = gai_strerror(error);
+      reportRunWarning("Failed to resolve hostname: " + errstr);
+      return false;
+    } else {
+      char ipchar[INET_ADDRSTRLEN];
+      getnameinfo(result->ai_addr, result->ai_addrlen, ipchar, sizeof(ipchar), nullptr, 0, NI_NUMERICHOST);
+      host = std::string(ipchar);
+    }
+  }
+
+  int retval = m_server.connect(host, m_connect_port);
   if (retval) {
     reportRunWarning("Failed to connect to server");
     std::string err = strerror(retval);
