@@ -164,11 +164,16 @@ bool FrontNMEABridge::OnNewMail(MOOSMSG_LIST &NewMail)
 
 bool FrontNMEABridge::OnConnectToServer()
 {
+  registerVariables();
+  return(true);
+}
+
+bool FrontNMEABridge::BeginServingNMEA() {
   if (!m_server.create()) {
     reportRunWarning("Failed to create socket");
     return false;
   }
-  if (!m_server.bind(m_port)) {
+  if (!m_server.bind(m_host, m_port)) {
     reportRunWarning("Failed to bind to port " + intToString(m_port));
     return false;
   }
@@ -177,9 +182,7 @@ bool FrontNMEABridge::OnConnectToServer()
     return false;
   }
   m_server.set_non_blocking(true);
-
-  registerVariables();
-  return(true);
+  return true;
 }
 
 //---------------------------------------------------------
@@ -275,6 +278,9 @@ bool FrontNMEABridge::OnStartUp()
         reportConfigWarning("Unable to parse requested port " + value + " to int");
       }
       handled = true;
+    } else if (param == "host") {
+      m_host = value;
+      handled = true;
     } else if (param == "validatechecksum") {
       if (!setBooleanOnString(validate_checksum, value)) {
         reportConfigWarning(param + " is not set to true or false, skipping");
@@ -291,6 +297,8 @@ bool FrontNMEABridge::OnStartUp()
       reportUnhandledConfigWarning(orig);
 
   }
+
+  BeginServingNMEA();
   
   registerVariables();	
   return(true);
@@ -319,7 +327,13 @@ void FrontNMEABridge::registerVariables()
 
 bool FrontNMEABridge::buildReport() 
 {
-  m_msgs << "Listening on:     " << inet_ntoa(m_server.get_addr().sin_addr) << ":" << m_port << endl;
+  std::string host = "UNKNOWN";
+  host = inet_ntoa(m_server.get_addr().sin_addr);
+  if (!MOOSStrCmp(host, m_host)) {
+    host = m_host + " (" + host + ")";
+  }
+
+  m_msgs << "Listening on:     " << host << ":" << m_port << endl;
   m_msgs << "Attached Clients: " << sockets.size() << endl;
   //m_msgs << genNMEAString() << endl;
 

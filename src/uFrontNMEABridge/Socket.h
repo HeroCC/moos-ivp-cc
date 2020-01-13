@@ -33,7 +33,7 @@ public:
 
     // Server initialization
     bool create();
-    bool bind (const int port);
+    bool bind (const std::string, const int port);
     bool listen() const;
     bool accept (Socket&) const;
 

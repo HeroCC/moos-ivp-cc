@@ -43,6 +43,7 @@ ProcessConfig = uFrontNMEABridge
   AppTick = 4
   CommsTick = 4
 
+  Host = 0.0.0.0
   Port = 10110
   ValidateChecksum = true // default true
   MaximumTimeDifference = 3 // Seconds, -1 to ignore

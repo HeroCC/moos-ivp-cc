@@ -31,8 +31,10 @@ class FrontNMEABridge : public AppCastingMOOSApp
     std::string genMONVGString();
     void registerVariables();
     void handleIncomingNMEA(std::string);
+    bool BeginServingNMEA();
 
  private: // Configuration variables
+    std::string m_host = "0.0.0.0";
     unsigned short m_port = 10110;
     bool validate_checksum = true;
     double maximum_time_delta = 3; // Seconds

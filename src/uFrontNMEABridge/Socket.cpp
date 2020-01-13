@@ -32,15 +32,16 @@ bool Socket::create() {
 }
 
 
-bool Socket::bind(const int port) {
+bool Socket::bind(const std::string host, const int port) {
   if (!is_valid()) {
     return false;
   }
 
 
   m_addr.sin_family = AF_INET;
-  m_addr.sin_addr.s_addr = INADDR_ANY;
   m_addr.sin_port = htons(port);
+  inet_pton(m_addr.sin_family, host.c_str(), &m_addr.sin_addr);
+
 
   int bind_return = ::bind(m_sock, (struct sockaddr *) &m_addr, sizeof(m_addr));
 
