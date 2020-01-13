@@ -237,8 +237,11 @@ bool BackNMEABridge::ConnectToNMEAServer()
     return false;
   } else {
     char ipchar[INET_ADDRSTRLEN];
-    getnameinfo(result->ai_addr, result->ai_addrlen, ipchar, sizeof(ipchar), nullptr, 0, NI_NUMERICHOST);
-    host = std::string(ipchar);
+    if (getnameinfo(result->ai_addr, result->ai_addrlen, ipchar, sizeof(ipchar), nullptr, 0, NI_NUMERICHOST) == 0) {
+      host = std::string(ipchar);
+    } else {
+      reportRunWarning("Unable to parse given host, using " + host);
+    }
   }
 
   int retval = m_server.connect(host, m_connect_port);
