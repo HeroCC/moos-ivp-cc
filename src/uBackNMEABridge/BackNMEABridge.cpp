@@ -367,8 +367,14 @@ void BackNMEABridge::registerVariables()
 
 bool BackNMEABridge::buildReport() 
 {
+  std::string host = "UNKNOWN";
+  host = inet_ntoa(m_server.get_addr().sin_addr);
+  if (!MOOSStrCmp(host, m_connect_addr)) {
+    host = m_connect_addr + " (" + host + ")";
+  }
+
   m_msgs << "Valid Connection: " << boolToString(m_server.is_valid()) << endl;
-  m_msgs << "Host: " << m_connect_addr << endl;
+  m_msgs << "Host: " << host << endl;
   m_msgs << "Port: " << intToString(m_connect_port) << endl;
 
   return(true);
