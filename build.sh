@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 INVOCATION_ABS_DIR=`pwd`
 BUILD_TYPE="None"
@@ -35,12 +35,12 @@ done
 #  Part 2: Invoke the call to make in the build directory
 #-------------------------------------------------------------------
 
-mkdir build
+mkdir -p build
 cd build
 
 cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ../
 
-make -Wc++11-extensions ${CMD_LINE_ARGS}
+make ${CMD_LINE_ARGS}
 cd ${INVOCATION_ABS_DIR}
 
 
