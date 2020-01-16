@@ -31,6 +31,7 @@ class BackNMEABridge : public AppCastingMOOSApp
  protected:
    void registerVariables();
    std::string genUVDEVString();
+   std::string genMOVALString(std::string key, std::string value, time_t time);
    void handleIncomingNMEA(std::string);
    bool ConnectToNMEAServer();
    bool failsTimeCheck(const std::string&, double& diff);
@@ -46,6 +47,9 @@ class BackNMEABridge : public AppCastingMOOSApp
  private: // State variables
     Socket m_server;
     CMOOSGeodesy m_geo;
+
+    std::vector<std::string> send_queue;
+    std::vector<std::string> forward_mail;
 
     bool m_geo_initialized = false;
 

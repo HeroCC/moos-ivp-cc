@@ -62,6 +62,16 @@ string BackNMEABridge::genUVDEVString() {
   return nmea;
 }
 
+string BackNMEABridge::genMOVALString(std::string key, std::string value, time_t time) {
+  string nmea = "$MOVAL,";
+  std::stringstream ss;
+  ss << std::put_time(std::localtime(&time), "%H%M%S,");
+  nmea += ss.str();
+  nmea += key + "," + value + "*";
+  nmea += genNMEAChecksum(nmea);
+  return nmea;
+}
+
 double BackNMEABridge::timeDifferenceFromNow(const string& t2) {
   const time_t currtime = m_curr_time;
 
@@ -146,6 +156,14 @@ void BackNMEABridge::handleIncomingNMEA(const string _rx) {
     } else {
       Notify(mail, val);
     }
+  } else if (MOOSStrCmp(key, "$MOREG")) {
+    // Register a moos variable
+    // $MOREG,timestamp,Key To Register,dfInterval*
+    string regKey = biteStringX(nmeaNoChecksum, ',');
+    double dfInterval = stod(biteStringX(nmeaNoChecksum, ','));
+
+    forward_mail.push_back(regKey);
+    Register(regKey, dfInterval);
   } else {
     reportRunWarning("Unhandled Command: " + key);
   }
@@ -174,6 +192,10 @@ bool BackNMEABridge::OnNewMail(MOOSMSG_LIST &NewMail)
 #endif
 
     if (key == "APPCAST_REQ") return true;
+
+    if (vectorContains(forward_mail, key, false)) {
+      send_queue.push_back(genMOVALString(key, msg.GetAsString(), m_curr_time));
+    }
 
     if(key == "DESIRED_HEADING") {
       m_desired_heading = msg.GetDouble();
@@ -229,6 +251,7 @@ bool BackNMEABridge::ConnectToNMEAServer()
 
   std::string host = m_connect_addr;
 
+  // Resolve hostname
   struct addrinfo* result;
   int error = getaddrinfo(host.c_str(), nullptr, nullptr, &result);
   if (error) {
@@ -265,16 +288,19 @@ bool BackNMEABridge::Iterate()
 {
   AppCastingMOOSApp::Iterate();
 
-  string nmea = genUVDEVString();
-  Notify("GENERATED_NMEA_UVDEV", nmea);
-
   if (m_server.is_valid()) {
+    send_queue.push_back(genUVDEVString());
     // Tx NMEA String to server
-    int retval = m_server.send(nmea + "\n");
-    if (retval) {
-      std::string err = strerror(retval);
-      reportRunWarning("Lost connection to server: " + err);
-      m_server.close();
+    while (!send_queue.empty()) {
+      std::string val = send_queue.back();
+      send_queue.pop_back();
+      Notify("GENERATED_NMEA_MESSAGE", val);
+      int retval = m_server.send(val + "\n");
+      if (retval) {
+        std::string err = strerror(retval);
+        reportRunWarning("Lost connection to server: " + err);
+        m_server.close();
+      }
     }
 
     // Rx
@@ -297,6 +323,7 @@ bool BackNMEABridge::Iterate()
 
     retractRunWarning("Failed to connect to server"); // If we're connected, we no longer need the warning
   } else {
+    send_queue.clear();
     if (m_curr_time - m_last_nmea_connect_time >= attempt_reconnect_interval) {
       ConnectToNMEAServer();
     }
