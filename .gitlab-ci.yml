@@ -12,8 +12,7 @@ variables:
   GIT_SUBMODULE_STRATEGY: recursive
   DOCKER_HOST: tcp://docker:2375/
   DEPLOY_ARCHS: "amd64 arm64 armv7"
-  IMAGE_TAG: "$CI_COMMIT_SHORT_SHA"
-  INDEV_IMAGE_NAME: "${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}:${IMAGE_TAG}"
+  INDEV_IMAGE_NAME: "${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}:${CI_COMMIT_SHORT_SHA}"
 
 # Build
 .build_generic:
@@ -64,14 +63,14 @@ build-armv7:
     # TODO dynamically get matching tags via registry API
     - >
       for arch in $DEPLOY_ARCHS; do
-        NEW_IMAGE_NAME="${REPO_PATH}:${IMAGE_TAG}-${arch}"
+        NEW_IMAGE_NAME="${REPO_PATH}:${CI_COMMIT_SHORT_SHA}-${arch}"
         docker pull "${INDEV_IMAGE_NAME}-${arch}"
         docker tag "${INDEV_IMAGE_NAME}-${arch}" "${NEW_IMAGE_NAME}"
         docker push "${NEW_IMAGE_NAME}"
         export IMAGES="$IMAGES ${NEW_IMAGE_NAME}"
       done
-    - docker manifest create ${REPO_PATH}:${IMAGE_TAG} ${IMAGES}
-    - docker manifest push --purge ${REPO_PATH}:${IMAGE_TAG}
+    - docker manifest create ${REPO_PATH}:${CI_COMMIT_SHORT_SHA} ${IMAGES}
+    - docker manifest push --purge ${REPO_PATH}:${CI_COMMIT_SHORT_SHA}
     - docker manifest create ${REPO_PATH}:latest ${IMAGES}
     - docker manifest push --purge ${REPO_PATH}:latest
 
