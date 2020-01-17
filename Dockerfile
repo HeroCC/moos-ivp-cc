@@ -1,10 +1,12 @@
-FROM moosivp/moos-ivp:r8904
+FROM moosivp/moos-ivp:r8910
 LABEL maintainer = Conlan Cesar <conlanc@csail.mit.edu>
 
 ENV MOOS="moos-ivp-cc"
 
+ENV GUI="no"
+
 ENV PATH="/home/moos/${MOOS}/bin:${PATH}"
-ENV IVP_BEHAVIOR_DIRS="${IVP_BEHAVIOR_DIRS}:/home/moos/${MOOS}/lib"
+ENV IVP_BEHAVIOR_DIRS="/home/moos/${MOOS}/lib:${IVP_BEHAVIOR_DIRS}"
 
 USER root
 RUN apt-get -y update && DEBIAN_FRONTEND=noninteractive apt-get install -y libssl-dev \

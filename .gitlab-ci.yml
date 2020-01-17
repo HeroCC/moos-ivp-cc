@@ -1,37 +1,113 @@
-image: ubuntu:trusty
+# Tweaked from https://gitlab.com/moos-ivp/moosdocker/blob/c2b5919cfeb885f85e8fbec75e5ff4f540ef1c89/.gitlab-ci.yml
+image: jonoh/docker-buildx-qemu@sha256:4fc5868d90c146563dace436cb1b850c2bd8055ff2e7d9d53fb4a83a7dc2969e
+
+services:
+  - docker:dind
 
 stages:
-  - dependencies
   - build
-  - test
   - deploy
 
 variables:
   GIT_SUBMODULE_STRATEGY: recursive
+  DOCKER_HOST: tcp://docker:2375/
+  DEPLOY_ARCHS: "amd64 arm64 armv7"
+  IMAGE_TAG: "${CI_COMMIT_TAG:-$CI_COMMIT_SHORT_SHA}"
+  INDEV_IMAGE_NAME: "${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}:${IMAGE_TAG}"
 
-build_ivp:
-  stage: dependencies
-  before_script:
-    - apt update && apt install -y subversion g++ cmake xterm libfltk1.3-dev freeglut3-dev libpng12-dev libjpeg-dev libxft-dev libxinerama-dev libtiff5-dev libboost1.55-dev libboost-system1.55-dev
-    - cd ..
-    - svn co https://oceanai.mit.edu/svn/moos-ivp-aro/trunk/ moos-ivp
-  script:
-    - cd moos-ivp
-    - ./build-moos.sh
-    - ./build-ivp.sh
-  cache:
-    paths:
-      - bin/
-      - build/
-
-build_extend:
+# Build
+.build_generic:
   stage: build
-  dependencies:
-    - build_ivp
-  before_script:
-    - export PATH="$PATH:../moos-ivp/bin"
   script:
-    - ./build.sh
+    - update-binfmts --enable
+    - docker buildx create --use
+    - docker buildx inspect --bootstrap
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
+    - export NEW_IMAGE_NAME="${INDEV_IMAGE_NAME}-${BUILD_ARCH_NICE}" && echo $NEW_IMAGE_NAME
+    - docker buildx build --push --platform "${BUILD_ARCH}" -t "$NEW_IMAGE_NAME" .
+    - echo "Checking for existance of image ${INDEV_IMAGE_NAME}"
+    - docker buildx imagetools inspect "${INDEV_IMAGE_NAME}" || export IMAGE_EXISTS="false"
+    - if [[ "$IMAGE_EXISTS" == "false" ]]; then echo "Creating image..."; docker buildx imagetools create -t "${INDEV_IMAGE_NAME}" "$NEW_IMAGE_NAME"; fi
+    - if [[ "$IMAGE_EXISTS" != "false" ]]; then echo "Appending to image..."; docker buildx imagetools create --append -t "${INDEV_IMAGE_NAME}" "$NEW_IMAGE_NAME"; fi
+
+build-amd64:
+  extends: .build_generic
+  timeout: 1h
+  variables:
+    BUILD_ARCH: linux/amd64
+    BUILD_ARCH_NICE: "amd64"
+
+build-arm64:
+  extends: .build_generic
+  timeout: 3h
+  variables:
+    BUILD_ARCH: linux/arm64
+    BUILD_ARCH_NICE: "arm64"
+
+build-armv7:
+  extends: .build_generic
+  timeout: 3h
+  variables:
+    BUILD_ARCH: linux/arm/v7
+    BUILD_ARCH_NICE: "armv7"
+
+# Deploy
+.deploy_generic_manifest:
+  stage: deploy
+  except:
+    - merge_requests
+    - external_pull_requests
+  before_script:
+    - export DOCKER_CLI_EXPERIMENTAL=enabled
+    - echo "$REGISTRY_PASSWD" | docker login --username $REGISTRY_USER --password-stdin $REGISTRY_URL
+  script:
+    # TODO dynamically get matching tags via registry API
+    - >
+      for arch in $DEPLOY_ARCHS; do
+        NEW_IMAGE_NAME="${REPO_PATH}:${IMAGE_TAG}-${arch}"
+        docker pull "${INDEV_IMAGE_NAME}-${arch}"
+        docker tag "${INDEV_IMAGE_NAME}-${arch}" "${NEW_IMAGE_NAME}"
+        docker push "${NEW_IMAGE_NAME}"
+        export IMAGES="$IMAGES ${NEW_IMAGE_NAME}"
+      done
+    - docker manifest create ${REPO_PATH}:${IMAGE_TAG} ${IMAGES}
+    - docker manifest push --purge ${REPO_PATH}:${IMAGE_TAG}
+    - docker manifest create ${REPO_PATH}:latest ${IMAGES}
+    - docker manifest push --purge ${REPO_PATH}:latest
+
+deploy-gitlab-registry:
+  extends: .deploy_generic_manifest
+  variables:
+    REGISTRY_URL: "$CI_REGISTRY"
+    REGISTRY_USER: "$CI_REGISTRY_USER"
+    REGISTRY_PASSWD: "$CI_REGISTRY_PASSWORD"
+    REPO_PATH: "$CI_REGISTRY_IMAGE"
+
+deploy-docker-hub-registry:
+  extends: .deploy_generic_manifest
+  only:
+    refs:
+      - master
+      - schedules
+  variables:
+    REGISTRY_URL: "docker.io"
+    REGISTRY_USER: "$DOCKER_HUB_USERNAME"
+    REGISTRY_PASSWD: "$DOCKER_HUB_PUSH_KEY"
+    REPO_PATH: "${REGISTRY_URL}/moosivp/moos-ivp"
+
+save-artifacts:
+  stage: deploy
+  services: []
+  image: "${INDEV_IMAGE_NAME}"
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - cd /home/moos/moos-ivp-cc/
+    - echo "Saving Artifacts..."
+    - echo "bin:" && ls bin/
+    - echo "lib:" && ls lib/
   artifacts:
     paths:
-      - bin/
+      - /home/moos/moos-ivp-cc/bin/
+      - /home/moos/moos-ivp-cc/lib/
+
