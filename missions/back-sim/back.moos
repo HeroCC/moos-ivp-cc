@@ -56,6 +56,8 @@ ProcessConfig = pLogger
 
   AsyncLog = true
 
+  Path = ./logs/
+
   // For variables that are published in a bundle on their first post,
   // explicitly declare their logging request
   Log = IVPHELM_LIFE_EVENT @ 0 NOSYNC

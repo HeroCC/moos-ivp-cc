@@ -8,9 +8,9 @@
 #  Part 1: Set Exit actions and declare global var defaults
 #----------------------------------------------------------
 trap "kill -- -$$" EXIT SIGTERM SIGHUP SIGINT SIGKILL
-TIME_WARP=1
+TIME_WARP="${TIME_WARP:-1}"
 COMMUNITY="alpha"
-GUI="yes"
+GUI="${GUI:-yes}"
 
 cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
@@ -36,6 +36,7 @@ done
 #----------------------------------------------------------
 #  Part 3: Build the targ_*.moos file
 #----------------------------------------------------------
+mkdir -p logs/
 nsplug $COMMUNITY.moos targ_${COMMUNITY}.moos -f GUI=$GUI WARP=$TIME_WARP
 
 #----------------------------------------------------------
