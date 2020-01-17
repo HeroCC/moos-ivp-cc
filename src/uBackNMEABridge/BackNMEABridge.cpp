@@ -119,8 +119,8 @@ void BackNMEABridge::handleIncomingNMEA(const string _rx) {
     return;
   }
 
-  if (MOOSStrCmp(key, "$MONVG")) {
-    // $MONVG,timestampOfLastMessage,lat,,lon,,quality(1good 0bad),altitude,depth,heading,speed*
+  if (MOOSStrCmp(key, "$MONVG") || MOOSStrCmp(key, "$CPNVG")) {
+    // $MONVG,timestampOfLastMessage,lat,,lon,,quality(1good 0bad),altitude,depth,heading,roll,pitch,speed*
     double lat = stod(biteStringX(nmeaNoChecksum, ','));
     biteStringX(nmeaNoChecksum, ','); // blank
     double lon = stod(biteStringX(nmeaNoChecksum, ','));
@@ -130,6 +130,8 @@ void BackNMEABridge::handleIncomingNMEA(const string _rx) {
     double altitude = stod(biteStringX(nmeaNoChecksum, ','));
     double depth = stod(biteStringX(nmeaNoChecksum, ','));
     double heading = stod(biteStringX(nmeaNoChecksum, ','));
+    biteStringX(nmeaNoChecksum, ','); // roll
+    biteStringX(nmeaNoChecksum, ','); // pitch
     double speed = stod(biteStringX(nmeaNoChecksum, ','));
 
     if (m_geo_initialized) {
