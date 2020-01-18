@@ -12,7 +12,8 @@ variables:
   GIT_SUBMODULE_STRATEGY: recursive
   DOCKER_HOST: tcp://docker:2375/
   DEPLOY_ARCHS: "amd64 arm64 armv7"
-  INDEV_IMAGE_NAME: "${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}:${CI_COMMIT_SHORT_SHA}"
+  INDEV_IMAGE_REPO: "${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}"
+  INDEV_IMAGE_NAME: "${INDEV_IMAGE_REPO}:${CI_COMMIT_SHORT_SHA}"
 
 # Build
 .build_generic:
@@ -23,7 +24,7 @@ variables:
     - docker buildx inspect --bootstrap
     - echo "$CI_REGISTRY_PASSWORD" | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
     - export NEW_IMAGE_NAME="${INDEV_IMAGE_NAME}-${BUILD_ARCH_NICE}" && echo $NEW_IMAGE_NAME
-    - docker buildx build --push --platform "${BUILD_ARCH}" -t "$NEW_IMAGE_NAME" .
+    - docker buildx build --push --cache-from "${INDEV_IMAGE_REPO}:latest" --platform "${BUILD_ARCH}" -t "$NEW_IMAGE_NAME" .
     - echo "Checking for existance of image ${INDEV_IMAGE_NAME}"
     - docker buildx imagetools inspect "${INDEV_IMAGE_NAME}" || export IMAGE_EXISTS="false"
     - if [[ "$IMAGE_EXISTS" == "false" ]]; then echo "Creating image..."; docker buildx imagetools create -t "${INDEV_IMAGE_NAME}" "$NEW_IMAGE_NAME"; fi
@@ -105,8 +106,8 @@ save-artifacts:
   script:
     - cd /home/moos/moos-ivp-cc/
     - echo "Saving Artifacts..."
-    - echo "bin:" && cp -v bin "$CI_PROJECT_DIR"
-    - echo "lib:" && cp -v lib "$CI_PROJECT_DIR"
+    - echo "bin:" && cp -rv bin "$CI_PROJECT_DIR"
+    - echo "lib:" && cp -rv lib "$CI_PROJECT_DIR"
   artifacts:
     paths:
       - bin/
