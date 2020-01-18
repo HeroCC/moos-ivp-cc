@@ -51,7 +51,7 @@ build-armv7:
     BUILD_ARCH_NICE: "armv7"
 
 # Deploy
-.deploy_generic_manifest:
+.deploy_generic_manifest: &deploy_generic_manifest
   stage: deploy
   except:
     - merge_requests
@@ -83,7 +83,7 @@ deploy-gitlab-registry:
     REPO_PATH: "$CI_REGISTRY_IMAGE"
 
 deploy-docker-hub-registry:
-  extends: .deploy_generic_manifest
+  <<: *deploy_generic_manifest
   only:
     refs:
       - master
@@ -109,6 +109,6 @@ save-artifacts:
     - echo "lib:" && ls lib/
   artifacts:
     paths:
-      - /home/moos/moos-ivp-cc/bin/
-      - /home/moos/moos-ivp-cc/lib/
+      - /home/moos/moos-ivp-cc/bin
+      - /home/moos/moos-ivp-cc/lib
 
