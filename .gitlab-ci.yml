@@ -12,7 +12,6 @@ variables:
   GIT_SUBMODULE_STRATEGY: recursive
   DOCKER_HOST: tcp://docker:2375/
   DEPLOY_ARCHS: "amd64 arm64 armv7"
-  INDEV_IMAGE_REPO: "${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}"
   INDEV_IMAGE_NAME: "${CI_REGISTRY_IMAGE}/${CI_COMMIT_REF_SLUG}:${CI_COMMIT_SHORT_SHA}"
 
 # Build
@@ -24,7 +23,7 @@ variables:
     - docker buildx inspect --bootstrap
     - echo "$CI_REGISTRY_PASSWORD" | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
     - export NEW_IMAGE_NAME="${INDEV_IMAGE_NAME}-${BUILD_ARCH_NICE}" && echo $NEW_IMAGE_NAME
-    - docker buildx build --push --cache-from "${INDEV_IMAGE_REPO}:latest" --platform "${BUILD_ARCH}" -t "$NEW_IMAGE_NAME" .
+    - docker buildx build --push --cache-from "${CI_REGISTRY_IMAGE}:latest" --platform "${BUILD_ARCH}" -t "$NEW_IMAGE_NAME" .
     - echo "Checking for existance of image ${INDEV_IMAGE_NAME}"
     - docker buildx imagetools inspect "${INDEV_IMAGE_NAME}" || export IMAGE_EXISTS="false"
     - if [[ "$IMAGE_EXISTS" == "false" ]]; then echo "Creating image..."; docker buildx imagetools create -t "${INDEV_IMAGE_NAME}" "$NEW_IMAGE_NAME"; fi
