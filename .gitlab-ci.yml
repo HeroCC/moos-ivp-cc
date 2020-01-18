@@ -110,5 +110,5 @@ save-artifacts:
   artifacts:
     paths:
       - bin/
-      - bin/
+      - lib/
 
