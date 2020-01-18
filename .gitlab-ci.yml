@@ -102,13 +102,14 @@ save-artifacts:
   image: "${INDEV_IMAGE_NAME}"
   variables:
     GIT_STRATEGY: none
+    GIT_SUBMODULE_STRATEGY: none
   script:
     - cd /home/moos/moos-ivp-cc/
     - echo "Saving Artifacts..."
-    - echo "bin:" && ls bin/
-    - echo "lib:" && ls lib/
+    - echo "bin:" && cp -v bin "$CI_PROJECT_DIR"
+    - echo "lib:" && cp -v lib "$CI_PROJECT_DIR"
   artifacts:
     paths:
-      - /home/moos/moos-ivp-cc/bin/*
-      - /home/moos/moos-ivp-cc/lib/*
+      - bin/
+      - bin/
 
