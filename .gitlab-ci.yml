@@ -58,7 +58,7 @@ build-armv7:
     - external_pull_requests
   script:
     - export DOCKER_CLI_EXPERIMENTAL=enabled
-    - echo "$REGISTRY_PASSWD" | docker login --username $REGISTRY_USER --password-stdin $REGISTRY_URL
+    - docker login --username "$REGISTRY_USER" --password "$REGISTRY_PASSWD" $REGISTRY_URL
     # TODO dynamically get matching tags via registry API
     - >
       for arch in $DEPLOY_ARCHS; do
