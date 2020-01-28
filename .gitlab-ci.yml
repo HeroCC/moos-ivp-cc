@@ -56,9 +56,10 @@ build-armv7:
   except:
     - merge_requests
     - external_pull_requests
-  script:
-    - export DOCKER_CLI_EXPERIMENTAL=enabled
+  before_script:
     - docker login --username "$REGISTRY_USER" --password "$REGISTRY_PASSWD" $REGISTRY_URL
+    - export DOCKER_CLI_EXPERIMENTAL=enabled
+  script:
     # TODO dynamically get matching tags via registry API
     - >
       for arch in $DEPLOY_ARCHS; do
