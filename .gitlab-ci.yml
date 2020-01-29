@@ -85,6 +85,7 @@ deploy-gitlab-registry:
     REPO_PATH: "$CI_REGISTRY_IMAGE"
 
 deploy-docker-hub-registry:
+  extends: .deploy_generic_manifest
   only:
     refs:
       - master
@@ -93,8 +94,7 @@ deploy-docker-hub-registry:
     REGISTRY_URL: "docker.io"
     REGISTRY_USER: "$DOCKER_HUB_USERNAME"
     REGISTRY_PASSWD: "$DOCKER_HUB_PUSH_KEY"
-    REPO_PATH: "${REGISTRY_URL}/moosivp/moos-ivp"
-  <<: *deploy_generic_manifest
+    REPO_PATH: "${REGISTRY_URL}/herocc/moos-ivp-cc"
 
 save-artifacts:
   stage: deploy
