@@ -60,7 +60,7 @@ ProcessConfig = pShare
   AppTick    = 2
   CommsTick  = 2
 
-  input = route =  0.0.0.0:9101
+  input = route =  localhost:9101
 //  input = route =  multicast_7
 }
 

@@ -83,7 +83,7 @@ ProcessConfig = pHostInfo
   AppTick     = 1
   CommsTick   = 1
 
-  default_hostip_force = localhost
+  //default_hostip_force = 0.0.0.0
 }
 
 //---------------------------------------------------------
@@ -92,7 +92,7 @@ ProcessConfig = pShare
   AppTick    = 2
   CommsTick  = 2
 
-  input = route =  0.0.0.0:9300
+  input = route =  localhost:9300
 //  input = route =  multicast_7
 }
 
