@@ -1,0 +1,183 @@
+/-------------------------------------------------
+// NAME: C. Cesar, MIT CSAIL
+// FILE: alpha.moos
+//-------------------------------------------------
+
+ServerHost   = localhost
+ServerPort   = 9000
+Community    = $(COMMUNITY)
+MOOSTimeWarp = $(WARP)
+
+// Forest Lake
+LatOrigin  = 43.825300 
+LongOrigin = -70.330400 
+
+// MIT Sailing Pavilion (use this one)
+// LatOrigin  = 42.358456 
+// LongOrigin = -71.087589
+
+//------------------------------------------
+// Antler configuration  block
+ProcessConfig = ANTLER
+{
+  MSBetweenLaunches = 200
+
+  Run = MOOSDB           @ NewConsole = false
+  Run = pLogger          @ NewConsole = false
+  Run = uProcessWatch    @ NewConsole = false
+
+  Run = pHostInfo        @ NewConsole = false
+  Run = pShare           @ NewConsole = false
+  Run = uFldShoreBroker  @ NewConsole = false
+
+#ifdef GUI yes
+  Run = pMarineViewer	   @ NewConsole = false
+#endif
+}
+
+//------------------------------------------
+// pLogger config block
+
+ProcessConfig = pLogger
+{
+  AppTick   = 8
+  CommsTick = 8
+
+  AsyncLog = true
+
+  Path = ./logs/
+
+  // For variables that are published in a bundle on their first post,
+  // explicitly declare their logging request
+  Log = IVPHELM_LIFE_EVENT @ 0 NOSYNC
+  Log = REPORT @ 0 NOSYNC
+
+  LogAuxSrc = true
+  WildCardLogging = true
+  WildCardOmitPattern = *_STATUS
+  WildCardOmitPattern = DB_VARSUMMARY
+  WildCardOmitPattern = DB_RWSUMMARY
+  WildCardExclusionLog = true
+}
+
+//--------------------------------------------------
+// uFldShoreBroker Configuration Block
+
+ProcessConfig = uFldShoreBroker
+{
+  AppTick       = 1
+  CommsTick     = 1
+
+  QBRIDGE  = DEPLOY, NODE_REPORT
+  QBRIDGE  = STATION_KEEP, APPCAST_REQ
+  QBRIDGE  = MOOS_MANUAL_OVERRIDE
+  QBRIDGE  = REFUEL_NEEDED
+
+  BRIDGE   = src=RETURN_ALL, alias=RETURN
+  BRIDGE   = src=RETURN_$V,  alias=RETURN
+}
+
+//--------------------------------------------------
+ProcessConfig = pHostInfo
+{
+  AppTick     = 1
+  CommsTick   = 1
+
+  default_hostip_force = localhost
+}
+
+//---------------------------------------------------------
+ProcessConfig = pShare
+{
+  AppTick    = 2
+  CommsTick  = 2
+
+  input = route =  0.0.0.0:9300
+//  input = route =  multicast_7
+}
+
+//------------------------------------------
+// uProcessWatch
+
+ProcessConfig = uProcessWatch
+{
+  AppTick   = 4
+  CommsTick = 4
+
+  watch_all = true
+	nowatch   = uPokeDB*
+	nowatch   = uXMS*
+}
+
+//------------------------------------------
+// pMarineViewer config block
+
+ProcessConfig = pMarineViewer
+{
+  AppTick    = 4
+  CommsTick  = 4
+
+  tiff_file            = forrest19.tif
+	//tiff_file            = MIT_SP.tif
+
+  set_pan_x            = -90
+  set_pan_y            = -280
+  zoom                 = 0.65
+  vehicle_shape_scale  = 1.5
+  hash_delta           = 50
+  hash_shade           = 0.22
+  hash_viewable        = true
+
+  trails_point_size   = 1
+
+	//op_vertex = x=-83, y=-47,    lwidth=1,lcolor=yellow,looped=true,group=moa
+  //op_vertex = x=-46.4, y=-129.2, lwidth=1,lcolor=yellow,looped=true,group=moa
+  //op_vertex = x=94.6, y=-62.2,   lwidth=1,lcolor=yellow,looped=true,group=moa
+  //op_vertex = x=58,   y=20,    lwidth=1,lcolor=yellow,looped=true,group=moa
+
+	// vcolor = alpha=dodgerblue
+
+  // Appcast configuration
+  appcast_height       = 75
+  appcast_width        = 30
+  appcast_viewable     = true
+  appcast_color_scheme = indigo
+  nodes_font_size      = medium
+  procs_font_size      = medium
+  appcast_font_size    = small
+  
+  // datum_viewable = true
+  // datum_size     = 18
+  // gui_size = small
+
+  // left_context[survey-point] = DEPLOY_ALL=true
+  // left_context[survey-point] = MOOS_MANUAL_OVERRIDE=false
+  // left_context[survey-point] = RETURN=false
+
+  right_context[return] = DEPLOY_ALL=true
+  right_context[return] = MOOS_MANUAL_OVERRIDE_ALL=false
+  right_context[return] = RETURN_ALL=false
+
+  scope  = HELM_CORE_SIZE_MAX
+  scope  = HELM_CORE_SIZE
+  scope  = HELM_ENGINE_SIZE
+  scope  = HELM_SIZE
+  scope  = RETURN
+  scope  = WPT_STAT
+  scope  = VIEW_SEGLIST
+  scope  = VIEW_POINT
+  scope  = VIEW_POLYGON
+  scope  = MVIEWER_LCLICK
+  scope  = MVIEWER_RCLICK
+
+  button_one = DEPLOY # DEPLOY_ALL=true
+  button_one = MOOS_MANUAL_OVERRIDE_ALL=false # RETURN_ALL=false
+  button_two = RETURN # RETURN_ALL=true
+
+  action  = MENU_KEY=deploy # DEPLOY_ALL = true # RETURN_ALL = false
+  action+ = MENU_KEY=deploy # MOOS_MANUAL_OVERRIDE_ALL=false
+  action  = RETURN=true
+  action  = UPDATES_RETURN=speed=1.4
+}
+
+
