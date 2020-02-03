@@ -56,12 +56,9 @@ build-armv7:
   except:
     - merge_requests
     - external_pull_requests
-  before_script:
-    - echo "${DOCKER_HUB_USERNAME:0:2} ${DOCKER_HUB_PUSH_KEY:0:3}"
-    - echo "$DOCKER_HUB_PUSH_KEY" | tail -c 3
-    - docker login "${REGISTRY_URL}" -u "${REGISTRY_USER}" --password "${REGISTRY_PASSWD}"
-    - export DOCKER_CLI_EXPERIMENTAL=enabled
   script:
+    - echo "$REGISTRY_PASSWD" | docker login --username $REGISTRY_USER --password-stdin $REGISTRY_URL
+    - export DOCKER_CLI_EXPERIMENTAL=enabled
     # TODO dynamically get matching tags via registry API
     - >
       for arch in $DEPLOY_ARCHS; do
