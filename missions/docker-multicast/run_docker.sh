@@ -24,11 +24,12 @@ main() {
 
 
   # Step: Run
+  docker pull herocc/moos-ivp-cc:latest
   #trap quit INT
-  docker run --rm -itd --net=${NETWORK_ID} --name=moos-ivp-cc-shoreside herocc/moos-ivp-cc:latest moos-ivp-cc/missions/docker/launch.sh shoreside 10
+  docker run --rm -itd --name "shoreside" --net=${NETWORK_ID} --name=moos-ivp-cc-shoreside herocc/moos-ivp-cc:latest moos-ivp-cc/missions/docker-multicast/launch.sh shoreside 10
   sleep 2s
-  docker run --rm -itd --net=${NETWORK_ID} --name=moos-ivp-cc-henry herocc/moos-ivp-cc:latest moos-ivp-cc/missions/docker/launch.sh henry 10 '0,0' 'x=0,y=-75'
-  docker run --rm -itd --net=${NETWORK_ID} --name=moos-ivp-cc-gilda herocc/moos-ivp-cc:latest moos-ivp-cc/missions/docker/launch.sh gilda 10 '80,0' 'x=125,y=-50'
+  docker run --rm -itd --net=${NETWORK_ID} --name=moos-ivp-cc-henry herocc/moos-ivp-cc:latest moos-ivp-cc/missions/docker-multicast/launch.sh henry 10 '0,0' 'x=0,y=-75'
+  docker run --rm -itd --net=${NETWORK_ID} --name=moos-ivp-cc-gilda herocc/moos-ivp-cc:latest moos-ivp-cc/missions/docker-multicast/launch.sh gilda 10 '80,0' 'x=125,y=-50'
   docker attach moos-ivp-cc-shoreside
   echo "Stopping containers with Network ID ${NETWORK_ID}"
   docker stop $(docker ps -q -f network=${NETWORK_ID})
