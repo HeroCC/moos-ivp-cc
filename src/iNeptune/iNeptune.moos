@@ -1,0 +1,15 @@
+//------------------------------------------------
+// iNeptune config block
+
+ProcessConfig = iNeptune
+{
+   AppTick   = 4
+   CommsTick = 4
+
+   Port = 10110
+   Host = localhost
+   ReconnectInterval = 3 // Seconds, how often to try to reconnect to NMEA server
+   ValidateChecksum = true
+   MaximumTimeDifference = 3 // Seconds, -1 to ignore
+}
+

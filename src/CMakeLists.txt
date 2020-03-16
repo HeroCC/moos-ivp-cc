@@ -30,11 +30,13 @@ ADD_SUBDIRECTORY(pGenPath)
 ADD_SUBDIRECTORY(uFldHazardMgrX)
 ENDIF()
 
-ADD_SUBDIRECTORY(pWebSocketServer)
+#ADD_SUBDIRECTORY(pWebSocketServer)
 ADD_SUBDIRECTORY(iMumbleClient)
 ADD_SUBDIRECTORY(uRaspiMon)
 ADD_SUBDIRECTORY(uFrontNMEABridge)
 ADD_SUBDIRECTORY(uBackNMEABridge)
+
+ADD_SUBDIRECTORY(iNeptune)
 
 ##############################################################################
 #                           END of CMakeLists.txt
