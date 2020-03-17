@@ -56,4 +56,4 @@ pAntler targ_$COMMUNITY.moos >& /dev/null &
 
 uMAC -t $COMMUNITY.moos
 
-sleep 3s
+sleep 2s

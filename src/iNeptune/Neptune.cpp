@@ -96,8 +96,14 @@ bool Neptune::failsTimeCheck(const string& t2, double& diff) {
 }
 
 void Neptune::UpdateBehaviors() {
-  string pointsStr = "points=" +  points.get_spec(); // TODO the behavior complains if this is empty, fix it
-  Notify("NEPTUNE_SURVEY_UPDATE", pointsStr);
+  if (points.size() > 0) {
+    string pointsStr = "points=" + points.get_spec();
+    Notify("NEPTUNE_SURVEY_UPDATE", pointsStr);
+    Notify("NEPTUNE_SURVEY_TRAVERSE", "true");
+  } else {
+    // Sending an empty list of points makes the behavior get upset, so use a condition flag
+    Notify("NEPTUNE_SURVEY_TRAVERSE", "false");
+  }
 }
 
 void Neptune::handleIncomingNMEA(const string _rx) {

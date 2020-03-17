@@ -1,6 +1,7 @@
 //--------    FILE: alpha.bhv   -------------
 
 initialize   DEPLOY = false
+initialize   NEPTUNE_SURVEY_TRAVERSE=true
 	
 //----------------------------------------------
 Behavior = BHV_Waypoint
@@ -8,8 +9,10 @@ Behavior = BHV_Waypoint
   name      = waypt_survey_neptune
   pwt       = 100
   condition = DEPLOY = true
+  condition = NEPTUNE_SURVEY_TRAVERSE=true
 
   updates    = NEPTUNE_SURVEY_UPDATE
+  endflag    = NEPTUNE_SURVEY_TRAVERSE=false
   wptflag    = NEPTUNE_SURVEY_VISITED_POINT=$(X),$(Y)
   perpetual  = true
 
