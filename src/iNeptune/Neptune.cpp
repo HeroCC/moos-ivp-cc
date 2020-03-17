@@ -95,6 +95,11 @@ bool Neptune::failsTimeCheck(const string& t2, double& diff) {
   return (df > maximum_time_delta);
 }
 
+void Neptune::UpdateBehaviors() {
+  string pointsStr = "points=" +  points.get_spec(); // TODO the behavior complains if this is empty, fix it
+  Notify("NEPTUNE_SURVEY_UPDATE", pointsStr);
+}
+
 void Neptune::handleIncomingNMEA(const string _rx) {
   string rx = _rx;
   MOOSTrimWhiteSpace(rx);
@@ -140,6 +145,41 @@ void Neptune::handleIncomingNMEA(const string _rx) {
 
     forward_mail.push_back(regKey);
     Register(regKey, dfInterval);
+  } else if (MOOSStrCmp(key, "$MOWPT")) {
+    // $MOWPT,timestamp,{lat,lon:lat,lon:lat,lon},reset*XX
+    // Set or add to XYSegList of Points. Relies on a valid m_geo.
+    // Since we translate from lat,lon -> XY, we may lose precision as we get extremely far from datum.
+    if (!m_geo_initialized) {
+      reportRunWarning("Waypoints requested, but Geo isn't ready! Did you set a datum?");
+      return;
+    }
+
+    bool reset;
+    string resetStr = biteStringX(nmeaNoChecksum, ',');
+    setBooleanOnString(reset, resetStr, true);
+
+    if (reset) {
+      points.clear();
+    }
+
+    MOOSChomp(nmeaNoChecksum, "{");
+    string pointsString = MOOSChomp(nmeaNoChecksum, "}");
+
+    string curPointString = biteStringX(pointsString, ':');
+    while (!curPointString.empty()) {
+      double lat, lon, x, y;
+      try {
+        lat = stod(biteStringX(curPointString, ','));
+        lon = stod(curPointString);
+      } catch (invalid_argument& e) {
+        reportRunWarning("Unable to parse latitude / longitude!");
+        break;
+      }
+      m_geo.LatLong2LocalUTM(lat, lon, y, x);
+      points.add_vertex(x, y);
+      curPointString = biteStringX(pointsString, ':');
+    }
+    UpdateBehaviors();
   } else {
     reportRunWarning("Unhandled Command: " + key);
   }
@@ -185,6 +225,19 @@ bool Neptune::OnNewMail(MOOSMSG_LIST &NewMail)
        m_latest_long = msg.GetDouble();
      } else if (key == "NAV_ALTITUDE") {
        m_latest_alt = msg.GetDouble();
+     } else if (key == "NEPTUNE_SURVEY_VISITED_POINT") {
+       // Visited a point, so remove it from list
+       string val = msg.GetString();
+       double x, y;
+       try {
+         x = stod(biteStringX(val, ','));
+         y = stod(biteStringX(val, ','));
+       } catch (invalid_argument& e) {
+         reportRunWarning("Received a visited point, but was unable to parse it: " + msg.GetString());
+         return true;
+       }
+       points.delete_vertex(x ,y);
+       return true;
      } else {
        reportRunWarning("Unhandled unrequested mail: " + key);
        return true;
@@ -386,6 +439,8 @@ void Neptune::registerVariables()
   Register("NAV_LAT", 0);
   Register("NAV_LONG", 0);
   Register("NAV_ALTITUDE", 0);
+
+  Register("NEPTUNE_SURVEY_VISITED_POINT", 0);
 }
 
 

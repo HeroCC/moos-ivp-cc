@@ -41,6 +41,7 @@ class Neptune : public AppCastingMOOSApp
     double timeDifferenceFromNow(const std::string&);
     static std::string genNMEAChecksum(std::string);
     static std::string genMOVALString(std::string key, std::string value, time_t time);
+    void UpdateBehaviors();
 
  private: // Configuration variables
     std::string m_connect_addr = "localhost";
