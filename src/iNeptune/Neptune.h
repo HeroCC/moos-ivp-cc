@@ -8,11 +8,14 @@
 #ifndef Neptune_HEADER
 #define Neptune_HEADER
 
-#include "MOOS/libMOOS/Thirdparty/AppCasting/AppCastingMOOSApp.h"
-#include "Socket.h"
 #include <iostream>
-#include <XYSegList.h>
-#include "MOOS/libMOOSGeodesy/MOOSGeodesy.h"
+
+#include <GeomUtils.h>
+#include <MOOS/libMOOS/Thirdparty/AppCasting/AppCastingMOOSApp.h>
+#include <MOOS/libMOOSGeodesy/MOOSGeodesy.h>
+
+
+#include "Socket.h"
 
 class Neptune : public AppCastingMOOSApp
 {

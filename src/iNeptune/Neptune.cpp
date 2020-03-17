@@ -361,6 +361,13 @@ bool Neptune::OnStartUp()
       reportUnhandledConfigWarning(orig);
 
   }
+
+  double latOrigin = 0.0;
+  double lonOrigin = 0.0;
+  if (!(m_MissionReader.GetValue("LatOrigin", latOrigin) && m_MissionReader.GetValue("LongOrigin", lonOrigin)
+        && (m_geo_initialized = m_geo.Initialise(latOrigin, lonOrigin)))) {
+    reportRunWarning("Error calculating datum! XY Local Grid Unavaliable");
+  }
   
   registerVariables();	
   return(true);

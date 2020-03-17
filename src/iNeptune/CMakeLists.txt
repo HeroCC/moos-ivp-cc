@@ -14,6 +14,7 @@ ADD_EXECUTABLE(iNeptune ${SRC})
 TARGET_LINK_LIBRARIES(iNeptune
    ${MOOS_LIBRARIES}
    ${MOOSGeodesy_LIBRARIES}
+   geometry
    apputil
    mbutil
    m
