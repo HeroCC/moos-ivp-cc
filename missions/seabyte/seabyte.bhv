@@ -1,0 +1,34 @@
+//--------    FILE: alpha.bhv   -------------
+
+initialize   DEPLOY = false
+	
+//----------------------------------------------
+Behavior = BHV_Waypoint
+{ 
+  name      = waypt_survey_neptune
+  pwt       = 100
+  condition = DEPLOY = true
+
+  updates    = NEPTUNE_SURVEY_UPDATE
+  wptflag    = NEPTUNE_SURVEY_VISITED_POINT=$(X),$(Y)
+  perpetual  = true
+
+                lead = 8
+         lead_damper = 1
+       lead_to_start = true
+               speed = 12   // meters per second
+        capture_line = true
+      capture_radius = 5.0
+         slip_radius = 15.0
+	efficiency_measure = all
+
+               order = normal
+             repeat  = 0
+
+    visual_hints = nextpt_color=yellow
+    visual_hints = nextpt_vertex_size=8
+    visual_hints = nextpt_lcolor=gray70
+    visual_hints = vertex_color=dodger_blue, edge_color=white
+    visual_hints = vertex_size=5, edge_size=1
+}
+
