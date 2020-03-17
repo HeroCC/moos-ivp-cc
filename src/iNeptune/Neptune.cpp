@@ -146,7 +146,7 @@ void Neptune::handleIncomingNMEA(const string _rx) {
     forward_mail.push_back(regKey);
     Register(regKey, dfInterval);
   } else if (MOOSStrCmp(key, "$MOWPT")) {
-    // $MOWPT,timestamp,{lat,lon:lat,lon:lat,lon},reset*XX
+    // $MOWPT,timestamp,reset,{lat,lon:lat,lon:lat,lon}*XX
     // Set or add to XYSegList of Points. Relies on a valid m_geo.
     // Since we translate from lat,lon -> XY, we may lose precision as we get extremely far from datum.
     if (!m_geo_initialized) {
@@ -180,6 +180,20 @@ void Neptune::handleIncomingNMEA(const string _rx) {
       curPointString = biteStringX(pointsString, ':');
     }
     UpdateBehaviors();
+  } else if (MOOSStrCmp(key, "$MOHLM")) {
+    // $MOHLM,timestamp,deploy,manual_override*XX
+    // Access key helm values. Deploy refers to NEPTUNE behaviors, and manual_override is the system-wide override
+    string deployString = biteStringX(nmeaNoChecksum, ',');
+    string manualOverrideString = biteStringX(nmeaNoChecksum, ',');
+
+    // If either of the parsers fail, we default to disabling
+    bool deploy = false;
+    bool manualOverride = true;
+    setBooleanOnString(deploy, deployString);
+    setBooleanOnString(manualOverride, manualOverrideString);
+
+    Notify("DEPLOY", boolToString(deploy));
+    Notify("MOOS_MANUAL_OVERRIDE", boolToString(manualOverride));
   } else {
     reportRunWarning("Unhandled Command: " + key);
   }
@@ -236,7 +250,7 @@ bool Neptune::OnNewMail(MOOSMSG_LIST &NewMail)
          reportRunWarning("Received a visited point, but was unable to parse it: " + msg.GetString());
          return true;
        }
-       points.delete_vertex(x ,y);
+       points.delete_vertex(x, y);
        return true;
      } else {
        reportRunWarning("Unhandled unrequested mail: " + key);
