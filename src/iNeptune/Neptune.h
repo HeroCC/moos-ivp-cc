@@ -11,6 +11,7 @@
 #include "MOOS/libMOOS/Thirdparty/AppCasting/AppCastingMOOSApp.h"
 #include "Socket.h"
 #include <iostream>
+#include <XYSegList.h>
 #include "MOOS/libMOOSGeodesy/MOOSGeodesy.h"
 
 class Neptune : public AppCastingMOOSApp
@@ -50,6 +51,8 @@ class Neptune : public AppCastingMOOSApp
 
     CMOOSGeodesy m_geo;
     bool m_geo_initialized = false;
+
+    XYSegList points;
 
     std::vector<std::string> send_queue;
     std::vector<std::string> forward_mail;

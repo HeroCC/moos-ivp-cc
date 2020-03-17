@@ -22,7 +22,7 @@
 
 const int MAXHOSTNAME = 200;
 const int MAXCONNECTIONS = 5;
-const int MAXRECV = 2047;
+const int MAXRECV = 500;
 
 class Socket {
 public:
@@ -33,12 +33,12 @@ public:
 
     // Server initialization
     bool create();
-    bool bind (const std::string, const int port);
+    bool bind (const int port);
     bool listen() const;
     bool accept (Socket&) const;
 
     // Client initialization
-    bool connect (const std::string host, const int port);
+    int connect (const std::string host, const int port);
 
     // Data Transimission
     int send (const std::string) const;

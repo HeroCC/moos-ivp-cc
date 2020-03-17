@@ -53,12 +53,12 @@ string Neptune::genNMEAChecksum(string nmeaString) {
 string Neptune::genMONVGString() {
   const int precision = 8;
   // Very similar to CPNVG from https://oceanai.mit.edu/herons/docs/ClearpathWireProtocolV0.2.pdf
-  // $MONVG,timestampOfLastMessage,lat,,lon,,quality(1good 0bad),altitude,depth,heading,roll,pitch,speed*
+  // $MONVG,timestampOfLastMessage,lat,lon,quality(1good 0bad),altitude,depth,heading,roll,pitch,speed*
   string nmea = "$MONVG,";
   std::stringstream ss;
   ss << std::put_time(std::localtime(&m_last_updated_time), "%H%M%S,");
   nmea += ss.str();
-  nmea += doubleToString(m_latest_lat, precision) + ",," + doubleToString(m_latest_long, precision) + ",,1," + doubleToString(m_latest_alt, precision) +
+  nmea += doubleToString(m_latest_lat, precision) + "," + doubleToString(m_latest_long, precision) + ",1," + doubleToString(m_latest_alt, precision) +
     "," + doubleToString(m_latest_depth, precision) + "," + doubleToString(m_latest_heading, precision) +  ",,," + doubleToString(m_latest_speed, precision) + "*";
   nmea += genNMEAChecksum(nmea);
   return nmea;
