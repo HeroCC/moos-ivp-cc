@@ -2,7 +2,7 @@
 // Created by Conlan Cesar on 9/4/17.
 //
 
-#include "Simple-WebSocket-Server/server_ws.hpp"
+#include "server_ws.hpp"
 #include "WebSocketClient.h"
 
 typedef SimpleWeb::SocketServer<SimpleWeb::WS> WsServer;
@@ -26,11 +26,7 @@ void WebSocketClient::addSubscribedMail(string key) {
 }
 
 bool WebSocketClient::sendMail(string mail) {
-  auto send_stream = make_shared<WsServer::SendStream>();
-  //cout << "Server: Sending message '" + mail + "' to " << m_connection.get() << endl;
-  *send_stream << mail;
-  // connection->send is an asynchronous function
-  m_connection->send(send_stream, [](const SimpleWeb::error_code &ec) {
+  m_connection->send(mail, [](const SimpleWeb::error_code &ec) {
       if(ec) {
         cout << "Server: Error sending message. " <<
              // See http://www.boost.org/doc/libs/1_55_0/doc/html/boost_asio/reference.html, Error Codes for error code meanings
@@ -42,7 +38,7 @@ bool WebSocketClient::sendMail(string mail) {
 }
 
 bool operator< (const WebSocketClient &left, const WebSocketClient &right) {
-  return left.m_connection->remote_endpoint_port() > right.m_connection->remote_endpoint_port();
+  return left.m_connection->remote_endpoint().port() > right.m_connection->remote_endpoint().port();
   // TODO Actual logic here, for some reason unordered_set freaks out things, and we don't care about client order, so sort method is by port
 }
 

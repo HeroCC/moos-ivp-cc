@@ -6,7 +6,7 @@
 /************************************************************/
 
 #include <iterator>
-#include "Simple-WebSocket-Server/server_ws.hpp"
+#include "server_ws.hpp"
 #include "MBUtils.h"
 #include "ACTable.h"
 #include "WebSocketServer.h"
@@ -149,16 +149,16 @@ bool WebSocketServer::OnStartUp()
 void WebSocketServer::registerMailEndpoint() {
   auto &mailListener = wsServer.endpoint["^/listen/?$"];
   mailListener.on_open = [this](shared_ptr<WsServer::Connection> connection) {
-    reportEvent("WS: New Mail connection from " + connection->remote_endpoint_address() + ":" + itos(connection->remote_endpoint_port()));
+    reportEvent("WS: New Mail connection from " + connection->remote_endpoint().address().to_string() + ":" + itos(connection->remote_endpoint().port()));
 
     shared_ptr<WebSocketClient> client (new WebSocketClient(connection));
     m_clients.insert(move(client));
   };
 
-  mailListener.on_message = [this](shared_ptr<WsServer::Connection> connection, shared_ptr<WsServer::Message> message) {
+  mailListener.on_message = [this](shared_ptr<WsServer::Connection> connection, shared_ptr<WsServer::InMessage> message) {
     auto message_str = message->string();
     shared_ptr<WebSocketClient> client = getClientByConnection(connection);
-    reportEvent("WS: Received: '" + message_str + "' from " + connection->remote_endpoint_address() + ":" + itos(connection->remote_endpoint_port()));
+    reportEvent("WS: Received: '" + message_str + "' from " + connection->remote_endpoint().address().to_string() + ":" + itos(connection->remote_endpoint().port()));
     if (message_str.find('=') != string::npos) {
       if (message_str.rfind('$', 0) != string::npos) {
         // The char '$' can't be included in MOOSMail keys, but it can be in websocket messages
@@ -166,7 +166,7 @@ void WebSocketServer::registerMailEndpoint() {
         handleInternalMessage(message_str, client);
       } else if (!allowSubmissions || (!password.empty() && !client->isAuthenticated)) {
         // If submissions are disabled or the password isn't null and the client is not authenticated
-        reportEvent("WS: Rejected submission from " + connection->remote_endpoint_address() + ":" + itos(connection->remote_endpoint_port()));
+        reportEvent("WS: Rejected submission from " + connection->remote_endpoint().address().to_string() + ":" + itos(connection->remote_endpoint().port()));
       } else {
         string delim = "=";
 
@@ -200,12 +200,12 @@ void WebSocketServer::registerMailEndpoint() {
   };
 
   mailListener.on_close = [this](shared_ptr<WsServer::Connection> connection, int status, const string &reason) {
-    reportEvent("WS: Disconnected " + connection->remote_endpoint_address() + ":" + itos(connection->remote_endpoint_port()));
+    reportEvent("WS: Disconnected " + connection->remote_endpoint().address().to_string() + ":" + itos(connection->remote_endpoint().port()));
     m_clients.erase(m_clients.find(getClientByConnection(connection)));
   };
 
   mailListener.on_error = [this](shared_ptr<WsServer::Connection> connection, const SimpleWeb::error_code &error_code) {
-    reportEvent("WS: ERRing " + connection->remote_endpoint_address() + ":" + itos(connection->remote_endpoint_port()));
+    reportEvent("WS: ERRing " + connection->remote_endpoint().address().to_string() + ":" + itos(connection->remote_endpoint().port()));
     m_clients.erase(m_clients.find(getClientByConnection(connection)));
   };
 }
@@ -267,7 +267,7 @@ bool WebSocketServer::buildReport()
   //actab << "one" << "two" << "three" << "four";
 
   for (const shared_ptr<WebSocketClient> &client : m_clients) {
-    actab << client->getConnection()->remote_endpoint_address() + ":" + itos(client->getConnection()->remote_endpoint_port()) << itos(client->getSubscribedMail().size()) << (client->isAuthenticated);
+    actab << client->getConnection()->remote_endpoint().address().to_string() + ":" + itos(client->getConnection()->remote_endpoint().port()) << itos(client->getSubscribedMail().size()) << (client->isAuthenticated);
   }
   m_msgs << actab.getFormattedString();
 
