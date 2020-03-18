@@ -8,4 +8,6 @@ lib/
 LOG_*/
 cmake-build-debug/
 targ_*
+.idea
+CMakeFiles
 #.moos++
