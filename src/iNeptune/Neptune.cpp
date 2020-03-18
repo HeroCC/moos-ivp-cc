@@ -34,7 +34,7 @@ string Neptune::genMONVGString() {
   NMEAUtils::genNMEATimestamp(m_last_updated_time, timestamp);
   string nmea = "$MONVG,";
   nmea += timestamp;
-  nmea += doubleToString(m_latest_lat, precision) + "," + doubleToString(m_latest_long, precision) + ",1," + doubleToString(m_latest_alt, precision) +
+  nmea += "," + doubleToString(m_latest_lat, precision) + "," + doubleToString(m_latest_long, precision) + ",1," + doubleToString(m_latest_alt, precision) +
     "," + doubleToString(m_latest_depth, precision) + "," + doubleToString(m_latest_heading, precision) +  ",,," + doubleToString(m_latest_speed, precision) + "*";
   string checksum;
   NMEAUtils::genNMEAChecksum(nmea, checksum);
@@ -46,7 +46,7 @@ string Neptune::genMOVALString(std::string key, std::string value, time_t time) 
   NMEAUtils::genNMEATimestamp(time, timestamp);
   string nmea = "$MOVAL,";
   nmea += timestamp;
-  nmea += key + "," + value + "*";
+  nmea += "," + key + "," + value + "*";
   string checksum;
   NMEAUtils::genNMEAChecksum(nmea, checksum);
   return nmea + checksum;

@@ -7,7 +7,7 @@ SET(SRC
   Neptune.cpp
   Neptune_Info.cpp
   main.cpp
-  Socket.cpp)
+  Socket.cpp NMEAUtils.cpp)
 
 ADD_EXECUTABLE(iNeptune ${SRC})
 
