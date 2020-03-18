@@ -26,73 +26,30 @@ Neptune::~Neptune()
 {
 }
 
-string Neptune::genNMEAChecksum(string nmeaString) {
-  unsigned char xCheckSum = 0;
-  string::iterator p;
-
-  // Get the text between the $ and *
-  MOOSChomp(nmeaString,"$");
-  string sToCheck = MOOSChomp(nmeaString,"*");
-
-  // XOR every byte as a checksum
-  for (p = sToCheck.begin(); p != sToCheck.end(); p++) {
-    xCheckSum ^= *p;
-  }
-
-  ostringstream os;
-  os.flags(ios::hex);
-  os << (int) xCheckSum;
-  string sExpected = os.str();
-
-  if (sExpected.length() < 2)
-    sExpected = "0" + sExpected;
-
-  return sExpected;
-}
-
 string Neptune::genMONVGString() {
   const int precision = 8;
   // Very similar to CPNVG from https://oceanai.mit.edu/herons/docs/ClearpathWireProtocolV0.2.pdf
   // $MONVG,timestampOfLastMessage,lat,lon,quality(1good 0bad),altitude,depth,heading,roll,pitch,speed*
+  string timestamp;
+  NMEAUtils::genNMEATimestamp(m_last_updated_time, timestamp);
   string nmea = "$MONVG,";
-  std::stringstream ss;
-  ss << std::put_time(std::localtime(&m_last_updated_time), "%H%M%S,");
-  nmea += ss.str();
+  nmea += timestamp;
   nmea += doubleToString(m_latest_lat, precision) + "," + doubleToString(m_latest_long, precision) + ",1," + doubleToString(m_latest_alt, precision) +
     "," + doubleToString(m_latest_depth, precision) + "," + doubleToString(m_latest_heading, precision) +  ",,," + doubleToString(m_latest_speed, precision) + "*";
-  nmea += genNMEAChecksum(nmea);
-  return nmea;
+  string checksum;
+  NMEAUtils::genNMEAChecksum(nmea, checksum);
+  return nmea + checksum;
 }
 
 string Neptune::genMOVALString(std::string key, std::string value, time_t time) {
+  string timestamp;
+  NMEAUtils::genNMEATimestamp(time, timestamp);
   string nmea = "$MOVAL,";
-  std::stringstream ss;
-  ss << std::put_time(std::localtime(&time), "%H%M%S,");
-  nmea += ss.str();
+  nmea += timestamp;
   nmea += key + "," + value + "*";
-  nmea += genNMEAChecksum(nmea);
-  return nmea;
-}
-
-double Neptune::timeDifferenceFromNow(const string& t2) {
-  const time_t currtime = m_curr_time;
-
-  struct std::tm* tm = localtime(&currtime); // Assume we have the same timezone
-  std::istringstream ss(t2);
-  ss >> std::get_time(tm, "%H%M%S"); // Override hour, minute, second
-  //strptime(sent_time.c_str(), "%H%M%S", &tm);
-  time_t tx_unix_time = mktime(tm);
-
-  return abs(currtime - tx_unix_time);
-}
-
-bool Neptune::failsTimeCheck(const string& t2, double& diff) {
-  if (maximum_time_delta < 0) {
-    return false; // If time delta is below zero, consider it disabled
-  }
-  double df = timeDifferenceFromNow(t2);
-  diff = df;
-  return (df > maximum_time_delta);
+  string checksum;
+  NMEAUtils::genNMEAChecksum(nmea, checksum);
+  return nmea + checksum;
 }
 
 void Neptune::UpdateBehaviors() {
@@ -113,7 +70,8 @@ void Neptune::handleIncomingNMEA(const string _rx) {
   // Verify Checksum
   string nmeaNoChecksum = rx;
   string checksum = rbiteString(nmeaNoChecksum, '*');
-  string expected = genNMEAChecksum(nmeaNoChecksum);
+  string expected;
+  NMEAUtils::genNMEAChecksum(nmeaNoChecksum, expected);
   if (!MOOSStrCmp(expected, checksum) && validate_checksum) {
     reportRunWarning("Expected checksum " + expected + " but got " + checksum + ", ignoring message");
     reportEvent("Dropped Message: " + rx);
@@ -127,7 +85,7 @@ void Neptune::handleIncomingNMEA(const string _rx) {
 
   // Check Time
   double diff = -1;
-  if (failsTimeCheck(sent_time, diff)) {
+  if (NMEAUtils::failsTimeCheck(sent_time, diff, maximum_time_delta)) {
     reportRunWarning("Time difference " + doubleToString(diff) + ">" + doubleToString(maximum_time_delta) + ", ignoring message " + key);
     return;
   }

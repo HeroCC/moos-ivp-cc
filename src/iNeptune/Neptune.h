@@ -8,14 +8,12 @@
 #ifndef Neptune_HEADER
 #define Neptune_HEADER
 
-#include <iostream>
-
 #include <GeomUtils.h>
 #include <MOOS/libMOOS/Thirdparty/AppCasting/AppCastingMOOSApp.h>
 #include <MOOS/libMOOSGeodesy/MOOSGeodesy.h>
 
-
 #include "Socket.h"
+#include "NMEAUtils.h"
 
 class Neptune : public AppCastingMOOSApp
 {
@@ -37,9 +35,6 @@ class Neptune : public AppCastingMOOSApp
     void registerVariables();
     void handleIncomingNMEA(std::string);
     bool ConnectToNMEAServer();
-    bool failsTimeCheck(const std::string&, double& diff);
-    double timeDifferenceFromNow(const std::string&);
-    static std::string genNMEAChecksum(std::string);
     static std::string genMOVALString(std::string key, std::string value, time_t time);
     void UpdateBehaviors();
 
