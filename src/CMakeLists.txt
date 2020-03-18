@@ -30,7 +30,11 @@ ADD_SUBDIRECTORY(pGenPath)
 ADD_SUBDIRECTORY(uFldHazardMgrX)
 ENDIF()
 
-#ADD_SUBDIRECTORY(pWebSocketServer)
+if (NOT APPLE)
+# pWebSocketServer doesn't build on MacOS with newer versions of Boost, so disable it for now
+ADD_SUBDIRECTORY(pWebSocketServer)
+endif()
+
 ADD_SUBDIRECTORY(iMumbleClient)
 ADD_SUBDIRECTORY(uRaspiMon)
 ADD_SUBDIRECTORY(uFrontNMEABridge)
