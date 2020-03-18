@@ -9,7 +9,7 @@
 #----------------------------------------------------------
 trap "kill -- -$$" EXIT SIGTERM SIGHUP SIGINT SIGKILL
 TIME_WARP=${TIME_WARP:-1}
-COMMUNITY="seabyte"
+COMMUNITY="seebyte"
 GUI="${GUI:-yes}"
 SIM="${SIM:-no}"
 NMEA_HOST="${NMEA_HOST:-localhost}"
