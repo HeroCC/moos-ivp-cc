@@ -12,9 +12,10 @@ bool NMEAUtils::genNMEAChecksum(std::string nmeaString, std::string& checksum) {
 
   // Ensure we have a valid NMEA String
   if (nmeaString.at(0) != '$' || nmeaString.at(nmeaString.size() - 1) != '*') return false;
+  if (nmeaString.length() < 10) return false; // $C,000000* minimum length
 
-  // XOR every byte as a checksum
-  for (p = nmeaString.begin(); p != nmeaString.end(); p++) {
+  // XOR every byte between the $ and * as a checksum
+  for (p = nmeaString.begin() + 1; p != nmeaString.end() - 1; p++) {
     xCheckSum ^= *p;
   }
 
@@ -57,4 +58,13 @@ bool NMEAUtils::failsTimeCheck(const std::string& t2, double& diff, double maxDe
   double df = timeDifference(t2);
   diff = df;
   return (df > maxDelta);
+}
+
+std::string NMEAUtils::genNMEAString(std::string key, std::string contents, time_t time) {
+  std::string timestamp;
+  NMEAUtils::genNMEATimestamp(time, timestamp);
+  std::string nmea = "$" + key + "," + timestamp + "," + contents + "*";
+  std::string checksum;
+  NMEAUtils::genNMEAChecksum(nmea, checksum);
+  return nmea + checksum;
 }

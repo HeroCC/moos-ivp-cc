@@ -27,29 +27,15 @@ Neptune::~Neptune()
 }
 
 string Neptune::genMONVGString() {
-  const int precision = 8;
   // Very similar to CPNVG from https://oceanai.mit.edu/herons/docs/ClearpathWireProtocolV0.2.pdf
   // $MONVG,timestampOfLastMessage,lat,lon,quality(1good 0bad),altitude,depth,heading,roll,pitch,speed*
-  string timestamp;
-  NMEAUtils::genNMEATimestamp(m_last_updated_time, timestamp);
-  string nmea = "$MONVG,";
-  nmea += timestamp;
-  nmea += "," + doubleToString(m_latest_lat, precision) + "," + doubleToString(m_latest_long, precision) + ",1," + doubleToString(m_latest_alt, precision) +
-    "," + doubleToString(m_latest_depth, precision) + "," + doubleToString(m_latest_heading, precision) +  ",,," + doubleToString(m_latest_speed, precision) + "*";
-  string checksum;
-  NMEAUtils::genNMEAChecksum(nmea, checksum);
-  return nmea + checksum;
+  string contents = doubleToString(m_latest_lat, 6) + "," + doubleToString(m_latest_long, 6) + ",1," + doubleToString(m_latest_alt, 2) +
+                    "," + doubleToString(m_latest_depth, 2) + "," + doubleToString(m_latest_heading, 3) +  ",,," + doubleToString(m_latest_speed, 2);
+  return NMEAUtils::genNMEAString("MONVG", contents, m_last_updated_time);
 }
 
 string Neptune::genMOVALString(std::string key, std::string value, time_t time) {
-  string timestamp;
-  NMEAUtils::genNMEATimestamp(time, timestamp);
-  string nmea = "$MOVAL,";
-  nmea += timestamp;
-  nmea += "," + key + "," + value + "*";
-  string checksum;
-  NMEAUtils::genNMEAChecksum(nmea, checksum);
-  return nmea + checksum;
+  return NMEAUtils::genNMEAString("MOVAL", key + "," + value, time);
 }
 
 void Neptune::UpdateBehaviors() {
@@ -71,8 +57,7 @@ void Neptune::handleIncomingNMEA(const string _rx) {
   string nmeaNoChecksum = rx;
   string checksum = rbiteString(nmeaNoChecksum, '*');
   string expected;
-  NMEAUtils::genNMEAChecksum(nmeaNoChecksum, expected);
-  if (!MOOSStrCmp(expected, checksum) && validate_checksum) {
+  if ((!NMEAUtils::genNMEAChecksum(nmeaNoChecksum + "*", expected) || !MOOSStrCmp(expected, checksum)) && validate_checksum) {
     reportRunWarning("Expected checksum " + expected + " but got " + checksum + ", ignoring message");
     reportEvent("Dropped Message: " + rx);
     return;
