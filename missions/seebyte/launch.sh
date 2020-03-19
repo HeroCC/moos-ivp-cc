@@ -7,7 +7,7 @@
 #----------------------------------------------------------
 #  Part 1: Set Exit actions and declare global var defaults
 #----------------------------------------------------------
-trap "kill -- -$$" EXIT SIGTERM SIGHUP SIGINT SIGKILL
+trap "pkill -INT -P $$" EXIT SIGTERM SIGHUP SIGINT SIGKILL
 TIME_WARP=${TIME_WARP:-1}
 COMMUNITY="seebyte"
 SIM="${SIM:-no}"

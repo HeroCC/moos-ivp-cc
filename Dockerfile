@@ -19,3 +19,5 @@ COPY --chown=moos:moos "." "/home/moos/${MOOS}"
 
 RUN cd "${HOME}/${MOOS}" && ./build.sh
 
+CMD [ "bash", "-c", "${HOME}/${MOOS}/docker-entrypoint.sh" ]
+
