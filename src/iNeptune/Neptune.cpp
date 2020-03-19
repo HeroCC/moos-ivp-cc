@@ -81,6 +81,86 @@ void Neptune::UpdateBehaviors() {
   }
 }
 
+void Neptune::handleMOPOK(string contents) {
+  // $MOPOK,timestampOfLastMessage,KEY=val*
+  // Poke a MoosDB message
+  string mail = biteStringX(contents, '=');
+  string val = contents; // the only remaining text should be the value to set
+  if (isNumber(val)) {
+    Notify(mail, stod(val));
+  } else {
+    Notify(mail, val);
+  }
+}
+
+void Neptune::handleMOREG(string contents) {
+  // Register a moos variable
+  // $MOREG,timestamp,Key To Register,dfInterval*
+  string regKey = biteStringX(contents, ',');
+  double dfInterval = stod(biteStringX(contents, ','));
+
+  forward_mail.push_back(regKey);
+  Register(regKey, dfInterval);
+}
+
+void Neptune::handleMOWPT(string contents) {
+  // $MOWPT,timestamp,reset,{lat,lon:lat,lon:lat,lon}*XX
+  // Set or add to XYSegList of Points. Relies on a valid m_geo.
+  // Since we translate from lat,lon -> XY, we may lose precision as we get extremely far from datum.
+  if (!m_geo_initialized) {
+    reportRunWarning("Waypoints requested, but Geo isn't ready! Did you set a datum?");
+    return;
+  }
+
+  bool reset;
+  string resetStr = biteStringX(contents, ',');
+  setBooleanOnString(reset, resetStr, true);
+
+  if (reset) {
+    points.clear();
+  }
+
+  MOOSChomp(contents, "{");
+  string pointsString = MOOSChomp(contents, "}");
+
+  LatLonToSeglist(pointsString, points);
+
+  send_queue.push(genMOMISString(nullptr, nullptr));
+  UpdateBehaviors();
+}
+
+void Neptune::handleMOHLM(string contents) {
+  // $MOHLM,timestamp,deploy,manual_override*XX
+  // Access key helm values. Deploy refers to NEPTUNE behaviors, and manual_override is the system-wide override
+  string deployString = biteStringX(contents, ',');
+  string manualOverrideString = biteStringX(contents, ',');
+
+  // If either of the parsers fail, we default to disabling
+  bool deploy = false;
+  bool manualOverride = true;
+  setBooleanOnString(deploy, deployString);
+  setBooleanOnString(manualOverride, manualOverrideString);
+
+  Notify("DEPLOY", boolToString(deploy));
+  Notify("MOOS_MANUAL_OVERRIDE", boolToString(manualOverride));
+}
+
+void Neptune::handleMOAVD(string contents) {
+  if (!m_geo_initialized) {
+    reportRunWarning("Avoidance requested, but Geo isn't ready! Did you set a datum?");
+    return;
+  }
+
+  string regionID = biteStringX(contents, ',');
+  MOOSChomp(contents, "{");
+  string region =  MOOSChomp(contents, "}");
+
+  XYPolygon poly;
+  poly.set_label(regionID);
+  LatLonToSeglist(region, poly);
+  Notify("GIVEN_OBSTACLE", poly.get_spec()); // Uses pObstacleMgr
+}
+
 void Neptune::handleIncomingNMEA(const string _rx) {
   string rx = _rx;
   MOOSTrimWhiteSpace(rx);
@@ -109,75 +189,15 @@ void Neptune::handleIncomingNMEA(const string _rx) {
 
   // Process Message
   if (MOOSStrCmp(key, "$MOPOK")) {
-    // $MONVG,timestampOfLastMessage,KEY=val*
-    // Poke a MoosDB message
-    string mail = biteStringX(nmeaNoChecksum, '=');
-    string val = nmeaNoChecksum; // the only remaining text should be the value to set
-    if (isNumber(val)) {
-      Notify(mail, stod(val));
-    } else {
-      Notify(mail, val);
-    }
+    handleMOPOK(nmeaNoChecksum);
   } else if (MOOSStrCmp(key, "$MOREG")) {
-    // Register a moos variable
-    // $MOREG,timestamp,Key To Register,dfInterval*
-    string regKey = biteStringX(nmeaNoChecksum, ',');
-    double dfInterval = stod(biteStringX(nmeaNoChecksum, ','));
-
-    forward_mail.push_back(regKey);
-    Register(regKey, dfInterval);
+    handleMOREG(nmeaNoChecksum);
   } else if (MOOSStrCmp(key, "$MOWPT")) {
-    // $MOWPT,timestamp,reset,{lat,lon:lat,lon:lat,lon}*XX
-    // Set or add to XYSegList of Points. Relies on a valid m_geo.
-    // Since we translate from lat,lon -> XY, we may lose precision as we get extremely far from datum.
-    if (!m_geo_initialized) {
-      reportRunWarning("Waypoints requested, but Geo isn't ready! Did you set a datum?");
-      return;
-    }
-
-    bool reset;
-    string resetStr = biteStringX(nmeaNoChecksum, ',');
-    setBooleanOnString(reset, resetStr, true);
-
-    if (reset) {
-      points.clear();
-    }
-
-    MOOSChomp(nmeaNoChecksum, "{");
-    string pointsString = MOOSChomp(nmeaNoChecksum, "}");
-
-    LatLonToSeglist(pointsString, points);
-
-    send_queue.push(genMOMISString(nullptr, nullptr));
-    UpdateBehaviors();
+    handleMOWPT(nmeaNoChecksum);
   } else if (MOOSStrCmp(key, "$MOHLM")) {
-    // $MOHLM,timestamp,deploy,manual_override*XX
-    // Access key helm values. Deploy refers to NEPTUNE behaviors, and manual_override is the system-wide override
-    string deployString = biteStringX(nmeaNoChecksum, ',');
-    string manualOverrideString = biteStringX(nmeaNoChecksum, ',');
-
-    // If either of the parsers fail, we default to disabling
-    bool deploy = false;
-    bool manualOverride = true;
-    setBooleanOnString(deploy, deployString);
-    setBooleanOnString(manualOverride, manualOverrideString);
-
-    Notify("DEPLOY", boolToString(deploy));
-    Notify("MOOS_MANUAL_OVERRIDE", boolToString(manualOverride));
+    handleMOHLM(nmeaNoChecksum);
   } else if (MOOSStrCmp(key, "$MOAVD")) {
-    if (!m_geo_initialized) {
-      reportRunWarning("Avoidance requested, but Geo isn't ready! Did you set a datum?");
-      return;
-    }
-
-    string regionID = biteStringX(nmeaNoChecksum, ',');
-    MOOSChomp(nmeaNoChecksum, "{");
-    string region =  MOOSChomp(nmeaNoChecksum, "}");
-
-    XYPolygon poly;
-    poly.set_label(regionID);
-    LatLonToSeglist(region, poly);
-    Notify("GIVEN_OBSTACLE", poly.get_spec()); // Uses pObstacleMgr
+    handleMOAVD(nmeaNoChecksum);
   } else {
     reportRunWarning("Unhandled Command: " + key);
   }

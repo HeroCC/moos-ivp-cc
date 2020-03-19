@@ -33,11 +33,18 @@ class Neptune : public AppCastingMOOSApp
    void registerVariables();
 
  protected:
+    void handleIncomingNMEA(std::string);
+
     std::string genMONVGString();
     std::string genMOMISString(double *x, double *y);
     static std::string genMOVALString(std::string key, std::string value, time_t time);
 
-    void handleIncomingNMEA(std::string);
+    void handleMOPOK(std::string contents);
+    void handleMOREG(std::string contents);
+    void handleMOWPT(std::string contents);
+    void handleMOHLM(std::string contents);
+    void handleMOAVD(std::string contents);
+
     bool ConnectToNMEAServer();
     void UpdateBehaviors();
 
