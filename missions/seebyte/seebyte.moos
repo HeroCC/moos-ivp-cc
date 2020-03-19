@@ -7,24 +7,25 @@ Community    = $(COMMUNITY)
 MOOSTimeWarp = $(WARP)
 
 // Forest Lake
-LatOrigin  = 43.825300 
-LongOrigin = -70.330400 
+//LatOrigin  = 43.825300 
+//LongOrigin = -70.330400 
 
 // MIT Sailing Pavilion (use this one)
-// LatOrigin  = 42.358456 
-// LongOrigin = -71.087589
+LatOrigin  = 42.358456 
+LongOrigin = -71.087589
 
 //------------------------------------------
 // Antler configuration  block
 ProcessConfig = ANTLER
 {
-  MSBetweenLaunches = 200
+  MSBetweenLaunches = 300
 
   Run = MOOSDB           @ NewConsole = false
   Run = pLogger          @ NewConsole = false
-  Run = iNeptune         @ NewConsole = false
   Run = pHelmIvP         @ NewConsole = false
   Run = pMarinePID       @ NewConsole = false
+  Run = pObstacleMgr     @ NewConsole = false
+  Run = iNeptune         @ NewConsole = false
 #ifdef SIM yes
   Run = uSimMarine
 #else
@@ -48,9 +49,20 @@ ProcessConfig = iNeptune
 
   Port = 10110
   Host = 0.0.0.0
-  ValidateChecksum = false
+  ValidateChecksum = true
   MaximumTimeDifference = -1
 }
+
+//--------------------------------------------------------
+ProcessConfig = pObstacleMgr
+{
+  AppTick   = 4 
+  CommsTick = 4 
+
+  point_var = TRACKED_FEATURE 
+
+  post_view_polys = true
+} 
 
 //--------------------------------------------------------
 ProcessConfig = iM200
@@ -184,8 +196,8 @@ ProcessConfig = pMarineViewer
   AppTick    = 4
   CommsTick  = 4
 
-  tiff_file            = forrest19.tif
-	//tiff_file            = MIT_SP.tif
+  //tiff_file            = forrest19.tif
+	tiff_file            = MIT_SP.tif
 
   set_pan_x            = -90
   set_pan_y            = -280

@@ -6,7 +6,7 @@ initialize   NEPTUNE_SURVEY_TRAVERSE=true
 //----------------------------------------------
 Behavior = BHV_Waypoint
 { 
-  name      = waypt_survey_neptune
+  name      = neptune_waypt_survey
   pwt       = 100
   condition = DEPLOY = true
   condition = NEPTUNE_SURVEY_TRAVERSE=true
@@ -35,3 +35,37 @@ Behavior = BHV_Waypoint
     visual_hints = vertex_size=5, edge_size=1
 }
 
+//----------------------------------------------
+Behavior = BHV_AvoidObstacleX
+{
+  name       = neptune_avdob_
+  pwt        = 300
+  condition  = DEPLOY = true
+  templating = spawn
+  updates    = OBSTACLE_ALERT
+
+        use_refinery = true
+       allowable_ttc = 12 
+      pwt_outer_dist = 15
+      pwt_inner_dist = 5
+      completed_dist = 18
+   min_util_cpa_dist = 4
+   max_util_cpa_dist = 8
+
+    visual_hints = obstacle_edge_color = white
+    visual_hints = obstacle_vertex_color = gray60
+    visual_hints = obstacle_fill_color = gray60
+    visual_hints = obstacle_fill_transparency = 0.7
+    
+    visual_hints = buffer_min_edge_color = gray60
+    visual_hints = buffer_min_vertex_color = dodger_blue
+    visual_hints = buffer_min_vertex_size = 1
+    visual_hints = buffer_min_fill_color = gray70
+    visual_hints = buffer_min_fill_transparency = 0.25
+
+    visual_hints = buffer_max_edge_color = gray60
+    visual_hints = buffer_max_vertex_color = dodger_blue
+    visual_hints = buffer_max_vertex_size = 0
+    visual_hints = buffer_max_fill_color = gray80
+    visual_hints = buffer_max_fill_transparency = 0.1
+}
