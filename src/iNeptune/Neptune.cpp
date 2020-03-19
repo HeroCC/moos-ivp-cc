@@ -29,7 +29,7 @@ Neptune::~Neptune()
 string Neptune::genMONVGString() {
   // Very similar to CPNVG from https://oceanai.mit.edu/herons/docs/ClearpathWireProtocolV0.2.pdf
   // $MONVG,timestampOfLastMessage,lat,lon,quality(1good 0bad),altitude,depth,heading,roll,pitch,speed*
-  string contents = doubleToString(m_latest_lat, 5) + "," + doubleToString(m_latest_long, 5) + ",1," + doubleToString(m_latest_alt, 2) +
+  string contents = doubleToString(m_latest_lat, 6) + "," + doubleToString(m_latest_long, 6) + ",1," + doubleToString(m_latest_alt, 2) +
                     "," + doubleToString(m_latest_depth, 2) + "," + doubleToString(m_latest_heading, 3) +  ",,," + doubleToString(m_latest_speed, 2);
   return NMEAUtils::genNMEAString("MONVG", contents, m_last_updated_time);
 }
@@ -70,7 +70,7 @@ void Neptune::handleIncomingNMEA(const string _rx) {
   // Verify Checksum
   string nmeaNoChecksum = rx;
   string checksum = rbiteString(nmeaNoChecksum, '*');
-  string expected;
+  string expected = "?!";
   if ((!NMEAUtils::genNMEAChecksum(nmeaNoChecksum + "*", expected) || !MOOSStrCmp(expected, checksum)) && validate_checksum) {
     reportRunWarning("Expected checksum " + expected + " but got " + checksum + ", ignoring message");
     reportEvent("Dropped Message: " + rx);
@@ -158,6 +158,34 @@ void Neptune::handleIncomingNMEA(const string _rx) {
 
     Notify("DEPLOY", boolToString(deploy));
     Notify("MOOS_MANUAL_OVERRIDE", boolToString(manualOverride));
+  } else if (MOOSStrCmp(key, "$MOAVD")) {
+    if (!m_geo_initialized) {
+      reportRunWarning("Avoidance requested, but Geo isn't ready! Did you set a datum?");
+      return;
+    }
+
+    string regionID = biteStringX(nmeaNoChecksum, ',');
+    MOOSChomp(nmeaNoChecksum, "{");
+    string region =  MOOSChomp(nmeaNoChecksum, "}");
+
+    XYPolygon poly;
+    poly.set_label(regionID);
+    // TODO Same as $MOWPT, merge into one function
+    string curPointString = biteStringX(region, ':');
+    while (!curPointString.empty()) {
+      double lat, lon, x, y;
+      try {
+        lat = stod(biteStringX(curPointString, ','));
+        lon = stod(curPointString);
+      } catch (invalid_argument& e) {
+        reportRunWarning("Unable to parse latitude / longitude!");
+        break;
+      }
+      m_geo.LatLong2LocalUTM(lat, lon, y, x);
+      poly.add_vertex(x, y);
+      curPointString = biteStringX(region, ':');
+    }
+    Notify("GIVEN_OBSTACLE", poly.get_spec()); // Uses pObstacleMgr
   } else {
     reportRunWarning("Unhandled Command: " + key);
   }
