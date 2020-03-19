@@ -24,18 +24,18 @@ ProcessConfig = ANTLER
   Run = pLogger          @ NewConsole = false
   Run = pHelmIvP         @ NewConsole = false
   Run = pMarinePID       @ NewConsole = false
+  Run = uProcessWatch    @ NewConsole = false
   Run = pObstacleMgr     @ NewConsole = false
   Run = iNeptune         @ NewConsole = false
+  Run = pNodeReporter    @ NewConsole = false
 #ifdef SIM yes
   Run = uSimMarine
 #else
   Run = iM200
 #endif
 
-#ifdef GUI yes
-  Run = uProcessWatch	@ NewConsole = false
-  Run = pMarineViewer	@ NewConsole = false
-  Run = pNodeReporter	@ NewConsole = false
+#ifdef DISPLAY
+  Run = pMarineViewer	  @ NewConsole = false
 #endif
 }
 
@@ -71,7 +71,7 @@ ProcessConfig = iM200
   CommsTick      = 10
 
   PORT_NUMBER    = 29500
-  IP_ADDRESS     = $(HERON_IP)  // Default is 'localhost'
+  IP_ADDRESS     = $(HERON_HOST)  // Default is 'localhost'
   GPS_PREFIX     = NAV_        // Prepended to GPS position messages.
   DIRECT_THRUST  = false       // Default is false.
                                // When true, vehicle in direct-thrust mode.
