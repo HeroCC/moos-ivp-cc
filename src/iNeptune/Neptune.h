@@ -41,6 +41,8 @@ class Neptune : public AppCastingMOOSApp
     bool ConnectToNMEAServer();
     void UpdateBehaviors();
 
+    bool LatLonToSeglist(std::string pointsStr, XYSegList &segList);
+
  private: // Configuration variables
     std::string m_connect_addr = "localhost";
     unsigned short m_connect_port = 10110;

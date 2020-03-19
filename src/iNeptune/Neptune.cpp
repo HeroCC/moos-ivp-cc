@@ -52,6 +52,24 @@ string Neptune::genMOMISString(double* x, double* y) {
   return NMEAUtils::genNMEAString("MOMIS", value);
 }
 
+bool Neptune::LatLonToSeglist(string pointsStr, XYSegList& segList) {
+  string curPointString = biteStringX(pointsStr, ':');
+  while (!curPointString.empty()) {
+    double lat, lon, x, y;
+    try {
+      lat = stod(biteStringX(curPointString, ','));
+      lon = stod(curPointString);
+    } catch (invalid_argument& e) {
+      reportRunWarning("Unable to parse latitude / longitude!");
+      return false;
+    }
+    m_geo.LatLong2LocalUTM(lat, lon, y, x);
+    segList.add_vertex(x, y);
+    curPointString = biteStringX(pointsStr, ':');
+  }
+  return true;
+}
+
 void Neptune::UpdateBehaviors() {
   if (points.size() > 0) {
     string pointsStr = "points=" + points.get_spec();
@@ -128,20 +146,8 @@ void Neptune::handleIncomingNMEA(const string _rx) {
     MOOSChomp(nmeaNoChecksum, "{");
     string pointsString = MOOSChomp(nmeaNoChecksum, "}");
 
-    string curPointString = biteStringX(pointsString, ':');
-    while (!curPointString.empty()) {
-      double lat, lon, x, y;
-      try {
-        lat = stod(biteStringX(curPointString, ','));
-        lon = stod(curPointString);
-      } catch (invalid_argument& e) {
-        reportRunWarning("Unable to parse latitude / longitude!");
-        break;
-      }
-      m_geo.LatLong2LocalUTM(lat, lon, y, x);
-      points.add_vertex(x, y);
-      curPointString = biteStringX(pointsString, ':');
-    }
+    LatLonToSeglist(pointsString, points);
+
     send_queue.push(genMOMISString(nullptr, nullptr));
     UpdateBehaviors();
   } else if (MOOSStrCmp(key, "$MOHLM")) {
@@ -170,21 +176,7 @@ void Neptune::handleIncomingNMEA(const string _rx) {
 
     XYPolygon poly;
     poly.set_label(regionID);
-    // TODO Same as $MOWPT, merge into one function
-    string curPointString = biteStringX(region, ':');
-    while (!curPointString.empty()) {
-      double lat, lon, x, y;
-      try {
-        lat = stod(biteStringX(curPointString, ','));
-        lon = stod(curPointString);
-      } catch (invalid_argument& e) {
-        reportRunWarning("Unable to parse latitude / longitude!");
-        break;
-      }
-      m_geo.LatLong2LocalUTM(lat, lon, y, x);
-      poly.add_vertex(x, y);
-      curPointString = biteStringX(region, ':');
-    }
+    LatLonToSeglist(region, poly);
     Notify("GIVEN_OBSTACLE", poly.get_spec()); // Uses pObstacleMgr
   } else {
     reportRunWarning("Unhandled Command: " + key);
