@@ -46,7 +46,7 @@ string Neptune::genMOMISString(double* x, double* y) {
   } else {
     double lat, lon = 0;
     m_geo.UTM2LatLong(*x, *y, lat, lon);
-    pointStr = "{" + doubleToStringX(lat) + ":" + doubleToStringX(lon) + "}";
+    pointStr = "{" + doubleToStringX(lat) + "," + doubleToStringX(lon) + "}";
   }
   string value = pointStr + "," + intToString(points.size()) + "," + m_deploy_val + "," + m_allstop_val;
   return NMEAUtils::genNMEAString("MOMIS", value);
@@ -462,7 +462,7 @@ bool Neptune::OnStartUp()
         && (m_geo_initialized = m_geo.Initialise(latOrigin, lonOrigin)))) {
     reportRunWarning("Error calculating datum! XY Local Grid Unavaliable");
   }
-  
+
   registerVariables();	
   return(true);
 }
