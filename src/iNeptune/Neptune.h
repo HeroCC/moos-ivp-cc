@@ -11,6 +11,7 @@
 #include <GeomUtils.h>
 #include <MOOS/libMOOS/Thirdparty/AppCasting/AppCastingMOOSApp.h>
 #include <MOOS/libMOOSGeodesy/MOOSGeodesy.h>
+#include <queue>
 
 #include "Socket.h"
 #include "NMEAUtils.h"
@@ -55,7 +56,7 @@ class Neptune : public AppCastingMOOSApp
 
     XYSegList points;
 
-    std::vector<std::string> send_queue;
+    std::queue<std::string> send_queue;
     std::vector<std::string> forward_mail;
 
     time_t m_last_nmea_connect_time = -1;
@@ -68,6 +69,10 @@ class Neptune : public AppCastingMOOSApp
     double m_latest_long = -1;
     double m_latest_alt = -1;
     double m_latest_lat = -1;
+
+    // MOMIS
+    std::string m_deploy_val;
+    std::string m_allstop_val;
 };
 
 #endif 

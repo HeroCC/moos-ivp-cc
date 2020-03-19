@@ -39,7 +39,7 @@ string Neptune::genMOVALString(std::string key, std::string value, time_t time) 
 }
 
 string Neptune::genMOMISString(double* x, double* y) {
-  // $MOMIS,timestamp,{lat and lon of visited point, or empty},numberOfRemainingPoints*XX
+  // $MOMIS,timestamp,{lat and lon of visited point, or empty},numberOfRemainingPoints,deployed,allstop_reason*XX
   string pointStr;
   if (x == nullptr || y == nullptr) {
     pointStr = "{}";
@@ -48,7 +48,8 @@ string Neptune::genMOMISString(double* x, double* y) {
     m_geo.UTM2LatLong(*x, *y, lat, lon);
     pointStr = "{" + doubleToStringX(lat) + ":" + doubleToStringX(lon) + "}";
   }
-  return NMEAUtils::genNMEAString("MOMIS", pointStr + "," + intToString(points.size()));
+  string value = pointStr + "," + intToString(points.size()) + "," + m_deploy_val + "," + m_allstop_val;
+  return NMEAUtils::genNMEAString("MOMIS", value);
 }
 
 void Neptune::UpdateBehaviors() {
@@ -141,7 +142,7 @@ void Neptune::handleIncomingNMEA(const string _rx) {
       points.add_vertex(x, y);
       curPointString = biteStringX(pointsString, ':');
     }
-    send_queue.push_back(genMOMISString(nullptr, nullptr));
+    send_queue.push(genMOMISString(nullptr, nullptr));
     UpdateBehaviors();
   } else if (MOOSStrCmp(key, "$MOHLM")) {
     // $MOHLM,timestamp,deploy,manual_override*XX
@@ -169,6 +170,11 @@ bool Neptune::OnNewMail(MOOSMSG_LIST &NewMail)
 {
   AppCastingMOOSApp::OnNewMail(NewMail);
 
+  // We don't want to send multiple MOMIS in a single iterations, they may go out in the wrong order
+  bool sendMOMIS = false;
+  bool sendMOMIS_XY = false;
+  double momisX, momisY;
+
   MOOSMSG_LIST::iterator p;
   for(p=NewMail.begin(); p!=NewMail.end(); p++) {
     CMOOSMsg &msg = *p;
@@ -185,10 +191,10 @@ bool Neptune::OnNewMail(MOOSMSG_LIST &NewMail)
 #endif
 
     if (vectorContains(forward_mail, key, false)) {
-      send_queue.push_back(genMOVALString(key, msg.GetAsString(), m_curr_time));
+      send_queue.push(genMOVALString(key, msg.GetAsString(), m_curr_time));
     }
 
-    if (key == "APPCAST_REQ") return true;
+    if (key == "APPCAST_REQ") continue;
 
      if(key == "NAV_HEADING") {
        m_latest_heading = msg.GetDouble();
@@ -211,11 +217,22 @@ bool Neptune::OnNewMail(MOOSMSG_LIST &NewMail)
          y = stod(biteStringX(val, ','));
        } catch (invalid_argument& e) {
          reportRunWarning("Received a visited point, but was unable to parse it: " + msg.GetString());
-         return true;
+         continue;
        }
        points.delete_vertex(x, y);
-       send_queue.push_back(genMOMISString(&x, &y));
-       return true;
+       momisX = x;
+       momisY = y;
+       sendMOMIS = true;
+       sendMOMIS_XY = true;
+       continue;
+     } else if (key == "DEPLOY") {
+       m_deploy_val = msg.GetString();
+       sendMOMIS = true;
+       continue;
+     } else if (key == "IVPHELM_ALLSTOP") {
+       m_allstop_val = msg.GetString();
+       sendMOMIS = true;
+       continue;
      } else {
        reportRunWarning("Unhandled unrequested mail: " + key);
        return true;
@@ -223,6 +240,12 @@ bool Neptune::OnNewMail(MOOSMSG_LIST &NewMail)
      m_last_updated_time = m_curr_time;
 
    }
+
+  if (sendMOMIS && sendMOMIS_XY) {
+    send_queue.push(genMOMISString(&momisX, &momisY)); // Don't send multiple times inside loop
+  } else if (sendMOMIS) {
+    send_queue.push(genMOMISString(nullptr, nullptr));
+  }
 	
    return(true);
 }
@@ -293,11 +316,11 @@ bool Neptune::Iterate()
   AppCastingMOOSApp::Iterate();
 
   if (m_server.is_valid()) {
-    send_queue.push_back(genMONVGString());
+    send_queue.push(genMONVGString());
     // Tx NMEA String to server
     while (!send_queue.empty()) {
-      std::string val = send_queue.back();
-      send_queue.pop_back();
+      std::string val = send_queue.front();
+      send_queue.pop();
       Notify("SENT_NMEA_MESSAGE", val);
       int retval = m_server.send(val + "\n");
       if (retval) {
@@ -327,7 +350,7 @@ bool Neptune::Iterate()
 
     retractRunWarning("Failed to connect to server"); // If we're connected, we no longer need the warning
   } else {
-    send_queue.clear();
+    send_queue.empty();
     if (m_curr_time - m_last_nmea_connect_time >= attempt_reconnect_interval) {
       ConnectToNMEAServer();
     }
@@ -417,6 +440,10 @@ void Neptune::registerVariables()
   Register("NAV_LAT", 0);
   Register("NAV_LONG", 0);
   Register("NAV_ALTITUDE", 0);
+
+  // $MOMIS
+  Register("DEPLOY", 0);
+  Register("IVPHELM_ALLSTOP", 0);
 
   Register("NEPTUNE_SURVEY_VISITED_POINT", 0);
 }
