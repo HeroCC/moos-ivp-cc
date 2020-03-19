@@ -29,13 +29,26 @@ Neptune::~Neptune()
 string Neptune::genMONVGString() {
   // Very similar to CPNVG from https://oceanai.mit.edu/herons/docs/ClearpathWireProtocolV0.2.pdf
   // $MONVG,timestampOfLastMessage,lat,lon,quality(1good 0bad),altitude,depth,heading,roll,pitch,speed*
-  string contents = doubleToString(m_latest_lat, 6) + "," + doubleToString(m_latest_long, 6) + ",1," + doubleToString(m_latest_alt, 2) +
+  string contents = doubleToString(m_latest_lat, 5) + "," + doubleToString(m_latest_long, 5) + ",1," + doubleToString(m_latest_alt, 2) +
                     "," + doubleToString(m_latest_depth, 2) + "," + doubleToString(m_latest_heading, 3) +  ",,," + doubleToString(m_latest_speed, 2);
   return NMEAUtils::genNMEAString("MONVG", contents, m_last_updated_time);
 }
 
 string Neptune::genMOVALString(std::string key, std::string value, time_t time) {
   return NMEAUtils::genNMEAString("MOVAL", key + "," + value, time);
+}
+
+string Neptune::genMOMISString(double* x, double* y) {
+  // $MOMIS,timestamp,{lat and lon of visited point, or empty},numberOfRemainingPoints*XX
+  string pointStr;
+  if (x == nullptr || y == nullptr) {
+    pointStr = "{}";
+  } else {
+    double lat, lon = 0;
+    m_geo.UTM2LatLong(*x, *y, lat, lon);
+    pointStr = "{" + doubleToStringX(lat) + ":" + doubleToStringX(lon) + "}";
+  }
+  return NMEAUtils::genNMEAString("MOMIS", pointStr + "," + intToString(points.size()));
 }
 
 void Neptune::UpdateBehaviors() {
@@ -128,6 +141,7 @@ void Neptune::handleIncomingNMEA(const string _rx) {
       points.add_vertex(x, y);
       curPointString = biteStringX(pointsString, ':');
     }
+    send_queue.push_back(genMOMISString(nullptr, nullptr));
     UpdateBehaviors();
   } else if (MOOSStrCmp(key, "$MOHLM")) {
     // $MOHLM,timestamp,deploy,manual_override*XX
@@ -200,6 +214,7 @@ bool Neptune::OnNewMail(MOOSMSG_LIST &NewMail)
          return true;
        }
        points.delete_vertex(x, y);
+       send_queue.push_back(genMOMISString(&x, &y));
        return true;
      } else {
        reportRunWarning("Unhandled unrequested mail: " + key);

@@ -29,13 +29,15 @@ class Neptune : public AppCastingMOOSApp
 
  protected: // Standard AppCastingMOOSApp function to overload 
    bool buildReport();
+   void registerVariables();
 
  protected:
     std::string genMONVGString();
-    void registerVariables();
+    std::string genMOMISString(double *x, double *y);
+    static std::string genMOVALString(std::string key, std::string value, time_t time);
+
     void handleIncomingNMEA(std::string);
     bool ConnectToNMEAServer();
-    static std::string genMOVALString(std::string key, std::string value, time_t time);
     void UpdateBehaviors();
 
  private: // Configuration variables
