@@ -20,10 +20,8 @@ void showSynopsis()
 {
   blk("SYNOPSIS:                                                       ");
   blk("------------------------------------                            ");
-  blk("  The iNeptune application is used for               ");
-  blk("                                                                ");
-  blk("                                                                ");
-  blk("                                                                ");
+  blk("  The iNeptune application is used for communication with       ");
+  blk("  SeeByte's Neptune marine vehicle platform via an NMEA link.   ");
   blk("                                                                ");
 }
 
@@ -74,6 +72,11 @@ void showExampleConfigAndExit()
   blk("  AppTick   = 4                                                 ");
   blk("  CommsTick = 4                                                 ");
   blk("                                                                ");
+  blk("  Port = 10110              // Neptune NMEA Port (default 10110)");
+  blk("  Host = localhost          // Neptune IP address / host (default localhost)");
+  blk("  ReconnectInterval = 3     // Seconds, how often to try to reconnect to NMEA server");
+  blk("  ValidateChecksum = true   // Should we validate incoming messages' checksum");
+  blk("  MaximumTimeDifference = 3 // Seconds, -1 to ignore");
   blk("}                                                               ");
   blk("                                                                ");
   exit(0);
@@ -94,12 +97,24 @@ void showInterfaceAndExit()
   blk("                                                                ");
   blk("SUBSCRIPTIONS:                                                  ");
   blk("------------------------------------                            ");
-  blk("  NODE_MESSAGE = src_node=alpha,dest_node=bravo,var_name=FOO,   ");
-  blk("                 string_val=BAR                                 ");
+  blk("  NAV_SPEED, NAV_HEADING, NAV_DEPTH, NAV_LAT, NAV_LONG, NAV_ALTITUDE");
+  blk("     -- For NMEA message $MONVG                                 ");
+  blk("                                                                ");
+  blk("  DEPLOY, IVPHELM_ALLSTOP, NEPTUNE_SURVEY_VISITED_POINT (from waypoint survey behavior)");
+  blk("     -- For NMEA message $MOMIS                                 ");
+  blk("                                                                ");
+  blk("  Any other MOOS mailing could potentially be subscribed ");
+  blk("  to with $MOREG, and returned with $MOVAL                      ");
   blk("                                                                ");
   blk("PUBLICATIONS:                                                   ");
   blk("------------------------------------                            ");
-  blk("  Publications are determined by the node message content.      ");
+  blk("  SENT_NMEA_MESSAGE       -- Outgoing NMEA message      ");
+  blk("  INCOMING_NMEA           -- Incoming NMEA message             ");
+  blk("  NEPTUNE_SURVEY_UPDATE   -- Survey points requested by Neptune      ");
+  blk("  NEPTUNE_SURVEY_TRAVERSE -- Should survey behavior be active?      ");
+  blk("  DEPLOY                  -- Deploys behaviors (via $MOHLM)      ");
+  blk("  GIVEN_OBSTACLE          -- Region to avoid (via $MOAVD)      ");
+  blk("  Any other message could be poked with $MOPOK      ");
   blk("                                                                ");
   exit(0);
 }
