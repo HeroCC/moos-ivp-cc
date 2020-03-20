@@ -113,6 +113,7 @@ void showInterfaceAndExit()
   blk("  NEPTUNE_SURVEY_UPDATE   -- Survey points requested by Neptune      ");
   blk("  NEPTUNE_SURVEY_TRAVERSE -- Should survey behavior be active?      ");
   blk("  DEPLOY                  -- Deploys behaviors (via $MOHLM)      ");
+  blk("  MOOS_MANUAL_OVERRIDE    -- Halts Helm (via $MOHLM)      ");
   blk("  GIVEN_OBSTACLE          -- Region to avoid (via $MOAVD)      ");
   blk("  Any other message could be poked with $MOPOK      ");
   blk("                                                                ");
