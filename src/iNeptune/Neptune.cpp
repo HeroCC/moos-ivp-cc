@@ -183,7 +183,7 @@ void Neptune::handleIncomingNMEA(const string _rx) {
   // Check Time
   double diff = -1;
   if (NMEAUtils::failsTimeCheck(sent_time, diff, maximum_time_delta)) {
-    reportRunWarning("Time difference " + doubleToString(diff) + ">" + doubleToString(maximum_time_delta) + ", ignoring message " + key);
+    reportRunWarning("Time difference " + doubleToStringX(diff) + ">" + doubleToStringX(maximum_time_delta) + ", ignoring message " + key);
     return;
   }
 
