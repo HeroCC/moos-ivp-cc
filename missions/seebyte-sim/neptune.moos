@@ -1,0 +1,165 @@
+//-------------------------------------------------
+// NAME: C. Cesar, MIT CSAIL
+//-------------------------------------------------
+ServerHost   = localhost
+ServerPort   = 9006
+Community    = $(COMMUNITY)
+MOOSTimeWarp = $(WARP)
+
+// Forest Lake
+//LatOrigin  = 43.825300 
+//LongOrigin = -70.330400 
+
+// MIT Sailing Pavilion (use this one)
+LatOrigin  = 42.358456 
+LongOrigin = -71.087589
+
+//------------------------------------------
+// Antler configuration  block
+ProcessConfig = ANTLER
+{
+  MSBetweenLaunches = 300
+
+  Run = MOOSDB           @ NewConsole = false
+  Run = pLogger          @ NewConsole = false
+  Run = uProcessWatch    @ NewConsole = false
+  Run = pNeptuneSim      @ NewConsole = false
+  Run = pNodeReporter    @ NewConsole = false
+
+#ifdef DISPLAY
+  Run = pMarineViewer	   @ NewConsole = false
+#endif
+}
+
+//------------------------------------------------
+// pNeptuneSim config block
+
+ProcessConfig = pNeptuneSim
+  {
+    AppTick   = 4
+    CommsTick = 4
+
+    Port = $(NMEA_PORT)
+    Host = $(NMEA_HOST)
+    ValidateChecksum = $(NMEA_CHECKSUM)
+    MaximumTimeDifference = $(NMEA_TIME_DELTA)
+  }
+
+//------------------------------------------
+// pLogger config block
+
+ProcessConfig = pLogger
+{
+  AppTick   = 8
+  CommsTick = 8
+
+  AsyncLog = true
+
+  Path = ./logs/
+
+  // For variables that are published in a bundle on their first post,
+  // explicitly declare their logging request
+  Log = IVPHELM_LIFE_EVENT @ 0 NOSYNC
+  Log = REPORT @ 0 NOSYNC
+
+  LogAuxSrc = true
+  WildCardLogging = true
+  WildCardOmitPattern = *_STATUS
+  WildCardOmitPattern = DB_VARSUMMARY
+  WildCardOmitPattern = DB_RWSUMMARY
+  WildCardExclusionLog = true
+}
+
+//------------------------------------------
+// uProcessWatch
+
+ProcessConfig = uProcessWatch
+{
+  AppTick   = 4
+  CommsTick = 4
+
+  watch_all = true
+	nowatch   = uPokeDB*
+	nowatch   = uXMS*
+}
+
+//------------------------------------------
+// pMarineViewer config block
+
+ProcessConfig = pMarineViewer
+{
+  AppTick    = 4
+  CommsTick  = 4
+
+  //tiff_file            = forrest19.tif
+	tiff_file            = MIT_SP.tif
+
+  set_pan_x            = -90
+  set_pan_y            = -280
+  zoom                 = 0.65
+  vehicle_shape_scale  = 1.5
+  hash_delta           = 50
+  hash_shade           = 0.22
+  hash_viewable        = true
+
+  trails_point_size   = 1
+
+	//op_vertex = x=-83, y=-47,    lwidth=1,lcolor=yellow,looped=true,group=moa
+  //op_vertex = x=-46.4, y=-129.2, lwidth=1,lcolor=yellow,looped=true,group=moa
+  //op_vertex = x=94.6, y=-62.2,   lwidth=1,lcolor=yellow,looped=true,group=moa
+  //op_vertex = x=58,   y=20,    lwidth=1,lcolor=yellow,looped=true,group=moa
+
+	// vcolor = alpha=dodgerblue
+
+  // Appcast configuration
+  appcast_height       = 75
+  appcast_width        = 30
+  appcast_viewable     = true
+  appcast_color_scheme = indigo
+  nodes_font_size      = medium
+  procs_font_size      = medium
+  appcast_font_size    = small
+  
+  // datum_viewable = true
+  // datum_size     = 18
+  // gui_size = small
+
+  scope  = NEPTUNE_DEPLOY
+  scope  = REQUEST_WAYPOINTS
+  scope  = REQUEST_AVOIDANCE
+  scope  = VIEW_SEGLIST
+  scope  = VIEW_POINT
+  scope  = VIEW_POLYGON
+  scope  = MVIEWER_LCLICK
+  scope  = MVIEWER_RCLICK
+
+  button_one = ALLSTOP # NEPTUNE_DEPLOY=false
+
+  button_three = NEPTUNE_DEPLOY # NEPTUNE_DEPLOY=true
+
+  button_four = Place_Mission # REQUEST_WAYPOINTS=true,pts={-89.6,-70.5:-56.8,-138:-47.8,-133.6:-80.7,-66.2:-71.7,-61.8:-38.8,-129.2:-29.8,-124.8:-62.7,-57.4:-53.7,-53:-20.8,-120.4:-11.8,-116:-44.7,-48.6:-35.7,-44.2:-2.8,-111.6}
+  button_four = REQUEST_WAYPOINTS=false,{39.4,-4.5:72.2,-72:81.2,-67.6:48.3,-0.2:57.3,4.2:90.2,-63.2:99.2,-58.8:66.3,8.6:75.3,13:108.2,-54.4:117.2,-50:84.3,17.4:93.3,21.8:126.2,-45.6}
+  button_four = REQUEST_AVOIDANCE={23,-23:-2,-43:18,-97:50,-80},label=marineviewer
+
+  action  = MENU_KEY=deploy # DEPLOY = true # RETURN = false
+  action+ = MENU_KEY=deploy # MOOS_MANUAL_OVERRIDE=false
+  action  = RETURN=true
+  action  = UPDATES_RETURN=speed=1.4
+
+  //left_context[survey-point] = 'REQUEST_WAYPOINTS=false,{$(XPOS),$(YPOS)}'
+  //right_context[survey-point] = 'REQUEST_WAYPOINTS=true,{$(XPOS),$(YPOS)}'
+}
+
+//------------------------------------------
+// pNodeReporter config block
+
+ProcessConfig = pNodeReporter
+{
+  AppTick    = 2
+  CommsTick	 = 2
+
+  platform_type   = kayak
+  platform_color  = yellow
+  platform_length = 4
+}
+

@@ -41,6 +41,7 @@ ADD_SUBDIRECTORY(uFrontNMEABridge)
 ADD_SUBDIRECTORY(uBackNMEABridge)
 
 ADD_SUBDIRECTORY(iNeptune)
+ADD_SUBDIRECTORY(pNeptuneSim)
 
 ##############################################################################
 #                           END of CMakeLists.txt

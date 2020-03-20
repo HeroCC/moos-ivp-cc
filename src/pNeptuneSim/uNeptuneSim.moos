@@ -1,0 +1,14 @@
+//------------------------------------------------
+// pNeptuneSim config block
+
+ProcessConfig = pNeptuneSim
+{
+   AppTick   = 4
+   CommsTick = 4
+
+
+   Port = 10110
+   ValidateChecksum = true
+   MaximumTimeDifference = 3 // Seconds, -1 to ignore
+}
+
