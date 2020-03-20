@@ -12,8 +12,8 @@ TIME_WARP=${TIME_WARP:-1}
 COMMUNITY="seebyte"
 NMEA_HOST="${NMEA_HOST:-localhost}"
 NMEA_PORT="${NMEA_PORT:-10110}"
-NMEA_CHECKSUM="${NMEA_VALIDATE_CHECKSUM:-true}"
-NMEA_TIME_DELTA="${NMEA_TIMESTAMP_DELTA:-3}"
+NMEA_CHECKSUM="${NMEA_CHECKSUM:-true}"
+NMEA_TIME_DELTA="${NMEA_TIME_DELTA:-3}"
 HERON_HOST="${HERON_HOST:-192.168.10.1}"
 
 cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
@@ -38,8 +38,8 @@ for ARGI; do
   elif [ "${ARGI}" = "--notimestamp" ]; then
     NMEA_TIME_DELTA="-1"
   elif [ "${ARGI}" = "--novalidate" ]; then
-    NMEA_VALIDATE_CHECKSUM="false"
-    NMEA_TIMESTAMP_DELTA="-1"
+    NMEA_CHECKSUM="false"
+    NMEA_TIME_DELTA="-1"
   elif [ "${ARGI}" = "--sim" ] || [ "${ARGI}" = "-s" ]; then
     SIM="yes"
   elif [ "${ARGI//[^0-9]/}" = "$ARGI" -a "$TIME_WARP" = 1 ]; then 
