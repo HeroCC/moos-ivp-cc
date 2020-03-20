@@ -28,7 +28,7 @@ ProcessConfig = ANTLER
   Run = pObstacleMgr     @ NewConsole = false
   Run = iNeptune         @ NewConsole = false
   Run = pNodeReporter    @ NewConsole = false
-#ifdef SIM yes
+#ifdef SIM
   Run = uSimMarine
 #else
   Run = iM200
@@ -47,10 +47,10 @@ ProcessConfig = iNeptune
   AppTick   = 4
   CommsTick = 4
 
-  Port = 10110
-  Host = 0.0.0.0
-  ValidateChecksum = true
-  MaximumTimeDifference = -1
+  Port = $(NMEA_PORT)
+  Host = $(NMEA_HOST)
+  ValidateChecksum = $(NMEA_CHECKSUM)
+  MaximumTimeDifference = $(NMEA_TIME_DELTA)
 }
 
 //--------------------------------------------------------
