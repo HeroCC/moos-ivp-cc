@@ -281,7 +281,7 @@ bool Neptune::OnNewMail(MOOSMSG_LIST &NewMail)
 
    }
 
-  send_queue.push(genMONVGString());
+  if (m_server.is_valid()) send_queue.push(genMONVGString());
   if (sendMOMIS && sendMOMIS_XY) {
     send_queue.push(genMOMISString(&momisX, &momisY)); // Don't send multiple times inside loop
   } else if (sendMOMIS) {
@@ -390,7 +390,6 @@ bool Neptune::Iterate()
 
     retractRunWarning("Failed to connect to server"); // If we're connected, we no longer need the warning
   } else {
-    send_queue.empty();
     if (m_curr_time - m_last_nmea_connect_time >= attempt_reconnect_interval) {
       ConnectToNMEAServer();
     }
