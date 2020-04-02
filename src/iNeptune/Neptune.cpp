@@ -29,7 +29,7 @@ Neptune::~Neptune()
 string Neptune::genMONVGString() {
   // Very similar to CPNVG from https://oceanai.mit.edu/herons/docs/ClearpathWireProtocolV0.2.pdf
   // $MONVG,timestampOfLastMessage,lat,lon,quality(1good 0bad),altitude,depth,heading,roll,pitch,speed*
-  string contents = doubleToString(m_latest_lat, 6) + "," + doubleToString(m_latest_long, 6) + ",1," + doubleToString(m_latest_alt, 2) +
+  string contents = doubleToString(m_latest_lat, 6) + "," + doubleToString(m_latest_long, 6) + "," + intToString(m_geo_initialized) + "," + doubleToString(m_latest_alt, 2) +
                     "," + doubleToString(m_latest_depth, 2) + "," + doubleToString(m_latest_heading, 3) +  ",,," + doubleToString(m_latest_speed, 2);
   return NMEAUtils::genNMEAString("MONVG", contents, m_last_updated_time);
 }
@@ -281,6 +281,7 @@ bool Neptune::OnNewMail(MOOSMSG_LIST &NewMail)
 
    }
 
+  send_queue.push(genMONVGString());
   if (sendMOMIS && sendMOMIS_XY) {
     send_queue.push(genMOMISString(&momisX, &momisY)); // Don't send multiple times inside loop
   } else if (sendMOMIS) {
@@ -356,7 +357,6 @@ bool Neptune::Iterate()
   AppCastingMOOSApp::Iterate();
 
   if (m_server.is_valid()) {
-    send_queue.push(genMONVGString());
     // Tx NMEA String to server
     while (!send_queue.empty()) {
       std::string val = send_queue.front();
