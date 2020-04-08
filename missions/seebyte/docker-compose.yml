@@ -1,0 +1,30 @@
+version: '3'
+services:
+  moos:
+    image: "herocc/moos-ivp-cc:e943b3d8"
+    stdin_open: true
+    tty: true
+    volumes:
+      - "./moos-logs/:/home/moos/moos-ivp-cc/missions/seebyte/logs"
+    environment:
+      - MISSION=seebyte
+      - SIM=yes
+      - NMEA_HOST=neptune-emulator
+      #- HERON_HOST=192.168.10.1 # Ignored if SIM is set
+    networks:
+      - moos
+  neptune-emulator:
+    image: "herocc/moos-ivp-cc:e943b3d8"
+    stdin_open: true
+    tty: true
+    volumes:
+      - "./neptune-logs/:/home/moos/moos-ivp-cc/missions/seebyte-sim/logs"
+    expose:
+      - 10110 # not required, but useful for debug
+    environment:
+      - MISSION=seebyte-sim
+    networks:
+      - moos
+
+networks:
+  moos:
