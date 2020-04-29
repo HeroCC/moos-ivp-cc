@@ -29,6 +29,7 @@ for ARGI; do
     echo "  --nochecksum  - don't check NMEA checksum"
     echo "  --notimestamp - don't check NMEA timestamp"
     echo "  --novalidate  - don't check NMEA checksum or timestamp"
+    echo "  --shore=HOST:PORT                "
     echo "  --sim, -s                        "
 	  exit 0
   elif [ "${ARGI}" = "--nogui" ]; then
@@ -42,6 +43,8 @@ for ARGI; do
     NMEA_TIME_DELTA="-1"
   elif [ "${ARGI}" = "--sim" ] || [ "${ARGI}" = "-s" ]; then
     SIM="yes"
+  elif [ "${ARGI:0:8}" = "--shore=" ] ; then
+    SHORE="${ARGI#--shore=*}"
   elif [ "${ARGI//[^0-9]/}" = "$ARGI" -a "$TIME_WARP" = 1 ]; then 
     TIME_WARP=$ARGI
   else 
@@ -56,7 +59,7 @@ done
 mkdir -p logs/
 nsplug $COMMUNITY.moos targ_${COMMUNITY}.moos -f \
   DISPLAY=$DISPLAY WARP=$TIME_WARP COMMUNITY=$COMMUNITY \
-  SIM=$SIM HERON_HOST=$HERON_HOST \
+  SIM=$SIM SHORE=$SHORE HERON_HOST=$HERON_HOST \
   NMEA_HOST=$NMEA_HOST NMEA_PORT=$NMEA_PORT \
   NMEA_TIME_DELTA=$NMEA_TIME_DELTA NMEA_CHECKSUM=$NMEA_CHECKSUM
 

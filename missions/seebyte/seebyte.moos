@@ -28,6 +28,8 @@ ProcessConfig = ANTLER
   Run = pObstacleMgr     @ NewConsole = false
   Run = iNeptune         @ NewConsole = false
   Run = pNodeReporter    @ NewConsole = false
+  Run = pHostInfo        @ NewConsole = false
+
 #ifdef SIM
   Run = uSimMarine
 #else
@@ -37,7 +39,14 @@ ProcessConfig = ANTLER
 #ifdef DISPLAY
   Run = pMarineViewer	  @ NewConsole = false
 #endif
+
+#ifdef SHORE
+  Run = pShare          @ NewConsole = false
+  Run = uFldNodeBroker  @ NewConsole = false
+#endif
 }
+
+#include plug_shore.moos
 
 //------------------------------------------------
 // iNeptune config block
