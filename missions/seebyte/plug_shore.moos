@@ -6,7 +6,9 @@ ProcessConfig = pHostInfo
   AppTick 	= 1
   CommsTick = 1
 
-  //default_hostip_force = 127.0.0.1
+#ifdef HOST_IP
+  default_hostip_force = $(HOST_IP)
+#endif
 }
 
 //---------------------------------------------------------
@@ -17,9 +19,7 @@ ProcessConfig = pShare
   AppTick    = 2
   CommsTick  = 2
 
-  input = route =  0.0.0.0:9305
-  input = route =  127.0.0.1:9305
-  input = route =  localhost:9305
+  input = route =  localhost:$(PSHARE_PORT)
 }
 
 //--------------------------------------------------
