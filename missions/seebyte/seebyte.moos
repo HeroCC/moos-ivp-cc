@@ -73,26 +73,17 @@ ProcessConfig = pObstacleMgr
   post_view_polys = true
 } 
 
-//--------------------------------------------------------
-ProcessConfig = iM200
+ProcessConfig = iM300
 {
-  AppTick        = 10
-  CommsTick      = 10
+  AppTick   = 10
+  CommsTick = 10
 
+  IP_ADDRESS     = $(HERON_HOST)
   PORT_NUMBER    = 29500
-  IP_ADDRESS     = $(HERON_HOST)  // Default is 'localhost'
-  GPS_PREFIX     = NAV_        // Prepended to GPS position messages.
-  DIRECT_THRUST  = false       // Default is false.
-                               // When true, vehicle in direct-thrust mode.
-                               // When false, vehicle in rudder-thrust mode.
+  GPS_PREFIX     = NAV_
 
-  HEADING_OFFSET = 0.0         // Offset to add to published heading
-	
-  PUBLISH_RAW    = true        // When true, publish all messages from
-                               // front seat to M200_RAW_NMEA
-  MAX_RUDDER     = 50.0        // Rudder value will be capped to this, +/-
-  MAX_THRUST     =  84.0       // Thrust value to each motor will be
-                               // capped to this value, +/-
+  MAX_RUDDER     = 50.0       // Maximum Rudder Angle  [+/- deg]
+  MAX_THRUST     = 100.0      // Maximum Thrust        [+/- %]
 }
 
 //------------------------------------------------------
