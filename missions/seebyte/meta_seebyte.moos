@@ -6,13 +6,7 @@ ServerPort   = 9005
 Community    = $(COMMUNITY)
 MOOSTimeWarp = $(WARP)
 
-// Forest Lake
-//LatOrigin  = 43.825300 
-//LongOrigin = -70.330400 
-
-// MIT Sailing Pavilion (use this one)
-LatOrigin  = 42.358456 
-LongOrigin = -71.087589
+#include plug_origin_warp.moos
 
 //------------------------------------------
 // Antler configuration  block
@@ -47,6 +41,7 @@ ProcessConfig = ANTLER
 }
 
 #include plug_shore.moos
+#include plug_marineviewer.moos
 
 //------------------------------------------------
 // iNeptune config block
@@ -186,72 +181,6 @@ ProcessConfig = pHelmIvP
   behaviors  = $(COMMUNITY).bhv
   domain     = course:0:359:360
   domain     = speed:0:4:41
-}
-
-//------------------------------------------
-// pMarineViewer config block
-
-ProcessConfig = pMarineViewer
-{
-  AppTick    = 4
-  CommsTick  = 4
-
-  //tiff_file            = forrest19.tif
-	tiff_file            = MIT_SP.tif
-
-  set_pan_x            = -90
-  set_pan_y            = -280
-  zoom                 = 0.65
-  vehicle_shape_scale  = 1.5
-  hash_delta           = 50
-  hash_shade           = 0.22
-  hash_viewable        = true
-
-  trails_point_size   = 1
-
-	//op_vertex = x=-83, y=-47,    lwidth=1,lcolor=yellow,looped=true,group=moa
-  //op_vertex = x=-46.4, y=-129.2, lwidth=1,lcolor=yellow,looped=true,group=moa
-  //op_vertex = x=94.6, y=-62.2,   lwidth=1,lcolor=yellow,looped=true,group=moa
-  //op_vertex = x=58,   y=20,    lwidth=1,lcolor=yellow,looped=true,group=moa
-
-	// vcolor = alpha=dodgerblue
-
-  // Appcast configuration
-  appcast_height       = 75
-  appcast_width        = 30
-  appcast_viewable     = true
-  appcast_color_scheme = indigo
-  nodes_font_size      = medium
-  procs_font_size      = medium
-  appcast_font_size    = small
-  
-  // datum_viewable = true
-  // datum_size     = 18
-  // gui_size = small
-
-  //left_context[survey-point] = DEPLOY=true
-  //left_context[survey-point] = MOOS_MANUAL_OVERRIDE=false
-  //left_context[survey-point] = RETURN=false
-
-  //right_context[return] = DEPLOY=true
-  //right_context[return] = MOOS_MANUAL_OVERRIDE=false
-  //right_context[return] = RETURN=false
-
-  scope  = INCOMING_NMEA
-  scope  = SENT_NMEA_MESSAGE
-  scope  = DEPLOY
-  scope  = WPT_STAT
-  scope  = VIEW_SEGLIST
-  scope  = VIEW_POINT
-  scope  = VIEW_POLYGON
-  scope  = MVIEWER_LCLICK
-  scope  = MVIEWER_RCLICK
-
-  button_one = ALL_STOP # DEPLOY=false
-  button_one = MOOS_MANUAL_OVERRIDE=true
-
-  action  = MENU_KEY=deploy # DEPLOY = true
-  action+ = MENU_KEY=deploy # MOOS_MANUAL_OVERRIDE=false
 }
 
 //------------------------------------------
