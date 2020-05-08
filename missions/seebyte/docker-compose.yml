@@ -10,6 +10,7 @@ services:
     volumes:
       - "./logs/moos-logs/:/home/moos/moos-ivp-cc/missions/seebyte/logs"
       - "${HOME}/.Xauthority:/home/moos/.Xauthority" # If you want to forward X11
+      - "/tmp/.X11-unix:/tmp/.X11-unix" # same here. Set $DISPLAY below too
     environment:
       - MISSION=seebyte
       - NMEA_HOST=neptune # address / hostname of command server
