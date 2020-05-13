@@ -21,7 +21,7 @@ services:
       #- NMEA_CHECKSUM=true # should we check incoming command checksum (default true)
       #- SHORE="10.0.0.201:9300" # Set if you want to connect to a shoreside
       #- HOST_IP="10.0.0.132" # Set to the IP where other devices can connect to our pShare (usually host's IP)
-      - DISPLAY=host.docker.internal:0 # Display X11 on Docker Desktop (w/ Mac XQuarts)
+      #- DISPLAY=host.docker.internal:0 # Display X11 on Docker Desktop (w/ Mac XQuarts)
       #- DISPLAY=${DISPLAY} # Use this one on linux
     networks:
       - moos
