@@ -116,6 +116,8 @@ void Neptune::handleMOWPT(string contents) {
   string resetStr = biteStringX(contents, ',');
   setBooleanOnString(reset, resetStr, true);
 
+  int oldSize = points.size();
+
   if (reset) {
     points.clear();
   }
@@ -127,6 +129,7 @@ void Neptune::handleMOWPT(string contents) {
 
   send_queue.push(genMOMISString(nullptr, nullptr));
   UpdateBehaviors();
+  reportEvent("Updated waypoints, remaining is now " + intToString(points.size()) + " (was " + intToString(oldSize) + ")");
 }
 
 void Neptune::handleMOHLM(string contents) {
@@ -143,6 +146,7 @@ void Neptune::handleMOHLM(string contents) {
 
   Notify("DEPLOY", boolToString(deploy));
   Notify("MOOS_MANUAL_OVERRIDE", boolToString(manualOverride));
+  reportEvent("Updated helm state, is now: DEPLOY=" + boolToString(deploy) + ", OVERRIDE=" + boolToString(manualOverride));
 }
 
 void Neptune::handleMOAVD(string contents) {
@@ -162,6 +166,7 @@ void Neptune::handleMOAVD(string contents) {
     reportRunWarning("Requested avd region " + regionID + " is non-convex, can't accept");
   }
   Notify("GIVEN_OBSTACLE", poly.get_spec()); // Uses pObstacleMgr
+  reportEvent("Updated ignore area: " + regionID);
 }
 
 void Neptune::handleIncomingNMEA(const string _rx) {
