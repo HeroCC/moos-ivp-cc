@@ -51,11 +51,9 @@ ProcessConfig = pMarineViewer
   scope  = SENT_NMEA_MESSAGE
   scope  = DEPLOY
   scope  = WPT_STAT
-  scope  = VIEW_SEGLIST
-  scope  = VIEW_POINT
-  scope  = VIEW_POLYGON
-  scope  = MVIEWER_LCLICK
-  scope  = MVIEWER_RCLICK
+  scope  = NEPTUNE_SURVEY_TRAVERSE
+  scope  = NEPTUNE_SURVEY_UPDATE
+  scope  = GIVEN_OBSTACLE
 
   button_one = ALL_STOP # DEPLOY=false
   button_one = MOOS_MANUAL_OVERRIDE=true
