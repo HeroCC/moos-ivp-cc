@@ -162,8 +162,9 @@ void Neptune::handleMOAVD(string contents) {
   XYPolygon poly;
   poly.set_label(regionID);
   LatLonToSeglist(region, poly);
+  poly.determine_convexity();
   if (!poly.is_convex()) {
-    reportRunWarning("Requested avd region " + regionID + " is non-convex, can't accept");
+    reportRunWarning("Requested avd region '" + regionID + "' is non-convex, can't accept");
   }
   Notify("GIVEN_OBSTACLE", poly.get_spec()); // Uses pObstacleMgr
   reportEvent("Updated ignore area: " + regionID);
