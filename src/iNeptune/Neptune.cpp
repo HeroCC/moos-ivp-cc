@@ -269,6 +269,7 @@ bool Neptune::OnNewMail(MOOSMSG_LIST &NewMail)
          reportRunWarning("Received a visited point, but was unable to parse it: " + msg.GetString());
          continue;
        }
+       reportEvent("Recieved report we visited point (" + doubleToString(x, 1) + ", " + doubleToString(y, 1) + ")");
        points.delete_vertex(x, y);
        momisX = x;
        momisY = y;
