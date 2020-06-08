@@ -5,8 +5,9 @@ ENV MOOS="moos-ivp-cc"
 
 ENV GUI="no"
 
-ENV PATH="/home/moos/${MOOS}/bin:${PATH}"
-ENV IVP_BEHAVIOR_DIRS="/home/moos/${MOOS}/lib:${IVP_BEHAVIOR_DIRS}"
+ENV PATH="/home/moos/${MOOS}/bin:/home/moos/moos-ivp-pavlab/bin:${PATH}"
+ENV IVP_BEHAVIOR_DIRS="/home/moos/${MOOS}/lib:/home/moos/moos-ivp-pavlab/lib:${IVP_BEHAVIOR_DIRS}"
+CMD [ "bash", "-c", "${HOME}/${MOOS}/docker-entrypoint.sh" ]
 
 USER root
 RUN apt-get -y update && DEBIAN_FRONTEND=noninteractive apt-get install -y libssl-dev \
@@ -15,9 +16,10 @@ RUN apt-get -y update && DEBIAN_FRONTEND=noninteractive apt-get install -y libss
     libprotobuf-dev protobuf-compiler liblog4cpp5-dev && apt-get -y clean
 USER moos
 
+RUN svn co -r120 https://oceanai.mit.edu/svn/moos-ivp-pavlab-aro moos-ivp-pavlab
+RUN cd "${HOME}/moos-ivp-pavlab" && ./build.sh
+
 COPY --chown=moos:moos "." "/home/moos/${MOOS}"
 
 RUN cd "${HOME}/${MOOS}" && ./build.sh
-
-CMD [ "bash", "-c", "${HOME}/${MOOS}/docker-entrypoint.sh" ]
 

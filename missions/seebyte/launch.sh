@@ -58,7 +58,7 @@ done
 #  Part 3: Build the targ_*.moos file
 #----------------------------------------------------------
 mkdir -p logs/
-nsplug $COMMUNITY.moos targ_${COMMUNITY}.moos -f \
+nsplug meta_${COMMUNITY}.moos targ_${COMMUNITY}.moos -f \
   DISPLAY=$DISPLAY WARP=$TIME_WARP COMMUNITY=$COMMUNITY \
   SIM=$SIM HERON_HOST=$HERON_HOST \
   SHORE=$SHORE PSHARE_PORT=$PSHARE_PORT HOST_IP=$HOST_IP \
@@ -71,5 +71,5 @@ nsplug $COMMUNITY.moos targ_${COMMUNITY}.moos -f \
 echo "Launching $COMMUNITY MOOS Community. WARP is" $TIME_WARP
 pAntler targ_$COMMUNITY.moos >& /dev/null &
 
-uMAC -t $COMMUNITY.moos
+uMAC -t targ_$COMMUNITY.moos
 

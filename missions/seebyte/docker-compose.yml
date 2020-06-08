@@ -1,28 +1,41 @@
-version: '3'
+version: '3.7'
 services:
   moos:
-    image: "herocc/moos-ivp-cc:e943b3d8"
+    image: "herocc/moos-ivp-cc:94fd4ab6"
     stdin_open: true
     tty: true
+    init: true
+    ports:
+      - "9305:9305/udp" # Expose pShare if $SHORE is set
     volumes:
-      - "./moos-logs/:/home/moos/moos-ivp-cc/missions/seebyte/logs"
+      - "./logs/moos-logs/:/home/moos/moos-ivp-cc/missions/seebyte/logs"
+      - "${HOME}/.Xauthority:/home/moos/.Xauthority" # If you want to forward X11
+      - "/tmp/.X11-unix:/tmp/.X11-unix" # same here. Set $DISPLAY below too
     environment:
       - MISSION=seebyte
-      - SIM=yes
-      - NMEA_HOST=neptune-emulator
-      #- HERON_HOST=192.168.10.1 # Ignored if SIM is set
+      - NMEA_HOST=neptune # address / hostname of command server
+      - SIM=yes # Set if this is a simulation (use uSimMarine rather than iM300)
+      #- HERON_HOST=192.168.10.1 # Ignored if SIM is set, should be IP of heron frontseat
+      #- NMEA_PORT=10110 # if not the default (10110), set NMEA host port
+      #- NMEA_TIME_DELTA=3 # set max time difference in seconds for incoming commands (default 3, -1 to disable)
+      #- NMEA_CHECKSUM=true # should we check incoming command checksum (default true)
+      #- SHORE="10.0.0.201:9300" # Set if you want to connect to a shoreside
+      #- HOST_IP="10.0.0.132" # Set to the IP where other devices can connect to our pShare (usually host's IP)
+      #- DISPLAY=host.docker.internal:0 # Display X11 on Docker Desktop (w/ Mac XQuarts)
+      #- DISPLAY=${DISPLAY} # Use this one on linux
     networks:
       - moos
-  neptune-emulator:
-    image: "herocc/moos-ivp-cc:e943b3d8"
-    stdin_open: true
-    tty: true
+
+  neptune:
+    image: "neptune-moos:0.3.0"
+    command: ["/opt/seebyte/docker/entrypoint.sh"]
+    init: true
+    ports:
+      - "10110:10110"
     volumes:
-      - "./neptune-logs/:/home/moos/moos-ivp-cc/missions/seebyte-sim/logs"
-    expose:
-      - 10110 # not required, but useful for debug
+      - "./logs/neptune-logs/:/home/neptune/seebyte/seebyte_neptune/logs"
     environment:
-      - MISSION=seebyte-sim
+      - ROSCONSOLE_STDOUT_LINE_BUFFERED=1
     networks:
       - moos
 

@@ -116,6 +116,8 @@ void Neptune::handleMOWPT(string contents) {
   string resetStr = biteStringX(contents, ',');
   setBooleanOnString(reset, resetStr, true);
 
+  int oldSize = points.size();
+
   if (reset) {
     points.clear();
   }
@@ -127,6 +129,7 @@ void Neptune::handleMOWPT(string contents) {
 
   send_queue.push(genMOMISString(nullptr, nullptr));
   UpdateBehaviors();
+  reportEvent("Updated waypoints, remaining is now " + intToString(points.size()) + " (was " + intToString(oldSize) + ")");
 }
 
 void Neptune::handleMOHLM(string contents) {
@@ -143,6 +146,7 @@ void Neptune::handleMOHLM(string contents) {
 
   Notify("DEPLOY", boolToString(deploy));
   Notify("MOOS_MANUAL_OVERRIDE", boolToString(manualOverride));
+  reportEvent("Updated helm state, is now: DEPLOY=" + boolToString(deploy) + ", OVERRIDE=" + boolToString(manualOverride));
 }
 
 void Neptune::handleMOAVD(string contents) {
@@ -158,7 +162,13 @@ void Neptune::handleMOAVD(string contents) {
   XYPolygon poly;
   poly.set_label(regionID);
   LatLonToSeglist(region, poly);
+  //poly.determine_convexity(); // TODO crashes on XYPolygon.cpp line 955
+  if (!poly.is_convex()) {
+    // pObstacleManager will warn too, but we make it easier to debug causing region
+    //reportRunWarning("Requested avd region '" + regionID + "' is non-convex, can't accept");
+  }
   Notify("GIVEN_OBSTACLE", poly.get_spec()); // Uses pObstacleMgr
+  reportEvent("Updated ignore area: " + regionID);
 }
 
 void Neptune::handleIncomingNMEA(const string _rx) {
@@ -259,6 +269,7 @@ bool Neptune::OnNewMail(MOOSMSG_LIST &NewMail)
          reportRunWarning("Received a visited point, but was unable to parse it: " + msg.GetString());
          continue;
        }
+       reportEvent("Recieved report we visited point (" + doubleToString(x, 1) + ", " + doubleToString(y, 1) + ")");
        points.delete_vertex(x, y);
        momisX = x;
        momisY = y;
