@@ -1,7 +1,7 @@
 version: '3.7'
 services:
   moos:
-    image: "herocc/moos-ivp-cc:94fd4ab6"
+    image: "herocc/moos-ivp-cc:latest" # you should change this to a specific tag
     stdin_open: true
     tty: true
     init: true
@@ -13,6 +13,7 @@ services:
       - "/tmp/.X11-unix:/tmp/.X11-unix" # same here. Set $DISPLAY below too
     environment:
       - MISSION=seebyte
+      - TIME_WARP=1 # 1 is realtime, increase to speed up (use only in simulation)
       - NMEA_HOST=neptune # address / hostname of command server
       - SIM=yes # Set if this is a simulation (use uSimMarine rather than iM300)
       #- HERON_HOST=192.168.10.1 # Ignored if SIM is set, should be IP of heron frontseat
@@ -21,19 +22,21 @@ services:
       #- NMEA_CHECKSUM=true # should we check incoming command checksum (default true)
       #- SHORE="10.0.0.201:9300" # Set if you want to connect to a shoreside
       #- HOST_IP="10.0.0.132" # Set to the IP where other devices can connect to our pShare (usually host's IP)
+      #- PSHARE_PORT="9035" # Used to communicate with shoreside, you should expose this
       #- DISPLAY=host.docker.internal:0 # Display X11 on Docker Desktop (w/ Mac XQuarts)
       #- DISPLAY=${DISPLAY} # Use this one on linux
     networks:
       - moos
 
   neptune:
-    image: "neptune-moos:0.3.0"
+    image: "neptune-moos:0.5.0"
     command: ["/opt/seebyte/docker/entrypoint.sh"]
     init: true
     ports:
       - "10110:10110"
     volumes:
       - "./logs/neptune-logs/:/home/neptune/seebyte/seebyte_neptune/logs"
+      #- "./mission.kml:/home/neptune/seebyte/seebyte_neptune/data/mission.kml"
     environment:
       - ROSCONSOLE_STDOUT_LINE_BUFFERED=1
     networks:
