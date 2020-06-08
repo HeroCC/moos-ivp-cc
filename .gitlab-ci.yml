@@ -53,6 +53,9 @@ build-armv7:
 # Deploy
 .deploy_generic_manifest: &deploy_generic_manifest
   stage: deploy
+  variables:
+    GIT_STRATEGY: none
+    GIT_SUBMODULE_STRATEGY: none
   except:
     - merge_requests
     - external_pull_requests
