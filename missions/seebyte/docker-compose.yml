@@ -29,6 +29,7 @@ services:
       - moos
 
   neptune:
+    # Wait ~1m, then `docker exec -it seebyte_neptune_1 bash -ic 'rosservice call /usv1/seebyte_arbiter/control "{enable: 1, running: 1}"'`
     image: "neptune-moos:0.5.0"
     command: ["/opt/seebyte/docker/entrypoint.sh"]
     init: true
