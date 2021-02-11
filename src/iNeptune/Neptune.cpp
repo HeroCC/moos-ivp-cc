@@ -332,13 +332,15 @@ bool Neptune::ConnectToNMEAServer()
 
   // Resolve hostname
   struct addrinfo* result;
-  int error = getaddrinfo(host.c_str(), nullptr, nullptr, &result);
+  int error = getaddrinfo(host.c_str(), nullptr, nullptr, &result); // Resolve our IP or hostname
   if (error) {
+    // The IP or hostname was couldn't be resolved :(
     std::string errstr = gai_strerror(error);
     reportRunWarning("Failed to resolve hostname: " + errstr);
     return false;
   } else {
-    char ipchar[INET_ADDRSTRLEN];
+    // We resolved to a valid IP
+    char ipchar[INET_ADDRSTRLEN]; // Turn that address back into a string for displaying and connecting to
     if (getnameinfo(result->ai_addr, result->ai_addrlen, ipchar, sizeof(ipchar), nullptr, 0, NI_NUMERICHOST) == 0) {
       host = std::string(ipchar);
     } else {
