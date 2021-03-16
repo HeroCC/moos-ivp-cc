@@ -13,7 +13,9 @@ Behavior = BHV_Waypoint
 
   updates    = NEPTUNE_SURVEY_UPDATE
   endflag    = NEPTUNE_SURVEY_TRAVERSE=false
-  wptflag    = NEPTUNE_SURVEY_VISITED_POINT=$(X),$(Y)
+  wptflag    = NEPTUNE_SURVEY_VISITED_POINT=$(PX),$(PY)
+  wptflag    = NEPTUNE_SURVEY_NEXT_POINT=$(NX),$(NY)
+
   perpetual  = true
 
                 lead = 8
@@ -36,7 +38,7 @@ Behavior = BHV_Waypoint
 }
 
 //----------------------------------------------
-Behavior = BHV_AvoidObstacleX
+Behavior = BHV_AvoidObstacleV21
 {
   name       = neptune_avdob_
   pwt        = 300
