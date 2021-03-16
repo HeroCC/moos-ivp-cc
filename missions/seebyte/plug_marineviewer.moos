@@ -52,6 +52,7 @@ ProcessConfig = pMarineViewer
   scope  = DEPLOY
   scope  = WPT_STAT
   scope  = NEPTUNE_SURVEY_TRAVERSE
+  scope  = NEPTUNE_SURVEY_VISITED_POINT
   scope  = NEPTUNE_SURVEY_UPDATE
   scope  = GIVEN_OBSTACLE
 
