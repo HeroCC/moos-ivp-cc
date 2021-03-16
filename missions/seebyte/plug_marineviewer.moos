@@ -59,6 +59,13 @@ ProcessConfig = pMarineViewer
   button_one = ALL_STOP # DEPLOY=false
   button_one = MOOS_MANUAL_OVERRIDE=true
 
+#ifdef SIM
+  button_two = SIMULATE_DEPLOY # DEPLOY=true
+  button_two = MOOS_MANUAL_OVERRIDE = false
+  button_two = NEPTUNE_SURVEY_UPDATE = "points=pts={-80.3,-131.8}"
+  button_two = NEPTUNE_SURVEY_TRAVERSE = true
+#endif
+
   action  = MENU_KEY=deploy # DEPLOY = true
   action+ = MENU_KEY=deploy # MOOS_MANUAL_OVERRIDE=false
 }

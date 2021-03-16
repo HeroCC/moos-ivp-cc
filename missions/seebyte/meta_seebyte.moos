@@ -1,5 +1,5 @@
 //-------------------------------------------------
-// NAME: M. Benjamin & C. Cesar, MIT CSAIL
+// NAME: C. Cesar, MIT CSAIL
 //-------------------------------------------------
 ServerHost   = localhost
 ServerPort   = 9005
@@ -9,20 +9,20 @@ MOOSTimeWarp = $(WARP)
 #include plug_origin_warp.moos
 
 //------------------------------------------
-// Antler configuration  block
+// Antler configuration block
 ProcessConfig = ANTLER
 {
   MSBetweenLaunches = 200
 
   Run = MOOSDB           @ NewConsole = false
   Run = pLogger          @ NewConsole = false
+  Run = uProcessWatch    @ NewConsole = false
   Run = pHelmIvP         @ NewConsole = false
   Run = pMarinePID       @ NewConsole = false
-  Run = uProcessWatch    @ NewConsole = false
   Run = pObstacleMgr     @ NewConsole = false
+  Run = pHostInfo        @ NewConsole = false
   Run = iNeptune         @ NewConsole = false
   Run = pNodeReporter    @ NewConsole = false
-  Run = pHostInfo        @ NewConsole = false
 
 #ifdef SIM
   Run = uSimMarine       @ NewConsole = false
@@ -31,11 +31,13 @@ ProcessConfig = ANTLER
 #endif
 
 #ifdef DISPLAY
+  // If this isn't a headless machine, launch the gui tools
   Run = pMarineViewer	   @ NewConsole = false
   Run = pRealm           @ NewConsole = false
 #endif
 
 #ifdef SHORE
+  // If shore is defined, enable pShare and the broker for comms
   Run = pShare          @ NewConsole = false
   Run = uFldNodeBroker  @ NewConsole = false
 #endif
@@ -59,16 +61,6 @@ ProcessConfig = iNeptune
 }
 
 
-ProcessConfig = pRealm 
-{
-  AppTick   = 4
-  CommsTick = 4
-
-  hist_var  = NEPTUNE_SURVEY_VISITED_POINT
-  scope_set = name=events, vars=DEPLOY:RETURN:STATION
-}
-
-
 //--------------------------------------------------------
 ProcessConfig = pObstacleMgr
 {
@@ -80,7 +72,7 @@ ProcessConfig = pObstacleMgr
   post_view_polys = true
 
   given_max_duration = off
-} 
+}
 
 ProcessConfig = iM200
 {
@@ -111,6 +103,18 @@ ProcessConfig = uSimMarine
 
   //thrust_map = -100:-2, 0:0, 20:1, 40:2, 60:3, 80:5, 100:5
   //thrust_map = -100:-2, 0:0, 20:1, 40:2, 60:3, 80:5, 100:5
+}
+
+//------------------------------------------------------
+// pRealm Configuration Block
+
+ProcessConfig = pRealm
+{
+  AppTick   = 4
+  CommsTick = 4
+
+  scope_set = name=neptune, vars=DEPLOY:MOOS_MANUAL_OVERRIDE:NEPTUNE_SURVEY_NEXT_POINT:NEPTUNE_SURVEY_VISITED_POINT
+  scope_set = name=neptune, vars=NEPTUNE_SURVEY_TRAVERSE:NEPTUNE_SURVEY_UPDATE:SENT_NMEA:INCOMING_NMEA:GIVEN_OBSTACLE:OBM_RESOLVED
 }
 
 //---------------------------------------
