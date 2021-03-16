@@ -10,7 +10,7 @@
 trap "pkill -INT -P $$" EXIT SIGTERM SIGHUP SIGINT SIGKILL
 TIME_WARP=${TIME_WARP:-1}
 COMMUNITY="seebyte"
-NMEA_HOST="${NMEA_HOST:-localhost}"
+NMEA_HOST="${NMEA_HOST:-127.0.0.1}"
 NMEA_PORT="${NMEA_PORT:-10110}"
 NMEA_CHECKSUM="${NMEA_CHECKSUM:-true}"
 NMEA_TIME_DELTA="${NMEA_TIME_DELTA:-3}"
@@ -18,6 +18,8 @@ HERON_HOST="${HERON_HOST:-192.168.10.1}"
 PSHARE_PORT="${PSHARE_PORT:-9305}"
 
 cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+
+pwd
 
 #----------------------------------------------------------
 #  Part 2: Check for and handle command-line arguments
@@ -68,7 +70,7 @@ nsplug meta_${COMMUNITY}.moos targ_${COMMUNITY}.moos -f \
 #----------------------------------------------------------
 #  Part 4: Launch the processes
 #----------------------------------------------------------
-echo "Launching $COMMUNITY MOOS Community. WARP is" $TIME_WARP
+echo "Launching $COMMUNITY MOOS Community. WARP is $TIME_WARP"
 pAntler targ_$COMMUNITY.moos >& /dev/null &
 
 uMAC -t targ_$COMMUNITY.moos

@@ -66,9 +66,11 @@ ProcessConfig = pObstacleMgr
   point_var = TRACKED_FEATURE 
 
   post_view_polys = true
+
+  given_max_duration = off
 } 
 
-ProcessConfig = iM300
+ProcessConfig = iM200
 {
   AppTick   = 10
   CommsTick = 10
