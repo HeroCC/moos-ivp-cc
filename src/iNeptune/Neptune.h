@@ -37,6 +37,8 @@ class Neptune : public AppCastingMOOSApp
 
     std::string genMONVGString();
     std::string genMOMISString(double *x, double *y);
+    std::string genMOAVDString(std::string name, XYPolygon xyPoints);
+    std::string genMODLOString(std::string obstacleID);
     static std::string genMOVALString(std::string key, std::string value, time_t time);
 
     void handleMOPOK(std::string contents);
@@ -49,6 +51,7 @@ class Neptune : public AppCastingMOOSApp
     void UpdateBehaviors();
 
     bool LatLonToSeglist(std::string pointsStr, XYSegList &segList);
+    bool SeglistToLatLon(XYSegList seglist, std::string& newString);
 
  private: // Configuration variables
     std::string m_connect_addr = "localhost";

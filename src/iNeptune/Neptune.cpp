@@ -9,6 +9,7 @@
 #include "MBUtils.h"
 #include "ACTable.h"
 #include "Neptune.h"
+#include "XYFormatUtilsPoly.h"
 
 using namespace std;
 
@@ -25,6 +26,9 @@ Neptune::Neptune()
 Neptune::~Neptune()
 {
 }
+
+// ----------------------
+// Generate NMEA Messages 
 
 string Neptune::genMONVGString() {
   // Very similar to CPNVG from https://oceanai.mit.edu/herons/docs/ClearpathWireProtocolV0.2.pdf
@@ -51,6 +55,49 @@ string Neptune::genMOMISString(double* x, double* y) {
   string value = pointStr + "," + intToString(points.size()) + "," + m_deploy_val + "," + m_allstop_val;
   return NMEAUtils::genNMEAString("MOMIS", value);
 }
+
+string Neptune::genMOAVDString(string name, XYPolygon xyPoints) {
+  string latLonString = "";
+  if (!SeglistToLatLon(xyPoints.exportSegList(), latLonString)) {
+    reportRunWarning("Not sending $MOAVD message, we couldn't parse the points!");
+    return NMEAUtils::genNMEAString("MOAVD", name + ",ERROR");
+  }
+  return NMEAUtils::genNMEAString("MOAVD", name + "," + latLonString);
+}
+
+string Neptune::genMODLOString(string obstacleID) {
+  return NMEAUtils::genNMEAString("MODLO", obstacleID);
+}
+
+// TODO use proper seglist -- needs mike to tweak pop_last_vertex to return XYPoint
+bool Neptune::SeglistToLatLon(XYSegList seglist, string& newString) {
+  string specPts = seglist.get_spec_pts();
+  MOOSChomp(specPts, "{"); // Remove the surrounding "pts={...}"
+  specPts = MOOSChomp(specPts, "}");
+
+  string latLon = "{";
+  string curPointString;
+  while (!(curPointString = biteStringX(specPts, ':')).empty()) {
+    double lat, lon, x, y;
+    try {
+      x = stod(biteStringX(curPointString, ','));
+      y = stod(curPointString);
+    } catch (invalid_argument& e) {
+      reportRunWarning("Unable to parse x / y coord!");
+      return false;
+    }
+    if (!m_geo.UTM2LatLong(x, y, lat, lon)) {
+      reportRunWarning("Unable to translate XY to Lat/Lon! Is geodessy initialized?");
+      return false;
+    }
+    latLon += doubleToStringX(lat, 6) + "," + doubleToStringX(lon) + (specPts.empty() ? "}" : ":");
+  }
+  newString = latLon;
+  return true;
+}
+
+// --------------------
+// Handle Incoming NMEA
 
 bool Neptune::LatLonToSeglist(string pointsStr, XYSegList& segList) {
   string curPointString = biteStringX(pointsStr, ':');
@@ -168,7 +215,7 @@ void Neptune::handleMOAVD(string contents) {
     //reportRunWarning("Requested avd region '" + regionID + "' is non-convex, can't accept");
   }
   Notify("GIVEN_OBSTACLE", poly.get_spec()); // Uses pObstacleMgr
-  reportEvent("Updated ignore area: " + regionID);
+  reportEvent("Updated Neptune ignore area: " + regionID);
 }
 
 void Neptune::handleIncomingNMEA(const string _rx) {
@@ -258,6 +305,21 @@ bool Neptune::OnNewMail(MOOSMSG_LIST &NewMail)
        m_latest_long = msg.GetDouble();
      } else if (key == "NAV_ALTITUDE") {
        m_latest_alt = msg.GetDouble();
+     } else if (key == "OBSTACLE_ALERT") {
+       string message = msg.GetString();
+       string name = tokStringParse(message, "name", '#', '=');
+       MOOSChomp(message, "#poly=");
+       string polyStr = message;
+       XYPolygon points = string2Poly(polyStr);
+       if (!points.valid()) {
+         reportRunWarning("Observed an obstacle alert, but unable to parse poly!");
+       }
+       send_queue.push(genMOAVDString(name, points));
+       reportEvent("Reporting updated obstacle: " + name + ", points: " + points.get_spec_pts());
+     } else if (key == "OBM_RESOLVED") {
+       string name = msg.GetAsString();
+       send_queue.push(genMODLOString(msg.GetAsString()));
+       reportEvent("Reporting resolved obstacle: " + name);
      } else if (key == "NEPTUNE_SURVEY_VISITED_POINT") {
        // Visited a point, so remove it from list
        string val = msg.GetString();
@@ -492,6 +554,10 @@ void Neptune::registerVariables()
   Register("NAV_LAT", 0);
   Register("NAV_LONG", 0);
   Register("NAV_ALTITUDE", 0);
+
+  // Obstacle Manager
+  Register("OBSTACLE_ALERT"); // Obstacle Alerts (including ones we send)
+  Register("OBM_RESOLVED"); // Delete the obstacle from Neptune
 
   // $MOMIS
   Register("DEPLOY", 0);

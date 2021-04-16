@@ -1,4 +1,4 @@
-FROM moosivp/moos-ivp:r8962-gui
+FROM moosivp/moos-ivp:r9673-gui
 LABEL maintainer = Conlan Cesar <conlanc@csail.mit.edu>
 
 ENV MOOS="moos-ivp-cc"

@@ -19,13 +19,14 @@ ProcessConfig = ANTLER
   Run = uProcessWatch    @ NewConsole = false
   Run = pHelmIvP         @ NewConsole = false
   Run = pMarinePID       @ NewConsole = false
+  Run = iNeptune         @ NewConsole = false
   Run = pObstacleMgr     @ NewConsole = false
   Run = pHostInfo        @ NewConsole = false
-  Run = iNeptune         @ NewConsole = false
   Run = pNodeReporter    @ NewConsole = false
 
 #ifdef SIM
   Run = uSimMarine       @ NewConsole = false
+  Run = uFldObstacleSim  @ NewConsole = false
 #else
   Run = iM200            @ NewConsole = false
 #endif
@@ -74,6 +75,35 @@ ProcessConfig = pObstacleMgr
   given_max_duration = off
 }
 
+//-------------------------------------------------------
+ProcessConfig = uFldObstacleSim
+{
+  AppTick       = 1
+  CommsTick     = 1
+
+  obstacle_file = obstacles.txt
+
+	draw_region = true
+	region_edge_color = gray50
+
+	poly_fill_color = invisible   // default is white
+	poly_vert_color = green       // default is gray50
+	poly_edge_color = white       // default is gray50
+	poly_vert_size  = 2           // default is 1
+	poly_edge_size  = 2           // default is 1	
+
+	min_duration = 400
+  max_duration = 500
+	refresh_interval = 200
+	
+	reuse_ids = false
+	
+	reset_interval = 300
+	reset_range    = 10
+}
+
+
+//------------------------------------------------------
 ProcessConfig = iM200
 {
   AppTick   = 10
