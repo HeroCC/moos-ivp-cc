@@ -294,6 +294,8 @@ bool Neptune::OnNewMail(MOOSMSG_LIST &NewMail)
     if (key == "APPCAST_REQ") continue;
 
      if(key == "INCOMING_NMEA_MESSAGE") {
+       handleIncomingNMEA(msg.GetAsString());
+     } else if(key == "NAV_HEADING") {
        m_latest_heading = msg.GetDouble();
      } else if (key == "NAV_SPEED") {
        m_latest_speed = msg.GetDouble();
