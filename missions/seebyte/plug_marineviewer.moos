@@ -25,6 +25,7 @@ ProcessConfig = pMarineViewer
   //op_vertex = x=58,   y=20,    lwidth=1,lcolor=yellow,looped=true,group=moa
 
 	// vcolor = alpha=dodgerblue
+  vehicles_name_mode = names+mode
 
   // Appcast configuration
   appcast_height       = 75
@@ -35,7 +36,7 @@ ProcessConfig = pMarineViewer
   procs_font_size      = medium
   appcast_font_size    = small
   
-  // datum_viewable = true
+  datum_viewable = true
   // datum_size     = 18
   // gui_size = small
 
