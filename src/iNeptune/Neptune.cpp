@@ -226,7 +226,7 @@ void Neptune::handleIncomingNMEA(const string _rx) {
   string nmeaNoChecksum = rx;
   string checksum = rbiteString(nmeaNoChecksum, '*');
   string expected = "?!";
-  if ((!NMEAUtils::genNMEAChecksum(nmeaNoChecksum + "*", expected) || !MOOSStrCmp(expected, checksum)) && validate_checksum) {
+  if (validate_checksum && (!NMEAUtils::genNMEAChecksum(nmeaNoChecksum + "*", expected) || !MOOSStrCmp(expected, checksum))) {
     reportRunWarning("Expected checksum " + expected + " but got " + checksum + ", ignoring message");
     reportEvent("Dropped Message: " + rx);
     return;
@@ -293,7 +293,7 @@ bool Neptune::OnNewMail(MOOSMSG_LIST &NewMail)
 
     if (key == "APPCAST_REQ") continue;
 
-     if(key == "NAV_HEADING") {
+     if(key == "INCOMING_NMEA_MESSAGE") {
        m_latest_heading = msg.GetDouble();
      } else if (key == "NAV_SPEED") {
        m_latest_speed = msg.GetDouble();
@@ -449,13 +449,13 @@ bool Neptune::Iterate()
     std::string rx;
     int len = m_server.recv(rx); // TODO explicit error checking
     if (len > 0) {
+      Notify("INCOMING_NMEA", rx);
       // Check if we have multiple incoming strings
       for (string& rxi : parseString(rx, "\n")) {
         // Check if we have a valid NMEA string
         if (rxi.rfind('$', 0) == 0) {
           // Process NMEA string
-          Notify("INCOMING_NMEA", rxi);
-          handleIncomingNMEA(rxi);
+          Notify("INCOMING_NMEA_MESSAGE", rxi);
         } else {
           MOOSTrimWhiteSpace(rxi);
           reportEvent("NMEA NOTE: " + rxi);
@@ -548,6 +548,8 @@ void Neptune::registerVariables()
 {
   AppCastingMOOSApp::RegisterVariables();
 
+  Register("INCOMING_NMEA_MESSAGE", 0);
+
   Register("NAV_SPEED", 0);
   Register("NAV_HEADING", 0);
   Register("NAV_DEPTH", 0);
@@ -556,8 +558,8 @@ void Neptune::registerVariables()
   Register("NAV_ALTITUDE", 0);
 
   // Obstacle Manager
-  Register("OBSTACLE_ALERT"); // Obstacle Alerts (including ones we send)
-  Register("OBM_RESOLVED"); // Delete the obstacle from Neptune
+  Register("OBSTACLE_ALERT", 0); // Obstacle Alerts (including ones we send)
+  Register("OBM_RESOLVED", 0); // Delete the obstacle from Neptune
 
   // $MOMIS
   Register("DEPLOY", 0);
