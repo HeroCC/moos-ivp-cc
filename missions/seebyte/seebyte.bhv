@@ -2,6 +2,7 @@
 
 initialize   DEPLOY = false
 initialize   NEPTUNE_SURVEY_TRAVERSE=true
+initialize   NEPTUNE_AVOID_OBSTACLES=true
 	
 //----------------------------------------------
 Behavior = BHV_Waypoint
@@ -43,6 +44,7 @@ Behavior = BHV_AvoidObstacleV21
   name       = neptune_avdob_
   pwt        = 300
   condition  = DEPLOY = true
+  condition  = NEPTUNE_AVOID_OBSTACLES = true
   templating = spawn
   updates    = OBSTACLE_ALERT
 

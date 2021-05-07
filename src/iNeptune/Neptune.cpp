@@ -325,15 +325,16 @@ bool Neptune::OnNewMail(MOOSMSG_LIST &NewMail)
      } else if (key == "NEPTUNE_SURVEY_VISITED_POINT") {
        // Visited a point, so remove it from list
        string val = msg.GetString();
-       double x, y;
+       double x, y, numRemaining;
        try {
          x = stod(biteStringX(val, ','));
          y = stod(biteStringX(val, ','));
+         //numRemaining = stoi(biteStringX(val, ',')); // TODO use this instead of tracking with `points`
        } catch (invalid_argument& e) {
          reportRunWarning("Received a visited point, but was unable to parse it: " + msg.GetString());
          continue;
        }
-       reportEvent("Recieved report we visited point (" + doubleToString(x, 1) + ", " + doubleToString(y, 1) + ")");
+       reportEvent("Received report we visited point (" + doubleToString(x, 1) + ", " + doubleToString(y, 1) + ")");
        points.delete_vertex(x, y);
        momisX = x;
        momisY = y;
@@ -536,7 +537,7 @@ bool Neptune::OnStartUp()
   double lonOrigin = 0.0;
   if (!(m_MissionReader.GetValue("LatOrigin", latOrigin) && m_MissionReader.GetValue("LongOrigin", lonOrigin)
         && (m_geo_initialized = m_geo.Initialise(latOrigin, lonOrigin)))) {
-    reportRunWarning("Error calculating datum! XY Local Grid Unavaliable");
+    reportRunWarning("Error calculating datum! XY Local Grid Unavailable");
   }
 
   registerVariables();	
