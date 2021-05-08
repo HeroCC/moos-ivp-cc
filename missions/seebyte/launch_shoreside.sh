@@ -1,16 +1,19 @@
 #!/bin/bash -e
 #--------------------------------------------------------------
 #   Script: launch_shoreside.sh                                    
-#   Author: Michael Benjamin  
-#     Date: April 2020     
+#   Author: Conlan Cesar
+#     Date: April 2020
+
+trap "pkill -INT -P $$" EXIT SIGTERM SIGHUP SIGINT SIGKILL
+
 #--------------------------------------------------------------  
 #  Part 1: Declare global var defaults
 #--------------------------------------------------------------
-TIME_WARP=1
+TIME_WARP="${TIME_WARP:-1}"
+PSHARE_PORT="${PSHARE_PORT:-9300}"
+COMMUNITY="seebyte-shoreside"
 JUST_MAKE="no"
 AUTO=""
-IP_ADDR="localhost"
-PSHARE_PORT="9300"
 
 #--------------------------------------------------------------
 #  Part 2: Check for and handle command-line arguments
@@ -22,7 +25,7 @@ for ARGI; do
 	echo "  --help, -h                                      " 
 	echo "  --ip=<addr>       (default is localhost)        " 
 	echo "  --pshare=<port>   (default is 9300)             " 
-        echo "  --auto, -a        Auto-launched. uMAC not used. "
+    echo "  --auto, -a        Auto-launched. uMAC not used. "
 	exit 0;
     elif [ "${ARGI//[^0-9]/}" = "$ARGI" -a "$TIME_WARP" = 1 ]; then 
         TIME_WARP=$ARGI
@@ -31,7 +34,7 @@ for ARGI; do
     elif [ "${ARGI}" = "--auto" -o "${ARGI}" = "-a" ]; then
         AUTO="yes"
     elif [ "${ARGI:0:5}" = "--ip=" ]; then
-        IP_ADDR="${ARGI#--ip=*}"
+        HOST_IP="${ARGI#--ip=*}"
     elif [ "${ARGI:0:9}" = "--pshare=" ]; then
         PSHARE_PORT="${ARGI#--pshare=*}"
     else 
@@ -52,7 +55,7 @@ if [ "${AUTO}" = "" ]; then
     NSFLAGS="-i -f"
 fi
 nsplug meta_shoreside.moos targ_shoreside.moos $NSFLAGS WARP=$TIME_WARP  \
-       IP_ADDR=$IP_ADDR  PSHARE_PORT=$PSHARE_PORT
+       HOST_IP=$HOST_IP PSHARE_PORT=$PSHARE_PORT SIM=$SIM
 
 
 if [ ${JUST_MAKE} = "yes" ] ; then
@@ -62,14 +65,13 @@ fi
 #--------------------------------------------------------------
 #  Part 4: Launch the processes
 #--------------------------------------------------------------
-echo "Launching $VNAME MOOS Community WARP:" $TIME_WARP
+echo "Launching $COMMUNITY MOOS Community WARP:" $TIME_WARP
 pAntler targ_shoreside.moos >& /dev/null &
-echo "Done launnching shoreside"
+echo "Done launching $COMMUNITY"
 
 #-------------------------------------------------------------- 
 #  Part 5: Unless auto-launched, launch uMAC until mission quit          
 #-------------------------------------------------------------- 
 if [ "${AUTO}" = "" ]; then
     uMAC targ_shoreside.moos
-    kill -- -$$
 fi

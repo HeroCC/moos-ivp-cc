@@ -26,9 +26,9 @@ ProcessConfig = ANTLER
 
 #ifdef SIM
   Run = uSimMarine       @ NewConsole = false
-  Run = uFldObstacleSim  @ NewConsole = false
 #else
-  Run = iM200            @ NewConsole = false
+  // TODO work with MikeD to replace this with Philos
+  Run = iM300            @ NewConsole = false
 #endif
 
 #ifdef DISPLAY
@@ -41,11 +41,11 @@ ProcessConfig = ANTLER
   // If shore is defined, enable pShare and the broker for comms
   Run = pShare          @ NewConsole = false
   Run = uFldNodeBroker  @ NewConsole = false
+  Run = pRealm          @ NewConsole = false
 #endif
 }
 
 #include plug_shore.moos
-#include plug_marineviewer.moos
 
 //------------------------------------------------
 // iNeptune config block
@@ -75,36 +75,8 @@ ProcessConfig = pObstacleMgr
   given_max_duration = off
 }
 
-//-------------------------------------------------------
-ProcessConfig = uFldObstacleSim
-{
-  AppTick       = 1
-  CommsTick     = 1
-
-  obstacle_file = obstacles.txt
-
-	draw_region = true
-	region_edge_color = gray50
-
-	poly_fill_color = invisible   // default is white
-	poly_vert_color = green       // default is gray50
-	poly_edge_color = white       // default is gray50
-	poly_vert_size  = 2           // default is 1
-	poly_edge_size  = 2           // default is 1	
-
-	min_duration = 400
-  max_duration = 500
-	refresh_interval = 200
-	
-	reuse_ids = false
-	
-	reset_interval = 300
-	reset_range    = 10
-}
-
-
 //------------------------------------------------------
-ProcessConfig = iM200
+ProcessConfig = iM300
 {
   AppTick   = 10
   CommsTick = 10

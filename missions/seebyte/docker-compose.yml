@@ -1,6 +1,6 @@
 version: '3.7'
 services:
-  moos:
+  moos_vehicle:
     image: "herocc/moos-ivp-cc:latest" # you should change this to a specific tag
     stdin_open: true
     tty: true
@@ -8,11 +8,10 @@ services:
     ports:
       - "9305:9305/udp" # Expose pShare if $SHORE is set
     volumes:
-      - "./logs/moos-logs/:/home/moos/moos-ivp-cc/missions/seebyte/logs"
-      - "${HOME}/.Xauthority:/home/moos/.Xauthority" # If you want to forward X11
-      - "/tmp/.X11-unix:/tmp/.X11-unix" # same here. Set $DISPLAY below too
+      - "./logs/moos-logs/vehicle:/home/moos/moos-ivp-cc/missions/seebyte/logs"
     environment:
       - MISSION=seebyte
+      - LAUNCH_TYPE=vehicle
       - TIME_WARP=1 # 1 is realtime, increase to speed up (use only in simulation)
       - NMEA_HOST=neptune # address / hostname of command server
       - SIM=yes # Set if this is a simulation (use uSimMarine rather than iM300)
@@ -20,9 +19,32 @@ services:
       #- NMEA_PORT=10110 # if not the default (10110), set NMEA host port
       #- NMEA_TIME_DELTA=3 # set max time difference in seconds for incoming commands (default 3, -1 to disable)
       #- NMEA_CHECKSUM=true # should we check incoming command checksum (default true)
-      #- SHORE="10.0.0.201:9300" # Set if you want to connect to a shoreside
-      #- HOST_IP="10.0.0.132" # Set to the IP where other devices can connect to our pShare (usually host's IP)
-      #- PSHARE_PORT="9035" # Used to communicate with shoreside, you should expose this
+      - SHORE_HOST=moos-shoreside # Set to the IP & port of the machine you'd like to be shoreside
+      #- SHORE_PORT="9300" # Set to the pShare port of the shoreside machine
+      #- HOST_IP=moos-vehicle # Set to the IP where other devices can connect to our pShare (this host's IP, or the container)
+      - PSHARE_PORT=9305 # Used to communicate with shoreside (incoming port), you should expose this
+    networks:
+      - moos
+  
+  # The shoreside image -- acts as control pane
+  moos_shoreside:
+    image: "herocc/moos-ivp-cc:latest" # you should change this to a specific tag
+    stdin_open: true
+    tty: true
+    init: true
+    ports:
+      - "9300:9300/udp"
+    volumes:
+      - "./logs/moos-logs/shoreside:/home/moos/moos-ivp-cc/missions/seebyte/logs"
+      - "${HOME}/.Xauthority:/home/moos/.Xauthority" # If you want to forward X11, and maybe `xhost +`
+      - "/tmp/.X11-unix:/tmp/.X11-unix" # same here. Set $DISPLAY below too
+    environment:
+      - MISSION=seebyte
+      - LAUNCH_TYPE=shoreside
+      - TIME_WARP=1
+      - SIM=yes # Set to enable uFldObstacleSim & related bits
+      #- HOST_IP="moos-shoreside" # Set to the IP where other devices can connect to our pShare (usually host's IP)
+      #- PSHARE_PORT="9300" # Used to communicate with shoreside (incoming port), you should expose this
       #- DISPLAY=host.docker.internal:0 # Display X11 on Docker Desktop (w/ Mac XQuarts)
       #- DISPLAY=${DISPLAY} # Use this one on linux
     networks:
@@ -30,7 +52,7 @@ services:
 
   neptune:
     # Wait ~1m, then `docker exec -it seebyte_neptune_1 bash -ic 'rosservice call /usv1/seebyte_arbiter/control "{enable: 1, running: 1}"'`
-    image: "neptune-moos:0.5.0"
+    image: "neptune-moos:0.8.1"
     command: ["/opt/seebyte/docker/entrypoint.sh"]
     init: true
     ports:
