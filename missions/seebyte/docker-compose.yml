@@ -19,7 +19,7 @@ services:
       #- NMEA_PORT=10110 # if not the default (10110), set NMEA host port
       #- NMEA_TIME_DELTA=3 # set max time difference in seconds for incoming commands (default 3, -1 to disable)
       #- NMEA_CHECKSUM=true # should we check incoming command checksum (default true)
-      - SHORE_HOST=moos-shoreside # Set to the IP & port of the machine you'd like to be shoreside
+      - SHORE_HOST=moos_shoreside # Set to the IP & port of the machine you'd like to be shoreside
       #- SHORE_PORT="9300" # Set to the pShare port of the shoreside machine
       #- HOST_IP=moos-vehicle # Set to the IP where other devices can connect to our pShare (this host's IP, or the container)
       - PSHARE_PORT=9305 # Used to communicate with shoreside (incoming port), you should expose this
@@ -52,7 +52,7 @@ services:
 
   neptune:
     # Wait ~1m, then `docker exec -it seebyte_neptune_1 bash -ic 'rosservice call /usv1/seebyte_arbiter/control "{enable: 1, running: 1}"'`
-    image: "neptune-moos:0.8.1"
+    image: "neptune-moos:0.7.0"
     command: ["/opt/seebyte/docker/entrypoint.sh"]
     init: true
     ports:

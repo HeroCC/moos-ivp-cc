@@ -24,7 +24,11 @@ pwd
 # Resolve IPs where applicable
 if [ -n $SHORE_HOST ] && echo $SHORE_HOST | grep -v '[0-9]\{1,3\}\(\.[0-9]\{1,3\}\)\{3\}'; then 
   SHORE_HOST="$(ping -c 1 -t 1 $SHORE_HOST | head -1 | cut -d ' ' -f 3 | tr -d '()\:')"
-  echo "Resolved shoreside hostname to $SHORE_HOST"
+  if [ -z $SHORE_HOST ]; then
+    echo "Unable to resolve SHORE_HOST '$SHORE_HOST' to IP!"
+    exit 1
+  fi
+  echo "Resolved shoreside hostname to '$SHORE_HOST'"
 fi
 
 [ -n $SHORE_HOST ] && [ -z $SHORE ] && SHORE="$SHORE_HOST:$SHORE_PORT"
