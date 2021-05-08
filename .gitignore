@@ -5,6 +5,7 @@ MOOSLog*
 bin/
 build/
 lib/
+logs/
 .LastOpenedMOOSLogDirectory
 LOG_*/
 cmake-build-debug/
