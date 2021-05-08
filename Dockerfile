@@ -1,4 +1,4 @@
-FROM moosivp/moos-ivp:r9673-gui as CC_BUILDDEPS
+FROM moosivp/moos-ivp:r9673-gui as cc_builddeps
 
 USER root
 RUN apt-get -y update && DEBIAN_FRONTEND=noninteractive apt-get install -y libssl-dev \
@@ -14,7 +14,7 @@ ENV IVP_BEHAVIOR_DIRS="/home/moos/${MOOS}/lib:${IVP_BEHAVIOR_DIRS}"
 RUN svn co -r120 https://oceanai.mit.edu/svn/moos-ivp-pavlab-aro moos-ivp-pavlab
 RUN cd "${HOME}/moos-ivp-pavlab" && ./build.sh
 
-FROM CC_BUILDDEPS
+FROM cc_builddeps
 LABEL maintainer = Conlan Cesar <conlanc@csail.mit.edu>
 
 ENV MOOS="moos-ivp-cc"
