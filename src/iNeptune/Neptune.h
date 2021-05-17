@@ -46,6 +46,7 @@ class Neptune : public AppCastingMOOSApp
     void handleMOWPT(std::string contents);
     void handleMOHLM(std::string contents);
     void handleMOAVD(std::string contents);
+    void handleMOGOH(std::string contents);
 
     bool ConnectToNMEAServer();
     void UpdateBehaviors();
@@ -85,6 +86,7 @@ class Neptune : public AppCastingMOOSApp
     // MOMIS
     std::string m_deploy_val;
     std::string m_allstop_val;
+    bool m_override_state;
 };
 
 #endif 

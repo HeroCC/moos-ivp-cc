@@ -196,6 +196,35 @@ void Neptune::handleMOHLM(string contents) {
   reportEvent("Updated helm state, is now: DEPLOY=" + boolToString(deploy) + ", OVERRIDE=" + boolToString(manualOverride));
 }
 
+void Neptune::handleMOGOH(string contents) {
+  // $MOGOH,timestamp,heading,speed*XX
+  string headingString = biteStringX(contents, ',');
+  string speedString = biteStringX(contents, ',');
+
+  bool deployState = false;
+  setBooleanOnString(deployState, m_deploy_val);
+
+  if (m_override_state) {
+    // Handle MOOS_MANUAL_OVERRIDE -- do nothing
+    reportEvent("Got $MOGOH request, but MOOS_MANUAL_OVERRIDE is true! Doing nothing.");
+    return;
+  } else if (deployState) {
+    // Handle DEPLOY=true -- generally you want this to be false when using $MOGOH, but some edge cases may find it useful
+    reportEvent("Got $MOGOH request, but DEPLOY is true. Continuing, but you should ensure waypoints are cleared");
+  }
+
+  double hdgVal, speedVal;
+  if (!(setDoubleOnString(hdgVal, headingString) && setDoubleOnString(speedVal, speedString))) {
+    // Parsing error
+    reportRunWarning("Unable to parse heading / speed from $MOGOH! Doing nothing.");
+    return;
+  }
+
+  Notify("DESIRED_HEADING", hdgVal);
+  Notify("DESIRED_SPEED", speedVal);
+  reportEvent("Neptune set new desired heading: " + doubleToStringX(hdgVal) +", speed: " + doubleToStringX(speedVal));
+}
+
 void Neptune::handleMOAVD(string contents) {
   if (!m_geo_initialized) {
     reportRunWarning("Avoidance requested, but Geo isn't ready! Did you set a datum?");
@@ -255,6 +284,8 @@ void Neptune::handleIncomingNMEA(const string _rx) {
     handleMOHLM(nmeaNoChecksum);
   } else if (MOOSStrCmp(key, "$MOAVD")) {
     handleMOAVD(nmeaNoChecksum);
+  } else if (MOOSStrCmp(key, "$MOGOH")) {
+    handleMOGOH(nmeaNoChecksum);
   } else {
     reportRunWarning("Unhandled Command: " + key);
   }
@@ -349,12 +380,15 @@ bool Neptune::OnNewMail(MOOSMSG_LIST &NewMail)
        m_allstop_val = msg.GetString();
        sendMOMIS = true;
        continue;
+     } else if (key == "MOOS_MANUAL_OVERRIDE") {
+       setBooleanOnString(m_override_state, msg.GetString());
+       sendMOMIS = true;
+       continue;
      } else {
        reportRunWarning("Unhandled unrequested mail: " + key);
        return true;
      }
      m_last_updated_time = m_curr_time;
-
    }
 
   if (m_server.is_valid()) send_queue.push(genMONVGString());
@@ -567,6 +601,9 @@ void Neptune::registerVariables()
   // $MOMIS
   Register("DEPLOY", 0);
   Register("IVPHELM_ALLSTOP", 0);
+
+  // $MOGOH
+  Register("MOOS_MANUAL_OVERRIDE", 0);
 
   Register("NEPTUNE_SURVEY_VISITED_POINT", 0);
 }
