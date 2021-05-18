@@ -6,7 +6,7 @@
 #        Chris Gagner, and tips borrowed from Dave Billin
 #===========================================================================
 
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8.12)
 PROJECT( IVP_EXTEND )
 
 #=============================================================================
