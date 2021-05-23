@@ -51,7 +51,7 @@ for ARGI; do
     IFS=':' read -ra __SHORE <<< "$__SHORE_ARG"
     SHORE_HOST="${__SHORE[0]}"
     SHORE_PORT="${__SHORE[1]:=SHORE_PORT}"
-    echo "Shoreside set to $SHORE"
+    unset SHORE
   elif [ "${ARGI//[^0-9]/}" = "$ARGI" -a "$TIME_WARP" = 1 ]; then 
     TIME_WARP=$ARGI
   else 
@@ -67,11 +67,14 @@ if [ -n $SHORE_HOST ] && echo $SHORE_HOST | grep -v '[0-9]\{1,3\}\(\.[0-9]\{1,3\
     echo "Unable to resolve SHORE_HOST '$SHORE_HOST' to IP!"
     exit 1
   fi
-  echo "Resolved shoreside hostname to '$SHORE_HOST'"
 fi
 
+# Build into a string
 [ -n $SHORE_HOST ] && [ -z $SHORE ] && SHORE="$SHORE_HOST:$SHORE_PORT"
+echo "Shoreside set to $SHORE"
 
+# If we have a shoreside, there is no need for a pMarineViewer window
+unset DISPLAY
 
 #----------------------------------------------------------
 #  Part 3: Build the targ_*.moos file
