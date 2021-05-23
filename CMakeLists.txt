@@ -1,27 +1,23 @@
 #===========================================================================
-# FILE:  moos-ivp-extend/CMakeLists.txt
-# DATE:  2012/07/24
-# INFO:  Top-level CMakeLists.txt file for the moos-ivp-extend project
-# NAME:  Maintained by Mike Benjamin - Original setup by Christian Convey
-#        Chris Gagner, and tips borrowed from Dave Billin
+# FILE:  moos-ivp-cc/CMakeLists.txt
 #===========================================================================
 
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8.12)
-PROJECT( IVP_EXTEND )
+CMAKE_MINIMUM_REQUIRED(VERSION 3.2)
+PROJECT( IVP_CC )
 
 #=============================================================================
 # Set the output directories for the binary and library files
 #=============================================================================
 
-GET_FILENAME_COMPONENT(IVP_EXTEND_BIN_DIR "${CMAKE_SOURCE_DIR}/bin"  ABSOLUTE )
-GET_FILENAME_COMPONENT(IVP_EXTEND_LIB_DIR "${CMAKE_SOURCE_DIR}/lib"  ABSOLUTE )
+GET_FILENAME_COMPONENT(IVP_CC_BIN_DIR "${CMAKE_SOURCE_DIR}/bin"  ABSOLUTE )
+GET_FILENAME_COMPONENT(IVP_CC_LIB_DIR "${CMAKE_SOURCE_DIR}/lib"  ABSOLUTE )
 
-SET( LIBRARY_OUTPUT_PATH      "${IVP_EXTEND_LIB_DIR}" CACHE PATH "" )
-SET( ARCHIVE_OUTPUT_DIRECTORY "${IVP_EXTEND_LIB_DIR}" CACHE PATH "" )
-SET( LIBRARY_OUTPUT_DIRECTORY "${IVP_EXTEND_LIB_DIR}" CACHE PATH "" )
+SET( LIBRARY_OUTPUT_PATH      "${IVP_CC_LIB_DIR}" CACHE PATH "" )
+SET( ARCHIVE_OUTPUT_DIRECTORY "${IVP_CC_LIB_DIR}" CACHE PATH "" )
+SET( LIBRARY_OUTPUT_DIRECTORY "${IVP_CC_LIB_DIR}" CACHE PATH "" )
 
-SET( EXECUTABLE_OUTPUT_PATH    "${IVP_EXTEND_BIN_DIR}" CACHE PATH "" )
-SET( RUNTIME_OUTPUT_DIRECTORY "${IVP_EXTEND_BIN_DIR}"  CACHE PATH "" )
+SET( EXECUTABLE_OUTPUT_PATH   "${IVP_CC_BIN_DIR}" CACHE PATH "" )
+SET( RUNTIME_OUTPUT_DIRECTORY "${IVP_CC_BIN_DIR}"  CACHE PATH "" )
 
 #=============================================================================
 # Find MOOS
@@ -43,7 +39,7 @@ link_directories(${MOOSGeodesy_LIBRARY_PATH})
 # Search for the moos-ivp folder
 find_path( MOOSIVP_SOURCE_TREE_BASE
            NAMES build-ivp.sh build-moos.sh configure-ivp.sh
-           PATHS "../moos-ivp" "../../moos-ivp" "../../moos-ivp/trunk/" "../moos-ivp/trunk/"
+           PATHS "../moos-ivp" "../../moos-ivp" "../../moos-ivp/trunk/" "../moos-ivp/trunk/" "${HOME}/moos-ivp/trunk/" "${HOME}/moos-ivp/"
            DOC "Base directory of the MOOS-IvP source tree"
            NO_DEFAULT_PATH
 )
@@ -65,8 +61,6 @@ FILE(GLOB IVP_LIBRARY_DIRS ${MOOSIVP_SOURCE_TREE_BASE}/lib )
 LINK_DIRECTORIES(${IVP_LIBRARY_DIRS})
 
 if (APPLE)
-   cmake_policy(SET CMP0042 NEW)
-
    find_program(MACPORTS_BIN port)
    if (MACPORTS_BIN)
       include_directories(/opt/local/include)
@@ -85,41 +79,35 @@ endif()
 #=============================================================================
 # Specify Compiler Flags
 #=============================================================================
-IF( ${WIN32} )
+SET(WALL_ON ON CACHE BOOL "tell me about all compiler warnings (-Wall)")
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
    #---------------------------------------------
    # Windows Compiler Flags
    #---------------------------------------------
-   IF(MSVC)
-      # Flags for Microsoft Visual Studio
-      SET( WALL_ON OFF CACHE BOOL 
-         "tell me about all compiler warnings (-Wall) ")
-      IF(WALL_ON)
-         SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
-      ENDIF(WALL_ON)
-   ELSE(MSVC)
-      # Other Windows compilers go here
-   ENDIF(MSVC)
-
-ELSE( ${WIN32} )
+   IF(WALL_ON)
+      SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
+   ENDIF(WALL_ON)
+elseif()
    #---------------------------------------------
    # Linux and Apple Compiler Flags
    #---------------------------------------------
-   # Force -fPIC because gcc complains when we don't use it with x86_64 code.
-   # Note sure why: -fPIC should only be needed for shared objects, and
-   # AFAIK, CMake gets that right when building shared objects. -CJC
-   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -g")
-   IF(CMAKE_COMPILER_IS_GNUCXX)
-      # Flags for the GNU C++ Compiler
-      SET( WALL_ON OFF CACHE BOOL 
-         "tell me about all compiler warnings (-Wall) ")
-      IF(WALL_ON)
-         SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall" -C++11)
-      ENDIF( WALL_ON)
-   ELSE(CMAKE_COMPILER_IS_GNUCXX)
-    
-   ENDIF(CMAKE_COMPILER_IS_GNUCXX)
+   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
+   IF(WALL_ON)
+      SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+   ENDIF(WALL_ON)
+ENDIF()
 
-ENDIF( ${WIN32} )
+# Force -fPIC because gcc complains when we don't use it with x86_64 code.
+# Note sure why: -fPIC should only be needed for shared objects, and
+# AFAIK, CMake gets that right when building shared objects. -CJC
+SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
+# Help IDEs along by generating compile commands file
+SET(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+# Don't use compiler features -- hopefully resolve hard-to-detect issues
+SET(CMAKE_CXX_EXTENSIONS OFF)
 
 #=============================================================================
 # Add Subdirectories

@@ -46,7 +46,7 @@ services:
       #- HOST_IP="moos-shoreside" # Set to the IP where other devices can connect to our pShare (usually host's IP)
       #- PSHARE_PORT="9300" # Used to communicate with shoreside (incoming port), you should expose this
       #- DISPLAY=host.docker.internal:0 # Display X11 on Docker Desktop (w/ Mac XQuarts)
-      #- DISPLAY=${DISPLAY} # Use this one on linux
+      #- DISPLAY # Use this one on linux
     networks:
       - moos
 
