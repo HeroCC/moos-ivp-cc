@@ -75,7 +75,8 @@ ProcessConfig = pMarineViewer
 #ifdef SIM
   button_two = SIMULATE_DEPLOY # DEPLOY_ALL=true
   button_two = MOOS_MANUAL_OVERRIDE_ALL = false
-  button_two = NEPTUNE_SURVEY_UPDATE_ALL = "points=pts={-60,-131:155,-26:155,-26}"
+  //button_two = NEPTUNE_SURVEY_UPDATE_ALL = "points=pts={-60,-131:155,-26:155,-26}"
+  button_two = NEPTUNE_SURVEY_UPDATE_ALL = "points=pts={5,-50:0,-350}"
   button_two = NEPTUNE_SURVEY_TRAVERSE_ALL = true
 #endif
 
@@ -92,8 +93,8 @@ ProcessConfig = uFldObstacleSim
   obstacle_file = obstacles.txt
 
   post_points = true
-  point_size = 4
-  rate_points = 5
+  point_size = 6
+  rate_points = 2
 
 	draw_region = true
 

@@ -26,20 +26,15 @@ SET( RUNTIME_OUTPUT_DIRECTORY "${IVP_EXTEND_BIN_DIR}"  CACHE PATH "" )
 #=============================================================================
 # Find MOOS
 #=============================================================================
-find_package(MOOS 10.0)
+find_package(MOOS 10.0 REQUIRED)
 INCLUDE_DIRECTORIES(${MOOS_INCLUDE_DIRS})
 
 #=============================================================================
 # FINDING MOOSGeodesy' HEADERS AND LIBRARIES...
 #=============================================================================
-find_package(MOOSGeodesy)
+find_package(MOOSGeodesy REQUIRED)
 include_directories(${MOOSGeodesy_INCLUDE_DIRS})
 link_directories(${MOOSGeodesy_LIBRARY_PATH})
-
-message("+++++++++++++++++++++++++++++++++++++++++")
-message("MOOSGeodesy_INCLUDE_DIRS:" ${MOOSGeodesy_INCLUDE_DIRS})
-message("MOOSGeodesy_LIB_PATH:"     ${MOOSGeodesy_LIBRARY_PATH})
-message("+++++++++++++++++++++++++++++++++++++++++")
 
 #=============================================================================
 # Find the "moos-ivp" base directory
@@ -70,8 +65,21 @@ FILE(GLOB IVP_LIBRARY_DIRS ${MOOSIVP_SOURCE_TREE_BASE}/lib )
 LINK_DIRECTORIES(${IVP_LIBRARY_DIRS})
 
 if (APPLE)
-   INCLUDE_DIRECTORIES(/opt/local/include)
-   LINK_DIRECTORIES(/opt/local/lib) # Incluse the default MacPorts directory
+   cmake_policy(SET CMP0042 NEW)
+
+   find_program(MACPORTS_BIN port)
+   if (MACPORTS_BIN)
+      include_directories(/opt/local/include)
+      link_directories(/opt/local/lib) # Include the default MacPorts directory
+   endif()
+
+   find_program(MAC_HBREW_BIN brew)
+   if (MAC_HBREW_BIN)
+      execute_process(COMMAND ${MAC_HBREW_BIN} "--prefix" OUTPUT_VARIABLE BREW_PREFIX OUTPUT_STRIP_TRAILING_WHITESPACE)
+      list(INSERT CMAKE_PREFIX_PATH 0 ${BREW_PREFIX}) # Homebrew itself
+      list(INSERT CMAKE_PREFIX_PATH 0 ${BREW_PREFIX}/opt/openssl) # Prefer Homebrew OpenSSL
+      link_directories(${BREW_PREFIX}/lib)
+    endif()
 endif()
 
 #=============================================================================

@@ -14,35 +14,40 @@ ProcessConfig = ANTLER
 {
   MSBetweenLaunches = 200
 
+  // Essentials
   Run = MOOSDB           @ NewConsole = false
   Run = pLogger          @ NewConsole = false
   Run = uProcessWatch    @ NewConsole = false
+  Run = pNodeReporter    @ NewConsole = false
+  Run = pHostInfo        @ NewConsole = false
+
+  // Visualization
+  #ifdef SHORE
+    // If shore is defined, enable pShare and the broker for comms
+    Run = pRealm          @ NewConsole = false
+    Run = pShare          @ NewConsole = false
+    Run = uFldNodeBroker  @ NewConsole = false
+  #endif
+
+  // Autonomy
   Run = pHelmIvP         @ NewConsole = false
   Run = pMarinePID       @ NewConsole = false
   Run = iNeptune         @ NewConsole = false
   Run = pObstacleMgr     @ NewConsole = false
-  Run = pHostInfo        @ NewConsole = false
-  Run = pNodeReporter    @ NewConsole = false
 
-#ifdef SIM
-  Run = uSimMarine       @ NewConsole = false
-#else
-  // TODO work with MikeD to replace this with Philos
-  Run = iM300            @ NewConsole = false
-#endif
+  // Simulation
+  #ifdef SIM
+    Run = uSimMarine       @ NewConsole = false
+  #else
+    // TODO work with MikeD to replace this with Philos
+    //Run = iM300            @ NewConsole = false
+  #endif
 
-#ifdef DISPLAY
-  // If this isn't a headless machine, launch the gui tools
-  Run = pMarineViewer	   @ NewConsole = false
-  Run = pRealm           @ NewConsole = false
-#endif
-
-#ifdef SHORE
-  // If shore is defined, enable pShare and the broker for comms
-  Run = pShare          @ NewConsole = false
-  Run = uFldNodeBroker  @ NewConsole = false
-  Run = pRealm          @ NewConsole = false
-#endif
+  #ifdef DISPLAY
+    // If this isn't a headless machine, launch the gui tools
+    Run = pRealm           @ NewConsole = false
+    Run = pMarineViewer	   @ NewConsole = false
+  #endif
 }
 
 #include plug_shore.moos
@@ -71,6 +76,8 @@ ProcessConfig = pObstacleMgr
   point_var = TRACKED_FEATURE 
 
   post_view_polys = true
+
+  max_pts_per_cluster = 100
 
   given_max_duration = off
 }

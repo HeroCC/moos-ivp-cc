@@ -4,7 +4,7 @@
 #   Author: Conlan Cesar
 #     Date: April 2020
 
-trap "pkill -INT -P $$" EXIT SIGTERM SIGHUP SIGINT SIGKILL
+trap "pkill -INT -P $$ && wait $(jobs -p)" EXIT SIGTERM SIGHUP SIGINT SIGKILL
 
 #--------------------------------------------------------------  
 #  Part 1: Declare global var defaults
@@ -25,14 +25,17 @@ for ARGI; do
 	echo "  --help, -h                                      " 
 	echo "  --ip=<addr>       (default is localhost)        " 
 	echo "  --pshare=<port>   (default is 9300)             " 
+    echo "  --sim, -s         Simulation Mode (or \$SIM)"
     echo "  --auto, -a        Auto-launched. uMAC not used. "
 	exit 0;
     elif [ "${ARGI//[^0-9]/}" = "$ARGI" -a "$TIME_WARP" = 1 ]; then 
         TIME_WARP=$ARGI
     elif [ "${ARGI}" = "--just_make" -o "${ARGI}" = "-j" ] ; then
-	JUST_MAKE="yes"
+	    JUST_MAKE="yes"
     elif [ "${ARGI}" = "--auto" -o "${ARGI}" = "-a" ]; then
         AUTO="yes"
+    elif [ "${ARGI}" = "--sim" -o "${ARGI}" = "-s" ]; then
+        SIM="yes"
     elif [ "${ARGI:0:5}" = "--ip=" ]; then
         HOST_IP="${ARGI#--ip=*}"
     elif [ "${ARGI:0:9}" = "--pshare=" ]; then

@@ -6,7 +6,8 @@
 #----------------------------------------------------------
 #  Part 1: Set Exit actions and declare global var defaults
 #----------------------------------------------------------
-trap "pkill -INT -P $$" EXIT SIGTERM SIGHUP SIGINT SIGKILL
+trap "pkill -INT -P $$ && wait $(jobs -p)" EXIT SIGTERM SIGHUP SIGINT SIGKILL
+
 TIME_WARP=${TIME_WARP:-1}
 COMMUNITY="seebyte"
 NMEA_HOST="${NMEA_HOST:-127.0.0.1}"
@@ -21,18 +22,6 @@ cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 pwd
 
-# Resolve IPs where applicable
-if [ -n $SHORE_HOST ] && echo $SHORE_HOST | grep -v '[0-9]\{1,3\}\(\.[0-9]\{1,3\}\)\{3\}'; then 
-  SHORE_HOST="$(ping -c 1 -t 1 $SHORE_HOST | head -1 | cut -d ' ' -f 3 | tr -d '()\:')"
-  if [ -z $SHORE_HOST ]; then
-    echo "Unable to resolve SHORE_HOST '$SHORE_HOST' to IP!"
-    exit 1
-  fi
-  echo "Resolved shoreside hostname to '$SHORE_HOST'"
-fi
-
-[ -n $SHORE_HOST ] && [ -z $SHORE ] && SHORE="$SHORE_HOST:$SHORE_PORT"
-
 #----------------------------------------------------------
 #  Part 2: Check for and handle command-line arguments
 #----------------------------------------------------------
@@ -44,7 +33,7 @@ for ARGI; do
     echo "  --nochecksum  - don't check NMEA checksum"
     echo "  --notimestamp - don't check NMEA timestamp"
     echo "  --novalidate  - don't check NMEA checksum or timestamp"
-    echo "  --shore=HOST:PORT                "
+    echo "  --shore=HOST[:PORT]              "
     echo "  --sim, -s                        "
 	  exit 0
   elif [ "${ARGI}" = "--nogui" ]; then
@@ -63,8 +52,7 @@ for ARGI; do
     IFS=':' read -ra __SHORE <<< "$__SHORE_ARG"
     SHORE_HOST="${__SHORE[0]}"
     SHORE_PORT="${__SHORE[1]:=SHORE_PORT}"
-    SHORE="${SHORE_HOST}:${SHORE_PORT}"
-    echo "Shoreside set to $SHORE"
+    unset SHORE
   elif [ "${ARGI//[^0-9]/}" = "$ARGI" -a "$TIME_WARP" = 1 ]; then 
     TIME_WARP=$ARGI
   else 
@@ -72,6 +60,22 @@ for ARGI; do
     exit 0
   fi
 done
+
+# Resolve IPs where applicable
+if [ -n $SHORE_HOST ] && echo $SHORE_HOST | grep -v '[0-9]\{1,3\}\(\.[0-9]\{1,3\}\)\{3\}'; then 
+  SHORE_HOST="$(ping -c 1 -t 1 $SHORE_HOST | head -1 | cut -d ' ' -f 3 | tr -d '()\:')"
+  if [ -z $SHORE_HOST ]; then
+    echo "Unable to resolve SHORE_HOST '$SHORE_HOST' to IP!"
+    exit 1
+  fi
+fi
+
+# Build into a string
+[ -n $SHORE_HOST ] && [ -z $SHORE ] && SHORE="$SHORE_HOST:$SHORE_PORT"
+echo "Shoreside set to $SHORE"
+
+# If we have a shoreside, there is no need for a pMarineViewer window
+unset DISPLAY
 
 #----------------------------------------------------------
 #  Part 3: Build the targ_*.moos file

@@ -10,6 +10,7 @@ If you'd rather use my tree as a docker image, you can pull it from DockerHub li
 
 The libraries this tree uses have dependencies of their own, in addition to normal MOOS and Aquaticus dependencies. You should make sure your compiler of choice supports C++11 or greater, and then install them like so:
  * MacPorts: `sudo port install portaudio libsndfile boost boost-build protobuf3-cpp grpc log4cpp`
+ * Homebrew: `brew install log4cpp opus protobuf portaudio openssl boost pkgconfig`
  * Debian Variants: `sudo apt install libsndfile-dev libboost-all-dev portaudio19-dev libssl-dev libprotobuf-dev libgrpc++-dev liblog4cpp5-dev`
 
 ## Installing
