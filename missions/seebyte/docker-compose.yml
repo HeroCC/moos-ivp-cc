@@ -52,7 +52,7 @@ services:
 
   neptune:
     # Wait ~1m, then `docker exec -it seebyte_neptune_1 bash -ic 'rosservice call /usv1/seebyte_arbiter/control "{enable: 1, running: 1}"'`
-    image: "neptune-moos:0.7.0"
+    image: "neptune-moos-amd64:v0.8.1-mission1"
     command: ["/opt/seebyte/docker/entrypoint.sh"]
     init: true
     ports:
@@ -62,8 +62,18 @@ services:
       #- "./mission.kml:/home/neptune/seebyte/seebyte_neptune/data/mission.kml"
     environment:
       - ROSCONSOLE_STDOUT_LINE_BUFFERED=1
+      - NEPTUNE_BROADCAST_IP=${NEPTUNE_IP}
     networks:
-      - moos
+      neptune_net:
+        ipv4_address: ${NEPTUNE_IP}
+      moos:
 
 networks:
   moos:
+  neptune_net:
+    driver: macvlan
+    #driver_opts: # When running with a real Neptune Topside, you should uncomment this and update .env to match
+    #  parent: ${HOST_NETWORK_ADAPTER}
+    ipam:
+      config:
+        - subnet: ${HOST_NETWORK_SUBNET}
