@@ -24,12 +24,12 @@ Behavior = BHV_Waypoint
        lead_to_start = true
                speed = 12   // meters per second
         capture_line = true
-      capture_radius = 5.0
+      capture_radius = 10.0
          slip_radius = 15.0
 	efficiency_measure = all
 
-               order = normal
-             repeat  = 0
+            order = normal
+            repeat  = 0
 
     visual_hints = nextpt_color=yellow
     visual_hints = nextpt_vertex_size=8
@@ -42,7 +42,7 @@ Behavior = BHV_Waypoint
 Behavior = BHV_AvoidObstacleV21
 {
   name       = neptune_avdob_
-  pwt        = 300
+  pwt        = 500
   condition  = DEPLOY = true
   condition  = NEPTUNE_AVOID_OBSTACLES = true
   templating = spawn
