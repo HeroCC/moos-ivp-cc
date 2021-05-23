@@ -78,6 +78,7 @@ if (APPLE)
       execute_process(COMMAND ${MAC_HBREW_BIN} "--prefix" OUTPUT_VARIABLE BREW_PREFIX OUTPUT_STRIP_TRAILING_WHITESPACE)
       list(INSERT CMAKE_PREFIX_PATH 0 ${BREW_PREFIX}) # Homebrew itself
       list(INSERT CMAKE_PREFIX_PATH 0 ${BREW_PREFIX}/opt/openssl) # Prefer Homebrew OpenSSL
+      link_directories(${BREW_PREFIX}/lib)
     endif()
 endif()
 
