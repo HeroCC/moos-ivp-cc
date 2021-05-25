@@ -35,9 +35,12 @@ for ARGI; do
     echo "  --novalidate  - don't check NMEA checksum or timestamp"
     echo "  --shore=HOST[:PORT]              "
     echo "  --sim, -s                        "
+    echo "  --auto, -a                       "
 	  exit 0
   elif [ "${ARGI}" = "--nogui" ]; then
     unset DISPLAY
+  elif [ "${ARGI}" = "--auto" ] || [ "${ARGI}" = "-a" ]; then
+    AUTO="yes"
   elif [ "${ARGI}" = "--nochecksum" ]; then
     NMEA_CHECKSUM="false"
   elif [ "${ARGI}" = "--notimestamp" ]; then
@@ -62,20 +65,21 @@ for ARGI; do
 done
 
 # Resolve IPs where applicable
-if [ -n $SHORE_HOST ] && echo $SHORE_HOST | grep -v '[0-9]\{1,3\}\(\.[0-9]\{1,3\}\)\{3\}'; then 
+if [ -n "$SHORE_HOST" ] && echo "$SHORE_HOST" | grep -v '[0-9]\{1,3\}\(\.[0-9]\{1,3\}\)\{3\}'; then 
   SHORE_HOST="$(ping -c 1 -t 1 $SHORE_HOST | head -1 | cut -d ' ' -f 3 | tr -d '()\:')"
-  if [ -z $SHORE_HOST ]; then
+  if [ -z "$SHORE_HOST" ]; then
     echo "Unable to resolve SHORE_HOST '$SHORE_HOST' to IP!"
     exit 1
   fi
 fi
 
 # Build into a string
-[ -n $SHORE_HOST ] && [ -z $SHORE ] && SHORE="$SHORE_HOST:$SHORE_PORT"
-echo "Shoreside set to $SHORE"
+if [ -n "$SHORE_HOST" ] && [ -z "$SHORE" ]; then
+  SHORE="$SHORE_HOST:$SHORE_PORT"
+  echo "Shoreside set to $SHORE"
+  unset DISPLAY # If we have a shoreside, there is no need for a pMarineViewer window
+fi
 
-# If we have a shoreside, there is no need for a pMarineViewer window
-unset DISPLAY
 
 #----------------------------------------------------------
 #  Part 3: Build the targ_*.moos file
@@ -95,5 +99,8 @@ nsplug meta_${COMMUNITY}.moos targ_${COMMUNITY}.moos -f \
 echo "Launching $COMMUNITY MOOS Community. WARP is $TIME_WARP"
 pAntler targ_$COMMUNITY.moos >& /dev/null &
 
-uMAC -t targ_$COMMUNITY.moos
-
+if [ "${AUTO}" = "" ]; then
+  uMAC -t targ_$COMMUNITY.moos
+else
+  wait
+fi
