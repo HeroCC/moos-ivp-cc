@@ -14,6 +14,7 @@ Processconfig = ANTLER
   MSBetweenLaunches = 200
 
   Run = MOOSDB          @ NewConsole = false
+  Run = uProcessWatch   @ NewConsole = false
   Run = pMarineViewer   @ NewConsole = false
   Run = pLogger         @ NewConsole = false
 
@@ -27,6 +28,7 @@ Processconfig = ANTLER
 #endif
 }
 
+//-------------------------------------------------------
 ProcessConfig = pMarineViewer
 {
   AppTick    = 4
@@ -82,6 +84,18 @@ ProcessConfig = pMarineViewer
 
   action  = MENU_KEY=deploy # DEPLOY_ALL = true
   action+ = MENU_KEY=deploy # MOOS_MANUAL_OVERRIDE_ALL=false
+}
+
+//-------------------------------------------------------
+ProcessConfig = uProcessWatch
+{
+  AppTick   = 4
+  CommsTick = 4
+
+  watch_all = true
+	nowatch   = uPokeDB*
+	nowatch   = uXMS*
+  nowatch   = uMAC*
 }
 
 //-------------------------------------------------------
