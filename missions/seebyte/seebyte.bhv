@@ -14,8 +14,9 @@ Behavior = BHV_Waypoint
 
   updates    = NEPTUNE_SURVEY_UPDATE
   endflag    = NEPTUNE_SURVEY_TRAVERSE=false
-  wptflag    = NEPTUNE_SURVEY_VISITED_POINT=$[PX],$[PY],$[WPTS_REM]
-  wptflag    = NEPTUNE_SURVEY_NEXT_POINT=$[NX],$[NY]
+  //wptflag NEPTUNE_SURVEY_VISITED_POINT set via update in iNeptune, default below
+  wptflag    = NEPTUNE_SURVEY_VISITED_POINT = px=$[PX],py=$[PY],pi=$[PI]
+  wptflag    = NEPTUNE_SURVEY_NEXT_POINT = nx=$[NX],ny=$[NY],ni=$[NI]
 
   perpetual  = true
 
@@ -49,12 +50,13 @@ Behavior = BHV_AvoidObstacleV21
   updates    = OBSTACLE_ALERT
 
         use_refinery = true
-       allowable_ttc = 12 
-      pwt_outer_dist = 15
-      pwt_inner_dist = 5
-      completed_dist = 18
-   min_util_cpa_dist = 4
-   max_util_cpa_dist = 8
+
+      allowable_ttc = 40   // time to contact                                   
+      pwt_outer_dist = 40  // Distance from the obtacle to activate bhv         
+      pwt_inner_dist = 20  // Distance for bhv to have full authority           
+      completed_dist = 50  // Obstacle no longer active                         
+   min_util_cpa_dist = 9   // Buffer Distance                                   
+   max_util_cpa_dist = 12
 
     visual_hints = obstacle_edge_color = white
     visual_hints = obstacle_vertex_color = gray60

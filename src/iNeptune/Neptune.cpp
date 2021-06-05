@@ -42,17 +42,9 @@ string Neptune::genMOVALString(std::string key, std::string value, time_t time) 
   return NMEAUtils::genNMEAString("MOVAL", key + "," + value, time);
 }
 
-string Neptune::genMOMISString(double* x, double* y) {
-  // $MOMIS,timestamp,{lat and lon of visited point, or empty},numberOfRemainingPoints,deployed,allstop_reason*XX
-  string pointStr;
-  if (x == nullptr || y == nullptr) {
-    pointStr = "{}";
-  } else {
-    double lat, lon = 0;
-    m_geo.UTM2LatLong(*x, *y, lat, lon);
-    pointStr = "{" + doubleToStringX(lat, 6) + "," + doubleToStringX(lon, 6) + "}";
-  }
-  string value = pointStr + "," + intToString(points.size()) + "," + m_deploy_val + "," + m_allstop_val;
+string Neptune::genMOMISString(std::string sequenceName, int visitedIndex) {
+  // $MOMIS,timestamp,sequenceName,ackWaypointIndex,deployed,allstop_reason*XX
+  string value = sequenceName + "," + (visitedIndex >= 0 ? intToString(visitedIndex) : "") + "," + m_deploy_val + "," + m_allstop_val;
   return NMEAUtils::genNMEAString("MOMIS", value);
 }
 
@@ -117,10 +109,12 @@ bool Neptune::LatLonToSeglist(string pointsStr, XYSegList& segList) {
   return true;
 }
 
-void Neptune::UpdateBehaviors() {
+void Neptune::updateWayptBehavior(std::string id) {
   if (points.size() > 0) {
     string pointsStr = "points=" + points.get_spec();
-    Notify("NEPTUNE_SURVEY_UPDATE", pointsStr);
+    string wptFlagWithId = "wptflag = NEPTUNE_SURVEY_VISITED_POINT = id=" + id + ",utc=$[UTC],px=$[PX],py=$[PY],pi=$[PI]";
+    string wptNextFlagWithId = "wptflag = NEPTUNE_SURVEY_NEXT_POINT = id=" + id + ",utc=$[UTC],nx=$[NX],ny=$[NY],ni=$[NI]";
+    Notify("NEPTUNE_SURVEY_UPDATE", pointsStr + " # " + wptFlagWithId + " # " + wptNextFlagWithId);
     Notify("NEPTUNE_SURVEY_TRAVERSE", "true");
   } else {
     // Sending an empty list of points makes the behavior get upset, so use a condition flag
@@ -151,7 +145,7 @@ void Neptune::handleMOREG(string contents) {
 }
 
 void Neptune::handleMOWPT(string contents) {
-  // $MOWPT,timestamp,reset,{lat,lon:lat,lon:lat,lon}*XX
+  // $MOWPT,timestamp,waypointSequenceId,reset,{lat1,lon1:lat2,lon2:...:latN,lonN}*XX
   // Set or add to XYSegList of Points. Relies on a valid m_geo.
   // Since we translate from lat,lon -> XY, we may lose precision as we get extremely far from datum.
   if (!m_geo_initialized) {
@@ -160,6 +154,7 @@ void Neptune::handleMOWPT(string contents) {
   }
 
   bool reset;
+  string sequenceId = biteStringX(contents, ',');
   string resetStr = biteStringX(contents, ',');
   setBooleanOnString(reset, resetStr, true);
 
@@ -174,8 +169,7 @@ void Neptune::handleMOWPT(string contents) {
 
   LatLonToSeglist(pointsString, points);
 
-  send_queue.push(genMOMISString(nullptr, nullptr));
-  UpdateBehaviors();
+  updateWayptBehavior(sequenceId);
   reportEvent("Updated waypoints, remaining is now " + intToString(points.size()) + " (was " + intToString(oldSize) + ")");
 }
 
@@ -300,8 +294,6 @@ bool Neptune::OnNewMail(MOOSMSG_LIST &NewMail)
 
   // We don't want to send multiple MOMIS in a single iterations, they may go out in the wrong order
   bool sendMOMIS = false;
-  bool sendMOMIS_XY = false;
-  double momisX, momisY;
 
   MOOSMSG_LIST::iterator p;
   for(p=NewMail.begin(); p!=NewMail.end(); p++) {
@@ -319,7 +311,7 @@ bool Neptune::OnNewMail(MOOSMSG_LIST &NewMail)
 #endif
 
     if (vectorContains(forward_mail, key, false)) {
-      send_queue.push(genMOVALString(key, msg.GetAsString(), m_curr_time));
+      send_queue.push(genMOVALString(key, msg.GetAsString(), msg.GetTime()));
     }
 
     if (key == "APPCAST_REQ") continue;
@@ -356,22 +348,19 @@ bool Neptune::OnNewMail(MOOSMSG_LIST &NewMail)
      } else if (key == "NEPTUNE_SURVEY_VISITED_POINT") {
        // Visited a point, so remove it from list
        string val = msg.GetString();
-       double x, y, numRemaining;
-       try {
-         x = stod(biteStringX(val, ','));
-         y = stod(biteStringX(val, ','));
-         //numRemaining = stoi(biteStringX(val, ',')); // TODO use this instead of tracking with `points`
-       } catch (invalid_argument& e) {
+       string id = tokStringParse(val, "id", ',', '=');
+       double x, y;
+       double i; // This is really an int, but tokParse doesn't like that
+       if (tokParse(val, "px", ',', '=', x) 
+         && tokParse(val, "py", ',', '=', y) 
+         && tokParse(val, "pi", ',', '=', i)
+         ) {
+         reportEvent("Received report we visited point (" + doubleToString(x, 1) + ", " + doubleToString(y, 1) + ") from " + id);
+         send_queue.push(genMOMISString(id, i));
+         points.delete_vertex(x, y);
+       } else {
          reportRunWarning("Received a visited point, but was unable to parse it: " + msg.GetString());
-         continue;
        }
-       reportEvent("Received report we visited point (" + doubleToString(x, 1) + ", " + doubleToString(y, 1) + ")");
-       points.delete_vertex(x, y);
-       momisX = x;
-       momisY = y;
-       sendMOMIS = true;
-       sendMOMIS_XY = true;
-       continue;
      } else if (key == "DEPLOY") {
        m_deploy_val = msg.GetString();
        sendMOMIS = true;
@@ -379,7 +368,6 @@ bool Neptune::OnNewMail(MOOSMSG_LIST &NewMail)
      } else if (key == "IVPHELM_ALLSTOP") {
        m_allstop_val = msg.GetString();
        sendMOMIS = true;
-       continue;
      } else if (key == "MOOS_MANUAL_OVERRIDE") {
        setBooleanOnString(m_override_state, msg.GetString());
        sendMOMIS = true;
@@ -392,10 +380,8 @@ bool Neptune::OnNewMail(MOOSMSG_LIST &NewMail)
    }
 
   if (m_server.is_valid()) send_queue.push(genMONVGString());
-  if (sendMOMIS && sendMOMIS_XY) {
-    send_queue.push(genMOMISString(&momisX, &momisY)); // Don't send multiple times inside loop
-  } else if (sendMOMIS) {
-    send_queue.push(genMOMISString(nullptr, nullptr));
+  if (sendMOMIS) {
+    send_queue.push(genMOMISString("", -1));
   }
 	
    return(true);
@@ -593,6 +579,7 @@ void Neptune::registerVariables()
   Register("NAV_LAT", 0);
   Register("NAV_LONG", 0);
   Register("NAV_ALTITUDE", 0);
+  Register("NAV_ROLL", 0);
 
   // Obstacle Manager
   Register("OBSTACLE_ALERT", 0); // Obstacle Alerts (including ones we send)

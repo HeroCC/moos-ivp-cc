@@ -78,7 +78,7 @@ ProcessConfig = pMarineViewer
   button_two = SIMULATE_DEPLOY # DEPLOY_ALL=true
   button_two = MOOS_MANUAL_OVERRIDE_ALL = false
   //button_two = NEPTUNE_SURVEY_UPDATE_ALL = "points=pts={-60,-131:155,-26:155,-26}"
-  button_two = NEPTUNE_SURVEY_UPDATE_ALL = "points=pts={5,-50:0,-350}"
+  button_two = NEPTUNE_SURVEY_UPDATE_ALL = "points=pts={5,-50:0,-350},wptflag = NEPTUNE_SURVEY_VISITED_POINT = id=pmarineviewer,px=$[PX],py=$[PY],pi=$[PI]"
   button_two = NEPTUNE_SURVEY_TRAVERSE_ALL = true
 #endif
 

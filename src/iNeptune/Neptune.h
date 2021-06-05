@@ -1,10 +1,3 @@
-/************************************************************/
-/*    NAME:                                               */
-/*    ORGN: MIT                                             */
-/*    FILE: Neptune.h                                          */
-/*    DATE: December 29th, 1963                             */
-/************************************************************/
-
 #ifndef Neptune_HEADER
 #define Neptune_HEADER
 
@@ -36,7 +29,7 @@ class Neptune : public AppCastingMOOSApp
     void handleIncomingNMEA(std::string);
 
     std::string genMONVGString();
-    std::string genMOMISString(double *x, double *y);
+    std::string genMOMISString(std::string pointSequenceId, int indexOfVisitedPoint);
     std::string genMOAVDString(std::string name, XYPolygon xyPoints);
     std::string genMODLOString(std::string obstacleID);
     static std::string genMOVALString(std::string key, std::string value, time_t time);
@@ -49,7 +42,7 @@ class Neptune : public AppCastingMOOSApp
     void handleMOGOH(std::string contents);
 
     bool ConnectToNMEAServer();
-    void UpdateBehaviors();
+    void updateWayptBehavior(std::string id);
 
     bool LatLonToSeglist(std::string pointsStr, XYSegList &segList);
     bool SeglistToLatLon(XYSegList seglist, std::string& newString);
