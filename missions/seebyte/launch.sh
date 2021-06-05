@@ -9,7 +9,7 @@ function cleanup {
     set -x
     pkill -INT -P $(jobs -p)
     [ -n "$SET_XHOST" ] && xhost -
-    docker-compose down
+    [ "$LAUNCH_TYPE" != "moos" ] && docker-compose down
     wait 
     exit
 }
