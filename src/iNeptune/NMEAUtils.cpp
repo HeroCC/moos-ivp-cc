@@ -35,7 +35,7 @@ bool NMEAUtils::genNMEAChecksum(std::string nmeaString, std::string& checksum) {
 bool NMEAUtils::genNMEATimestamp(time_t time, std::string& timeStr) {
   try {
     std::stringstream ss;
-    ss << std::put_time(std::localtime(&time), "%H%M%S");
+    ss << std::put_time(std::gmtime(&time), "%H%M%S");
     timeStr = ss.str();
     return true;
   } catch (...) {}
@@ -43,7 +43,7 @@ bool NMEAUtils::genNMEATimestamp(time_t time, std::string& timeStr) {
 }
 
 double NMEAUtils::timeDifference(const std::string& t2, const time_t time) {
-  struct std::tm* tm = std::localtime(&time); // Assume we have the same timezone
+  struct std::tm* tm = std::gmtime(&time); // Assume we have the same timezone
   std::istringstream ss(t2);
   ss >> std::get_time(tm, "%H%M%S"); // Override hour, minute, second
   time_t tx_unix_time = mktime(tm);
