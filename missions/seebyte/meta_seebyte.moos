@@ -32,7 +32,6 @@ ProcessConfig = ANTLER
   // Autonomy
   Run = pHelmIvP         @ NewConsole = false
   Run = pMarinePID       @ NewConsole = false
-  Run = iNeptune         @ NewConsole = false
   Run = pObstacleMgr     @ NewConsole = false
 
   // Simulation
@@ -48,6 +47,9 @@ ProcessConfig = ANTLER
     Run = pRealm           @ NewConsole = false
     Run = pMarineViewer	   @ NewConsole = false
   #endif
+
+  // C&C Interface
+  Run = iNeptune         @ NewConsole = false
 }
 
 #include plug_shore.moos
@@ -78,6 +80,8 @@ ProcessConfig = pObstacleMgr
   post_view_polys = true
 
   max_pts_per_cluster = 100
+
+  //alert_range = 100
 
   given_max_duration = off
 }
@@ -204,6 +208,8 @@ ProcessConfig = pHelmIvP
   CommsTick  = 4
 
   bhv_dir_not_found_ok = true
+
+  other_override_var = OPERATOR_OVERRIDE
 
   behaviors  = $(COMMUNITY).bhv
   domain     = course:0:359:360
