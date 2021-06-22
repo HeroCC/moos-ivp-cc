@@ -80,6 +80,9 @@ class Neptune : public AppCastingMOOSApp
     std::string m_deploy_val;
     std::string m_allstop_val;
     bool m_override_state;
+
+    // MOWPT
+    std::string m_tracking_sequence_id;
 };
 
 #endif 

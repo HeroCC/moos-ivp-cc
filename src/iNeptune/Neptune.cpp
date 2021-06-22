@@ -167,10 +167,11 @@ void Neptune::handleMOWPT(string contents) {
   MOOSChomp(contents, "{");
   string pointsString = MOOSChomp(contents, "}");
 
-  LatLonToSeglist(pointsString, points);
-
-  updateWayptBehavior(sequenceId);
-  reportEvent("Updated waypoints, remaining is now " + intToString(points.size()) + " (was " + intToString(oldSize) + ")");
+  if(LatLonToSeglist(pointsString, points)) {
+    m_tracking_sequence_id = sequenceId;
+    updateWayptBehavior(sequenceId);
+    reportEvent("Updated waypoint sequence [" + sequenceId + "], remaining is now " + intToString(points.size()) + " (was " + intToString(oldSize) + ")");
+  }
 }
 
 void Neptune::handleMOHLM(string contents) {
@@ -351,11 +352,14 @@ bool Neptune::OnNewMail(MOOSMSG_LIST &NewMail)
        string id = tokStringParse(val, "id", ',', '=');
        double x, y;
        double i; // This is really an int, but tokParse doesn't like that
-       if (tokParse(val, "px", ',', '=', x) 
+       if (m_tracking_sequence_id != id) {
+         // The BHV_Waypoint is informing us of old previous sequence IDs -- we can't clear wptflags though, so just ignore
+         // TODO ask Mike to make `wptflag = clear` reset the list of wptflags (could be expanded to other flags too)
+       } else if (tokParse(val, "px", ',', '=', x) 
          && tokParse(val, "py", ',', '=', y) 
          && tokParse(val, "pi", ',', '=', i)
          ) {
-         reportEvent("Received report we visited point (" + doubleToString(x, 1) + ", " + doubleToString(y, 1) + ") from " + id);
+         reportEvent("Received report we visited point (" + doubleToString(x, 1) + ", " + doubleToString(y, 1) + ") from seq " + id);
          send_queue.push(genMOMISString(id, i));
          points.delete_vertex(x, y);
        } else {
