@@ -336,12 +336,12 @@ bool Neptune::OnNewMail(MOOSMSG_LIST &NewMail)
        string name = tokStringParse(message, "name", '#', '=');
        MOOSChomp(message, "#poly=");
        string polyStr = message;
-       XYPolygon points = string2Poly(polyStr);
-       if (!points.valid()) {
+       XYPolygon obsPoly = string2Poly(polyStr);
+       if (!obsPoly.valid()) {
          reportRunWarning("Observed an obstacle alert, but unable to parse poly!");
        }
-       send_queue.push(genMOAVDString(name, points));
-       reportEvent("Reporting updated obstacle: " + name + ", points: " + points.get_spec_pts());
+       send_queue.push(genMOAVDString(name, obsPoly));
+       reportEvent("Reporting updated obstacle: " + name + ", points: " + obsPoly.get_spec_pts());
      } else if (key == "OBM_RESOLVED") {
        string name = msg.GetAsString();
        send_queue.push(genMODLOString(msg.GetAsString()));
@@ -349,18 +349,18 @@ bool Neptune::OnNewMail(MOOSMSG_LIST &NewMail)
      } else if (key == "NEPTUNE_SURVEY_VISITED_POINT") {
        // Visited a point, so remove it from list
        string val = msg.GetString();
-       string id = tokStringParse(val, "id", ',', '=');
+       string sequenceId = tokStringParse(val, "id", ',', '=');
        double x, y;
        double i; // This is really an int, but tokParse doesn't like that
-       if (m_tracking_sequence_id != id) {
+       if (m_tracking_sequence_id != sequenceId) {
          // The BHV_Waypoint is informing us of old previous sequence IDs -- we can't clear wptflags though, so just ignore
          // TODO ask Mike to make `wptflag = clear` reset the list of wptflags (could be expanded to other flags too)
        } else if (tokParse(val, "px", ',', '=', x) 
          && tokParse(val, "py", ',', '=', y) 
          && tokParse(val, "pi", ',', '=', i)
          ) {
-         reportEvent("Received report we visited point (" + doubleToString(x, 1) + ", " + doubleToString(y, 1) + ") from seq " + id);
-         send_queue.push(genMOMISString(id, i));
+         reportEvent("Visited point [" + intToString(i) + "] (" + doubleToString(x, 1) + ", " + doubleToString(y, 1) + ") from seq " + sequenceId);
+         send_queue.push(genMOMISString(sequenceId, i));
          points.delete_vertex(x, y);
        } else {
          reportRunWarning("Received a visited point, but was unable to parse it: " + msg.GetString());
