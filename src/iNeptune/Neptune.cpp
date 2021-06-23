@@ -109,11 +109,12 @@ bool Neptune::LatLonToSeglist(string pointsStr, XYSegList& segList) {
   return true;
 }
 
-void Neptune::updateWayptBehavior(std::string id) {
+void Neptune::updateWayptBehavior(std::string sequenceId) {
+  m_tracking_sequence_id = sequenceId;
   if (points.size() > 0) {
     string pointsStr = "points=" + points.get_spec();
-    string wptFlagWithId = "wptflag = NEPTUNE_SURVEY_VISITED_POINT = id=" + id + ",utc=$[UTC],px=$[PX],py=$[PY],pi=$[PI]";
-    string wptNextFlagWithId = "wptflag = NEPTUNE_SURVEY_NEXT_POINT = id=" + id + ",utc=$[UTC],nx=$[NX],ny=$[NY],ni=$[NI]";
+    string wptFlagWithId = "wptflag = NEPTUNE_SURVEY_VISITED_POINT = id=" + sequenceId + ",utc=$[UTC],px=$[PX],py=$[PY],pi=$[PI]";
+    string wptNextFlagWithId = "wptflag = NEPTUNE_SURVEY_NEXT_POINT = id=" + sequenceId + ",utc=$[UTC],nx=$[NX],ny=$[NY],ni=$[NI]";
     Notify("NEPTUNE_SURVEY_UPDATE", pointsStr + " # " + wptFlagWithId + " # " + wptNextFlagWithId);
     Notify("NEPTUNE_SURVEY_TRAVERSE", "true");
   } else {
@@ -168,7 +169,6 @@ void Neptune::handleMOWPT(string contents) {
   string pointsString = MOOSChomp(contents, "}");
 
   if(LatLonToSeglist(pointsString, points)) {
-    m_tracking_sequence_id = sequenceId;
     updateWayptBehavior(sequenceId);
     reportEvent("Updated waypoint sequence [" + sequenceId + "], remaining is now " + intToString(points.size()) + " (was " + intToString(oldSize) + ")");
   }
@@ -385,7 +385,7 @@ bool Neptune::OnNewMail(MOOSMSG_LIST &NewMail)
 
   if (m_server.is_valid()) send_queue.push(genMONVGString());
   if (sendMOMIS) {
-    send_queue.push(genMOMISString("", -1));
+    send_queue.push(genMOMISString(m_tracking_sequence_id, -1));
   }
 	
    return(true);
