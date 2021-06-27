@@ -21,6 +21,7 @@ variables:
     - update-binfmts --enable
     - docker buildx create --use
     - docker buildx inspect --bootstrap
+    - export BUILD_ARCH_NICE="$(echo $BUILD_ARCH | sed 's/^[^\/]*\///g' | sed 's/\///')"
     - echo "$CI_REGISTRY_PASSWORD" | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
     - export NEW_IMAGE_NAME="${INDEV_IMAGE_NAME}-${BUILD_ARCH_NICE}" && echo $NEW_IMAGE_NAME
     - docker buildx build --push --pull --build-arg BUILDKIT_INLINE_CACHE=1 --cache-from "${CI_REGISTRY_IMAGE}:latest" --platform "${BUILD_ARCH}" -t "$NEW_IMAGE_NAME" .
@@ -29,26 +30,12 @@ variables:
     - if [[ "$IMAGE_EXISTS" == "false" ]]; then echo "Creating image..."; docker buildx imagetools create -t "${INDEV_IMAGE_NAME}" "$NEW_IMAGE_NAME"; fi
     - if [[ "$IMAGE_EXISTS" != "false" ]]; then echo "Appending to image..."; docker buildx imagetools create --append -t "${INDEV_IMAGE_NAME}" "$NEW_IMAGE_NAME"; fi
 
-build-amd64:
-  extends: .build_generic
-  timeout: 1h
-  variables:
-    BUILD_ARCH: linux/amd64
-    BUILD_ARCH_NICE: "amd64"
-
-build-arm64:
+build-multiarch:
   extends: .build_generic
   timeout: 3h
-  variables:
-    BUILD_ARCH: linux/arm64
-    BUILD_ARCH_NICE: "arm64"
-
-build-armv7:
-  extends: .build_generic
-  timeout: 3h
-  variables:
-    BUILD_ARCH: linux/arm/v7
-    BUILD_ARCH_NICE: "armv7"
+  parallel:
+    matrix:
+      - BUILD_ARCH: [linux/amd64, linux/arm64, linux/arm/v7]
 
 # Deploy
 .deploy_generic_manifest: &deploy_generic_manifest
@@ -57,6 +44,9 @@ build-armv7:
     - merge_requests
     - external_pull_requests
   script:
+    - update-binfmts --enable
+    - docker buildx create --use
+    - docker buildx inspect --bootstrap
     - echo "$REGISTRY_PASSWD" | docker login --username $REGISTRY_USER --password-stdin $REGISTRY_URL
     - export DOCKER_CLI_EXPERIMENTAL=enabled
     # TODO dynamically get matching tags via registry API
