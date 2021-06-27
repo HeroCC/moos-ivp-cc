@@ -10,6 +10,7 @@
 #include "ACTable.h"
 #include "Neptune.h"
 #include "XYFormatUtilsPoly.h"
+#include "NodeRecordUtils.h"
 
 using namespace std;
 
@@ -30,12 +31,14 @@ Neptune::~Neptune()
 // ----------------------
 // Generate NMEA Messages 
 
-string Neptune::genMONVGString() {
+string Neptune::genMONVGString(const NodeRecord record) {
   // Very similar to CPNVG from https://oceanai.mit.edu/herons/docs/ClearpathWireProtocolV0.2.pdf
   // $MONVG,timestampOfLastMessage,lat,lon,quality(1good 0bad),altitude,depth,heading,roll,pitch,speed*
-  string contents = doubleToString(m_latest_lat, 6) + "," + doubleToString(m_latest_long, 6) + "," + intToString(m_geo_initialized) + "," + doubleToString(m_latest_alt, 2) +
-                    "," + doubleToString(m_latest_depth, 2) + "," + doubleToString(m_latest_heading, 3) +  ",,," + doubleToString(m_latest_speed, 2);
-  return NMEAUtils::genNMEAString("MONVG", contents, m_last_updated_time);
+  string contents;
+  contents += doubleToString(record.getLat(), 6) + "," + doubleToString(record.getLon(), 6) + ","; // Lat & lon
+  contents += intToString(m_geo_initialized && record.isSetLongitude()) + "," + doubleToString(record.getAltitude(), 2) + ","; // Altitude & status
+  contents += doubleToString(record.getDepth(), 2) + "," + doubleToString(record.getHeading(), 3) + ",," + doubleToString(record.getPitch()) + "," + doubleToString(record.getSpeed(), 2);
+  return NMEAUtils::genNMEAString("MONVG", contents, record.getTimeStamp());
 }
 
 string Neptune::genMOVALString(std::string key, std::string value, time_t time) {
@@ -319,18 +322,10 @@ bool Neptune::OnNewMail(MOOSMSG_LIST &NewMail)
 
      if(key == "INCOMING_NMEA_MESSAGE") {
        handleIncomingNMEA(msg.GetAsString());
-     } else if(key == "NAV_HEADING") {
-       m_latest_heading = msg.GetDouble();
-     } else if (key == "NAV_SPEED") {
-       m_latest_speed = msg.GetDouble();
-     } else if (key == "NAV_DEPTH") {
-       m_latest_depth = msg.GetDouble();
-     }  else if (key == "NAV_LAT") {
-       m_latest_lat = msg.GetDouble();
-     } else if (key == "NAV_LONG") {
-       m_latest_long = msg.GetDouble();
-     } else if (key == "NAV_ALTITUDE") {
-       m_latest_alt = msg.GetDouble();
+     } else if (key == "NODE_REPORT_LOCAL") {
+       if (m_server.is_valid()) {
+         send_queue.push(genMONVGString(string2NodeRecord(msg.GetString(), true)));
+       }
      } else if (key == "OBSTACLE_ALERT") {
        string message = msg.GetString();
        string name = tokStringParse(message, "name", '#', '=');
@@ -368,22 +363,18 @@ bool Neptune::OnNewMail(MOOSMSG_LIST &NewMail)
      } else if (key == "DEPLOY") {
        m_deploy_val = msg.GetString();
        sendMOMIS = true;
-       continue;
      } else if (key == "IVPHELM_ALLSTOP") {
        m_allstop_val = msg.GetString();
        sendMOMIS = true;
      } else if (key == "MOOS_MANUAL_OVERRIDE") {
        setBooleanOnString(m_override_state, msg.GetString());
        sendMOMIS = true;
-       continue;
      } else {
        reportRunWarning("Unhandled unrequested mail: " + key);
        return true;
      }
-     m_last_updated_time = m_curr_time;
    }
 
-  if (m_server.is_valid()) send_queue.push(genMONVGString());
   if (sendMOMIS) {
     send_queue.push(genMOMISString(m_tracking_sequence_id, -1));
   }
@@ -577,13 +568,8 @@ void Neptune::registerVariables()
 
   Register("INCOMING_NMEA_MESSAGE", 0);
 
-  Register("NAV_SPEED", 0);
-  Register("NAV_HEADING", 0);
-  Register("NAV_DEPTH", 0);
-  Register("NAV_LAT", 0);
-  Register("NAV_LONG", 0);
-  Register("NAV_ALTITUDE", 0);
-  Register("NAV_ROLL", 0);
+  // Navigation Information
+  Register("NODE_REPORT_LOCAL", 0);
 
   // Obstacle Manager
   Register("OBSTACLE_ALERT", 0); // Obstacle Alerts (including ones we send)

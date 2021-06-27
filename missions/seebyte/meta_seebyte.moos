@@ -224,6 +224,8 @@ ProcessConfig = pNodeReporter
   AppTick    = 2
   CommsTick	 = 2
 
+  crossfill_policy = fill-empty
+
   platform_type   = kayak
   platform_color  = yellow
   platform_length = 4

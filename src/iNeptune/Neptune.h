@@ -4,6 +4,7 @@
 #include <GeomUtils.h>
 #include <MOOS/libMOOS/Thirdparty/AppCasting/AppCastingMOOSApp.h>
 #include <MOOS/libMOOSGeodesy/MOOSGeodesy.h>
+#include "NodeRecord.h"
 #include <queue>
 
 #include "Socket.h"
@@ -28,7 +29,7 @@ class Neptune : public AppCastingMOOSApp
  protected:
     void handleIncomingNMEA(std::string);
 
-    std::string genMONVGString();
+    std::string genMONVGString(const NodeRecord record);
     std::string genMOMISString(std::string pointSequenceId, int indexOfVisitedPoint);
     std::string genMOAVDString(std::string name, XYPolygon xyPoints);
     std::string genMODLOString(std::string obstacleID);
@@ -66,15 +67,6 @@ class Neptune : public AppCastingMOOSApp
     std::vector<std::string> forward_mail;
 
     time_t m_last_nmea_connect_time = -1;
-
-    // MONVG
-    time_t m_last_updated_time = -1;
-    double m_latest_heading = 0;
-    double m_latest_speed = 0;
-    double m_latest_depth = 0;
-    double m_latest_long = -1;
-    double m_latest_alt = -1;
-    double m_latest_lat = -1;
 
     // MOMIS
     std::string m_deploy_val;
