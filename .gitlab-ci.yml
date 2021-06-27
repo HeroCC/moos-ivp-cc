@@ -80,8 +80,6 @@ deploy-docker-hub-registry:
 save-artifacts:
   stage: deploy
   services: []
-  needs:
-    - build-amd64
   image: "${INDEV_IMAGE_NAME}"
   variables:
     GIT_STRATEGY: none
