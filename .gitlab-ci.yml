@@ -1,5 +1,5 @@
 # Tweaked from https://gitlab.com/moos-ivp/moosdocker/blob/c2b5919cfeb885f85e8fbec75e5ff4f540ef1c89/.gitlab-ci.yml
-image: jonoh/docker-buildx-qemu@sha256:4fc5868d90c146563dace436cb1b850c2bd8055ff2e7d9d53fb4a83a7dc2969e
+image: jonoh/docker-buildx-qemu@sha256:3099978f865c0a92182c5bb0744a4b9ad764072196e5af745acd040efec394d8
 
 services:
   - docker:dind
@@ -23,7 +23,7 @@ variables:
     - docker buildx inspect --bootstrap
     - echo "$CI_REGISTRY_PASSWORD" | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
     - export NEW_IMAGE_NAME="${INDEV_IMAGE_NAME}-${BUILD_ARCH_NICE}" && echo $NEW_IMAGE_NAME
-    - docker buildx build --push --pull --cache-from "${CI_REGISTRY_IMAGE}:latest" --platform "${BUILD_ARCH}" -t "$NEW_IMAGE_NAME" .
+    - docker buildx build --push --pull --build-arg BUILDKIT_INLINE_CACHE=1 --cache-from "${CI_REGISTRY_IMAGE}:latest" --platform "${BUILD_ARCH}" -t "$NEW_IMAGE_NAME" .
     - echo "Checking for existance of image ${INDEV_IMAGE_NAME}"
     - docker buildx imagetools inspect "${INDEV_IMAGE_NAME}" || export IMAGE_EXISTS="false"
     - if [[ "$IMAGE_EXISTS" == "false" ]]; then echo "Creating image..."; docker buildx imagetools create -t "${INDEV_IMAGE_NAME}" "$NEW_IMAGE_NAME"; fi
@@ -53,9 +53,6 @@ build-armv7:
 # Deploy
 .deploy_generic_manifest: &deploy_generic_manifest
   stage: deploy
-  variables:
-    GIT_STRATEGY: none
-    GIT_SUBMODULE_STRATEGY: none
   except:
     - merge_requests
     - external_pull_requests
@@ -65,16 +62,10 @@ build-armv7:
     # TODO dynamically get matching tags via registry API
     - >
       for arch in $DEPLOY_ARCHS; do
-        NEW_IMAGE_NAME="${REPO_PATH}:${CI_COMMIT_SHORT_SHA}-${arch}"
         docker pull "${INDEV_IMAGE_NAME}-${arch}"
-        docker tag "${INDEV_IMAGE_NAME}-${arch}" "${NEW_IMAGE_NAME}"
-        docker push "${NEW_IMAGE_NAME}"
-        export IMAGES="$IMAGES ${NEW_IMAGE_NAME}"
+        export ARCH_IMAGES_CACHE="$ARCH_IMAGES_CACHE --cache-from ${INDEV_IMAGE_NAME}-${arch}"
       done
-    - docker manifest create ${REPO_PATH}:${CI_COMMIT_SHORT_SHA} ${IMAGES}
-    - docker manifest push --purge ${REPO_PATH}:${CI_COMMIT_SHORT_SHA}
-    - docker manifest create ${REPO_PATH}:latest ${IMAGES}
-    - docker manifest push --purge ${REPO_PATH}:latest
+    - docker buildx --platform linux/amd64,linux/arm64,linux/arm/v7 $ARCH_IMAGES_CACHE --build-arg BUILDKIT_INLINE_CACHE=1 -t "${REPO_PATH}:${CI_COMMIT_SHORT_SHA}" -t "${REPO_PATH}:latest" .
 
 deploy-gitlab-registry:
   extends: .deploy_generic_manifest
