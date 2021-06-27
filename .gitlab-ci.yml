@@ -55,7 +55,7 @@ build-multiarch:
         docker pull "${INDEV_IMAGE_NAME}-${arch}"
         export ARCH_IMAGES_CACHE="$ARCH_IMAGES_CACHE --cache-from ${INDEV_IMAGE_NAME}-${arch}"
       done
-    - docker buildx --pull $ARCH_IMAGES_CACHE --build-arg BUILDKIT_INLINE_CACHE=1 --platform="linux/amd64,linux/arm64,linux/arm/v7" -t "${REPO_PATH}:${CI_COMMIT_SHORT_SHA}" -t "${REPO_PATH}:latest" .
+    - docker buildx build --pull $ARCH_IMAGES_CACHE --build-arg BUILDKIT_INLINE_CACHE=1 --platform="linux/amd64,linux/arm64,linux/arm/v7" -t "${REPO_PATH}:${CI_COMMIT_SHORT_SHA}" -t "${REPO_PATH}:latest" .
 
 deploy-gitlab-registry:
   extends: .deploy_generic_manifest
