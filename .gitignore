@@ -13,3 +13,4 @@ targ_*
 .idea
 CMakeFiles
 #.moos++
+*.swp
