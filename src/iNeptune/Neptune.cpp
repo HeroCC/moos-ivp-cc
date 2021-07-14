@@ -326,7 +326,7 @@ bool Neptune::OnNewMail(MOOSMSG_LIST &NewMail)
        if (m_server.is_valid()) {
          send_queue.push(genMONVGString(string2NodeRecord(msg.GetString(), true)));
        }
-     } else if (key == "OBSTACLE_ALERT") {
+     } else if (key == "OBSTACLE_INFORM") {
        string message = msg.GetString();
        string name = tokStringParse(message, "name", '#', '=');
        MOOSChomp(message, "#poly=");
@@ -572,7 +572,7 @@ void Neptune::registerVariables()
   Register("NODE_REPORT_LOCAL", 0);
 
   // Obstacle Manager
-  Register("OBSTACLE_ALERT", 0); // Obstacle Alerts (including ones we send)
+  Register("OBSTACLE_INFORM", 0); // Obstacle Alerts (including ones we send)
   Register("OBM_RESOLVED", 0); // Delete the obstacle from Neptune
 
   // $MOMIS

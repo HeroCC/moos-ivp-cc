@@ -21,14 +21,6 @@ ProcessConfig = ANTLER
   Run = pNodeReporter    @ NewConsole = false
   Run = pHostInfo        @ NewConsole = false
 
-  // Visualization
-  #ifdef SHORE
-    // If shore is defined, enable pShare and the broker for comms
-    Run = pRealm          @ NewConsole = false
-    Run = pShare          @ NewConsole = false
-    Run = uFldNodeBroker  @ NewConsole = false
-  #endif
-
   // Autonomy
   Run = pHelmIvP         @ NewConsole = false
   Run = pMarinePID       @ NewConsole = false
@@ -40,6 +32,14 @@ ProcessConfig = ANTLER
   #else
     // TODO work with MikeD to replace this with Philos
     //Run = iM300            @ NewConsole = false
+  #endif
+
+  // Visualization
+  #ifdef SHORE
+    // If shore is defined, enable pShare and the broker for comms
+    Run = pShare          @ NewConsole = false
+    Run = pRealm          @ NewConsole = false
+    Run = uFldNodeBroker  @ NewConsole = false
   #endif
 
   #ifdef DISPLAY
@@ -82,6 +82,7 @@ ProcessConfig = pObstacleMgr
   max_pts_per_cluster = 100
 
   //alert_range = 100
+  general_alert = update_var=OBSTACLE_INFORM,alert_range=400
 
   given_max_duration = off
 }

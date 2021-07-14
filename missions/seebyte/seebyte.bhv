@@ -54,12 +54,12 @@ Behavior = BHV_AvoidObstacleV21
 
         use_refinery = true
 
-      allowable_ttc = 40   // time to contact
-      pwt_outer_dist = 40  // Distance from the obstacle to activate bhv
-      pwt_inner_dist = 20  // Distance for bhv to have full authority
-      completed_dist = 50  // Obstacle no longer active
-   min_util_cpa_dist = 9   // Buffer Distance
-   max_util_cpa_dist = 12
+      allowable_ttc = 20   // time to contact
+      pwt_outer_dist = 20  // Distance from the obstacle to activate bhv
+      pwt_inner_dist = 10  // Distance for bhv to have full authority
+      completed_dist = 22  // Obstacle no longer active
+   min_util_cpa_dist = 4   // Buffer Distance
+   max_util_cpa_dist = 8
 
     visual_hints = obstacle_edge_color = white
     visual_hints = obstacle_vertex_color = gray60
