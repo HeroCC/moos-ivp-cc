@@ -115,6 +115,8 @@ ProcessConfig = uFldObstacleSim
   point_size = 6
   rate_points = 2
 
+  sensor_range = 100
+
 	draw_region = true
 
 	min_duration = 400
