@@ -19,6 +19,8 @@ using namespace std;
 
 Neptune::Neptune()
 {
+  m_ninja = LooseNinja("client", 10110);
+  m_ninja.m_validate_checksum = false;
 }
 
 //---------------------------------------------------------
@@ -323,7 +325,7 @@ bool Neptune::OnNewMail(MOOSMSG_LIST &NewMail)
      if(key == "INCOMING_NMEA_MESSAGE") {
        handleIncomingNMEA(msg.GetAsString());
      } else if (key == "NODE_REPORT_LOCAL") {
-       if (m_server.is_valid()) {
+       if (m_ninja.isConnected()) {
          send_queue.push(genMONVGString(string2NodeRecord(msg.GetString(), true)));
        }
      } else if (key == "OBSTACLE_INFORM") {
@@ -397,46 +399,12 @@ bool Neptune::OnConnectToServer()
 bool Neptune::ConnectToNMEAServer()
 {
   m_last_nmea_connect_time = m_curr_time;
-  m_server.close();
+  m_ninja.closeSockFDs();
 
-  std::string niceAddr = m_connect_addr + ":" + intToString(m_connect_port);
-  reportEvent("Attempting to connect to server @ " + niceAddr);
-
-  if (!m_server.create()) {
-    reportRunWarning("Failed to create socket");
-    m_server.close();
+  if (!m_ninja.setupConnection()) {
+    m_ninja.closeSockFDs();
     return false;
   }
-
-  std::string host = m_connect_addr;
-
-  // Resolve hostname
-  struct addrinfo* result;
-  int error = getaddrinfo(host.c_str(), nullptr, nullptr, &result); // Resolve our IP or hostname
-  if (error) {
-    // The IP or hostname was couldn't be resolved :(
-    std::string errstr = gai_strerror(error);
-    reportRunWarning("Failed to resolve hostname: " + errstr);
-    return false;
-  } else {
-    // We resolved to a valid IP
-    char ipchar[INET_ADDRSTRLEN]; // Turn that address back into a string for displaying and connecting to
-    if (getnameinfo(result->ai_addr, result->ai_addrlen, ipchar, sizeof(ipchar), nullptr, 0, NI_NUMERICHOST) == 0) {
-      host = std::string(ipchar);
-    } else {
-      reportRunWarning("Unable to parse given host, using " + host);
-    }
-  }
-
-  int retval = m_server.connect(host, m_connect_port);
-  if (retval) {
-    reportRunWarning("Failed to connect to server");
-    std::string err = strerror(retval);
-    reportEvent("Failure Reason: " + err);
-    m_server.close();
-    return false;
-  }
-  m_server.set_non_blocking(true);
 
   return true;
 }
@@ -449,36 +417,18 @@ bool Neptune::Iterate()
 {
   AppCastingMOOSApp::Iterate();
 
-  if (m_server.is_valid()) {
+  if (m_ninja.isConnected()) {
     // Tx NMEA String to server
     while (!send_queue.empty()) {
       std::string val = send_queue.front();
       send_queue.pop();
       Notify("SENT_NMEA_MESSAGE", val);
-      int retval = m_server.send(val + "\n");
-      if (retval) {
-        std::string err = strerror(retval);
-        reportRunWarning("Lost connection to server: " + err);
-        m_server.close();
-      }
+      m_ninja.sendSockMessage(val);
     }
 
     // Rx
-    std::string rx;
-    int len = m_server.recv(rx); // TODO explicit error checking
-    if (len > 0) {
-      Notify("INCOMING_NMEA", rx);
-      // Check if we have multiple incoming strings
-      for (string& rxi : parseString(rx, "\n")) {
-        // Check if we have a valid NMEA string
-        if (rxi.rfind('$', 0) == 0) {
-          // Process NMEA string
-          Notify("INCOMING_NMEA_MESSAGE", rxi);
-        } else {
-          MOOSTrimWhiteSpace(rxi);
-          reportEvent("NMEA NOTE: " + rxi);
-        }
-      }
+    for (const string& rx : m_ninja.getSockMessages()) {
+      Notify("INCOMING_NMEA_MESSAGE", rx);
     }
 
     retractRunWarning("Failed to connect to server"); // If we're connected, we no longer need the warning
@@ -514,19 +464,10 @@ bool Neptune::OnStartUp()
 
     bool handled = false;
     if(param == "port") {
-      if (isNumber(value)) {
-        int port = stoi(value);
-        if (port > 65535 || port < 1) {
-          reportConfigWarning("Port " + value + " is outside valid port range 1-65535");
-        } else {
-          m_connect_port = stoi(value);
-        }
-      } else {
-        reportConfigWarning("Unable to parse requested port " + value + " to int");
-      }
+      m_ninja.setPortNumber(stoi(value));
       handled = true;
     } else if (param == "host") {
-      m_connect_addr = value;
+      m_ninja.setIPAddr(value);
       handled = true;
     } else if (param == "reconnectinterval") {
       attempt_reconnect_interval = stod(value);
@@ -585,24 +526,21 @@ void Neptune::registerVariables()
   Register("NEPTUNE_SURVEY_VISITED_POINT", 0);
 }
 
+//---------------------------------------------------------
+// Procedure: handleNinjaEvents
+
+void Neptune::handleNinjaEvents()
+{
+  for (const string& event : m_ninja.getEvents()) reportEvent(event);
+  for (const string& warn : m_ninja.getWarnings()) reportRunWarning(warn);
+  for (const string& warn : m_ninja.getRetractions()) retractRunWarning(warn);
+}
 
 //------------------------------------------------------------
 // Procedure: buildReport()
 
 bool Neptune::buildReport() 
 {
-  std::string host = "UNKNOWN";
-  host = inet_ntoa(m_server.get_addr().sin_addr);
-  if (!MOOSStrCmp(host, m_connect_addr)) {
-    host = m_connect_addr + " (" + host + ")";
-  }
-
-  m_msgs << "Valid Connection: " << boolToString(m_server.is_valid()) << endl;
-  m_msgs << "Host: " << host << endl;
-  m_msgs << "Port: " << intToString(m_connect_port) << endl;
-
-  m_msgs << endl;
-
   m_msgs << "Pending Outbox Messages: " << intToString(send_queue.size()) << endl;
   m_msgs << "Neptune Requested Mailings: " << intToString(forward_mail.size()) << endl;
 
@@ -611,6 +549,13 @@ bool Neptune::buildReport()
   m_msgs << "Waypt Sequence: " << m_tracking_sequence_id << endl;
   m_msgs << "Remaining Points: " << intToString(points.size()) << " (" << points.get_spec_pts() << ")" << endl;
   m_msgs << "Helm Allstop: " << m_allstop_val << endl;
+
+  m_msgs << endl;
+
+  handleNinjaEvents();
+  m_msgs << "SockNinja Report: " << endl;
+  for (const string& line : m_ninja.getSummary()) m_msgs << "  " << line << endl;
+  m_msgs << endl;
 
   return(true);
 }

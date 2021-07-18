@@ -6,6 +6,7 @@
 #define IVP_EXTEND_NMEAUTILS_H
 
 #include <string>
+#include <ctime>
 
 
 class NMEAUtils {

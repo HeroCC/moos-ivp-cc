@@ -7,7 +7,7 @@
 #include "NodeRecord.h"
 #include <queue>
 
-#include "Socket.h"
+#include "LooseNinja.h"
 #include "NMEAUtils.h"
 
 class Neptune : public AppCastingMOOSApp
@@ -48,15 +48,15 @@ class Neptune : public AppCastingMOOSApp
     bool LatLonToSeglist(std::string pointsStr, XYSegList &segList);
     bool SeglistToLatLon(XYSegList seglist, std::string& newString);
 
+    void handleNinjaEvents();
+
  private: // Configuration variables
-    std::string m_connect_addr = "localhost";
-    unsigned short m_connect_port = 10110;
     bool validate_checksum = true;
     double maximum_time_delta = 3; // Seconds
     double attempt_reconnect_interval = 5;
 
  private: // State variables
-    Socket m_server;
+    LooseNinja m_ninja;
 
     CMOOSGeodesy m_geo;
     bool m_geo_initialized = false;
