@@ -35,13 +35,20 @@ if (NOT APPLE)
 ADD_SUBDIRECTORY(pWebSocketServer)
 endif()
 
-ADD_SUBDIRECTORY(iMumbleClient)
-ADD_SUBDIRECTORY(uRaspiMon)
-ADD_SUBDIRECTORY(uFrontNMEABridge)
-ADD_SUBDIRECTORY(uBackNMEABridge)
+# Copied from moos-ivp-pavlab (r246)
+# I don't want to depend on the entire tree, but this is a useful library
+ADD_SUBDIRECTORY(lib_sock_utils)
 
+#ADD_SUBDIRECTORY(iMumbleClient) # Moved to Aquaticus tree
+ADD_SUBDIRECTORY(uRaspiMon)
+
+# POC, unused
+#ADD_SUBDIRECTORY(uFrontNMEABridge)
+#ADD_SUBDIRECTORY(uBackNMEABridge)
+
+# SeeByte Project
 ADD_SUBDIRECTORY(iNeptune)
-ADD_SUBDIRECTORY(pNeptuneSim)
+#ADD_SUBDIRECTORY(pNeptuneSim) # unused
 
 ##############################################################################
 #                           END of CMakeLists.txt
