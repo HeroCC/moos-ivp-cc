@@ -601,5 +601,16 @@ bool Neptune::buildReport()
   m_msgs << "Host: " << host << endl;
   m_msgs << "Port: " << intToString(m_connect_port) << endl;
 
+  m_msgs << endl;
+
+  m_msgs << "Pending Outbox Messages: " << intToString(send_queue.size()) << endl;
+  m_msgs << "Neptune Requested Mailings: " << intToString(forward_mail.size()) << endl;
+
+  m_msgs << endl;
+
+  m_msgs << "Waypt Sequence: " << m_tracking_sequence_id << endl;
+  m_msgs << "Remaining Points: " << intToString(points.size()) << endl;
+  m_msgs << "Helm Allstop: " << m_allstop_val << endl;
+
   return(true);
 }
