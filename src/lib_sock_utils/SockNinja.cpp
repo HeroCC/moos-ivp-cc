@@ -358,6 +358,8 @@ bool SockNinja::readFromSock()
 
   vector<string> lines;
   while(inbuff.length() > 0) {
+    inbuff = findReplace(inbuff, "\r\n", "\n");
+    inbuff = findReplace(inbuff, "\n", "\r\n");
     size_t found = inbuff.find("\r\n");
     if(found == string::npos) {
       strcpy(m_in_buffer, inbuff.c_str());
@@ -853,7 +855,7 @@ bool SockNinja::isValidNMEA(string str, bool strict)
     addWarning("NMEA bad tail");
     return(false);
   }
-  string hexstr1 = tail.substr(0,2);
+  string hexstr1 = toupper(tail.substr(0,2));
   string hexstr2 = checksumHexStr(str);
 
   if(hexstr1 != hexstr2) {

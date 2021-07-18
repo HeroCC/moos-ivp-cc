@@ -66,8 +66,8 @@ protected:
   void  addWarning(std::string);
   void  addRetraction(std::string);
   void  addEvent(std::string);
-  bool  isValidNMEA(std::string, bool strict=true);
-  bool  isCheckSumChar(char);
+  virtual bool  isValidNMEA(std::string, bool strict=true);
+  virtual bool  isCheckSumChar(char);
   bool  setupConnectionForClient();
   bool  setupConnectionForServer();
   bool  readFromSock();
@@ -84,7 +84,7 @@ protected:
   unsigned int m_max_list_size;
   unsigned int m_max_msg_keys;
   
-  char         m_in_buffer[MAX_NINJA_BUF_SIZE];;
+  char         m_in_buffer[MAX_NINJA_BUF_SIZE];
   int          m_port;
   int          m_sockfd;
   int          m_sockfd_lis; // Only used when type=server
