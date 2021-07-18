@@ -609,7 +609,7 @@ bool Neptune::buildReport()
   m_msgs << endl;
 
   m_msgs << "Waypt Sequence: " << m_tracking_sequence_id << endl;
-  m_msgs << "Remaining Points: " << intToString(points.size()) << endl;
+  m_msgs << "Remaining Points: " << intToString(points.size()) << " (" << points.get_spec_pts() << ")" << endl;
   m_msgs << "Helm Allstop: " << m_allstop_val << endl;
 
   return(true);
