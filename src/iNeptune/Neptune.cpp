@@ -423,7 +423,7 @@ bool Neptune::Iterate()
       std::string val = send_queue.front();
       send_queue.pop();
       Notify("SENT_NMEA_MESSAGE", val);
-      m_ninja.sendSockMessage(val);
+      m_ninja.sendSockMessage(val + "\n");
     }
 
     // Rx
@@ -554,7 +554,7 @@ bool Neptune::buildReport()
 
   handleNinjaEvents();
   m_msgs << "SockNinja Report: " << endl;
-  for (const string& line : m_ninja.getSummary()) m_msgs << "  " << line << endl;
+  for (const string& line : m_ninja.getSummary(false)) m_msgs << "  " << line << endl;
   m_msgs << endl;
 
   return(true);

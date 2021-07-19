@@ -704,7 +704,7 @@ list<string> SockNinja::getSummaryStatMsgs()
     str_amt = padString(str_amt, 6);
     string line = "<--R  " + str_amt + "  ";
     line += m_map_msg_in_latest[key];
-    line = biteString(line, '\r');
+    line = stripBlankEnds(line);
     lines.push_back(line);
   }
 
@@ -715,7 +715,7 @@ list<string> SockNinja::getSummaryStatMsgs()
     str_amt = padString(str_amt, 6);
     string line = " S--> " + str_amt + "  ";
     line += m_map_msg_out_latest[key];
-    line = biteString(line, '\r');
+    line = stripBlankEnds(line);
     lines.push_back(line);
   }
 
