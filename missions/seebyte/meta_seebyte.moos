@@ -79,7 +79,7 @@ ProcessConfig = pObstacleMgr
 
   post_view_polys = true
 
-  max_pts_per_cluster = 100
+  //max_pts_per_cluster = 100
 
   //alert_range = 100
   general_alert = update_var=OBSTACLE_INFORM,alert_range=400
