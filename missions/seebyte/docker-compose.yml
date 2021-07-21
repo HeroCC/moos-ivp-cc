@@ -60,6 +60,7 @@ services:
     volumes:
       - "./logs/neptune-logs/:/home/neptune/seebyte/seebyte_neptune/logs"
       #- "./mission.kml:/home/neptune/seebyte/seebyte_neptune/data/mission.kml"
+      #- "./moos_bridge.json:/home/neptune/seebyte/seebyte_neptune/config/moos_bridge.json"
     environment:
       - ROSCONSOLE_STDOUT_LINE_BUFFERED=1
       - NEPTUNE_BROADCAST_IP=${NEPTUNE_IP}

@@ -57,13 +57,21 @@ build-multiarch:
       done
     - docker buildx build --push --pull $ARCH_IMAGES_CACHE --build-arg BUILDKIT_INLINE_CACHE=1 --platform="linux/amd64,linux/arm64,linux/arm/v7" -t "${REPO_PATH}:${CI_COMMIT_SHORT_SHA}" -t "${REPO_PATH}:latest" .
 
-deploy-gitlab-registry:
+#deploy-gitlab-registry:
+#  extends: .deploy_generic_manifest
+#  variables:
+#    REGISTRY_URL: "$CI_REGISTRY"
+#    REGISTRY_USER: "$CI_REGISTRY_USER"
+#    REGISTRY_PASSWD: "$CI_REGISTRY_PASSWORD"
+#    REPO_PATH: "$CI_REGISTRY_IMAGE"
+
+deploy-quay-registry:
   extends: .deploy_generic_manifest
   variables:
-    REGISTRY_URL: "$CI_REGISTRY"
-    REGISTRY_USER: "$CI_REGISTRY_USER"
-    REGISTRY_PASSWD: "$CI_REGISTRY_PASSWORD"
-    REPO_PATH: "$CI_REGISTRY_IMAGE"
+    REGISTRY_URL: "quay.io"
+    REGISTRY_USER: "$QUAY_USERNAME"
+    REGISTRY_PASSWD: "$QUAY_PUSH_KEY"
+    REPO_PATH: "${REGISTRY_URL}/herocc/moos-ivp-cc"
 
 deploy-docker-hub-registry:
   extends: .deploy_generic_manifest
