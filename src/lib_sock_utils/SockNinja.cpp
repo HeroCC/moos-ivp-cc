@@ -521,6 +521,7 @@ list<string> SockNinja::getSockMessages()
   
   messages = m_rcvd_nmea_msgs;
   m_rcvd_nmea_msgs.clear();
+  messages.reverse(); // newer messages are in front (LIFO), but we want FIFO
 
   return(messages);  
 }
@@ -533,7 +534,7 @@ string SockNinja::getSockMessage()
   if(!readFromSock())
     return("fail");
   
-  string most_recent_message = m_rcvd_nmea_msgs.back();
+  string most_recent_message = m_rcvd_nmea_msgs.front();
   m_rcvd_nmea_msgs.clear();
 
   return(most_recent_message);  
