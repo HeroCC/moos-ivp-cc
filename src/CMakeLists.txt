@@ -49,6 +49,10 @@ ADD_SUBDIRECTORY(uRaspiMon)
 # SeeByte Project
 ADD_SUBDIRECTORY(iNeptune)
 #ADD_SUBDIRECTORY(pNeptuneSim) # unused
+#ADD_SUBDIRECTORY(iDriveDDS)
+
+# Gazebo Simulator Plugin
+ADD_SUBDIRECTORY(lib_gazebo_moos)
 
 ##############################################################################
 #                           END of CMakeLists.txt
