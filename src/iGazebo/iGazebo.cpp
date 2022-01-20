@@ -1,4 +1,6 @@
 #include <iterator>
+#include <functional>
+
 #include "MBUtils.h"
 #include "ACTable.h"
 #include "iGazebo.h"
@@ -41,8 +43,21 @@ bool iGazebo::OnNewMail(MOOSMSG_LIST &NewMail)
     bool   mstr  = msg.IsString();
 #endif
 
-     if(key == "FOO")
-       cout << "great!";
+    ignition::transport::Node::Publisher& ignpub = mapping_map.find(key)->second;
+    if (ignpub) {
+      // We are registered for a mapping, and it was posted to by MOOS, process it
+      if (msg.IsDouble()) {
+        ignition::msgs::Double v;
+        v.set_data(msg.GetDouble());
+        ignpub.Publish(v);
+      } else {
+        // We can't handle all of the ignition::msgs types now, so convert to string
+        // If there is a need / interest, we may be able to fix this
+        ignition::msgs::StringMsg s;
+        s.set_data(msg.GetAsString());
+        ignpub.Publish(s);
+      }
+    }
 
      else if(key != "APPCAST_REQ") // handled by AppCastingMOOSApp
        reportRunWarning("Unhandled Mail: " + key);
@@ -56,8 +71,18 @@ bool iGazebo::OnNewMail(MOOSMSG_LIST &NewMail)
 
 bool iGazebo::OnConnectToServer()
 {
-   registerVariables();
-   return(true);
+  registerVariables();
+
+  // if we want to read from SDF, this is useful. However, we're probably going to use MOOS for this bit
+  /*
+  // Get parameters from SDF file
+  auto sdf = sdf::readFile("/dev/null");
+  auto plugin = sdf->Root()->GetElement("world")->GetElement("plugin");
+  auto twistTopic = plugin->Get<std::string>("twist_arrows", "/cmd_vel").first;
+  */
+
+
+  return(true);
 }
 
 //---------------------------------------------------------
@@ -70,6 +95,28 @@ bool iGazebo::Iterate()
   // Do your thing here!
   AppCastingMOOSApp::PostReport();
   return(true);
+}
+
+// Callback for new ignition messages
+std::function<void(const ignition::msgs::Any&, const ignition::transport::MessageInfo&)> iGazebo::ignitionCallbackFactory(const std::string moos_key) {
+  auto callback = [&](const ignition::msgs::Any &_msg, const ignition::transport::MessageInfo &_info) mutable -> void {
+    // TODO have srcAux be the notifying ignition node name
+    if (_info.Type() == "ignition::msgs::Double") {
+      // Type is double, post it as such
+      Notify(moos_key, _msg.double_value());
+    } else if (_info.Type() == "ignition::msgs::StringMsg") {
+      // Type is string, post it as such
+      // todo check this -- is double_value accurate?
+      Notify(moos_key, _msg.string_value());
+    } else {
+      // Type is any, post the debug string
+      // Consider using https://ignitionrobotics.org/api/gazebo/6.0/triggeredpublisher.html
+      reportRunWarning("Notifying unimplemented type " + _info.Type() + " from ignition topic " + _info.Topic());
+      Notify(moos_key, _msg.string_value());
+    }
+  };
+
+  return callback;
 }
 
 //---------------------------------------------------------
@@ -93,11 +140,20 @@ bool iGazebo::OnStartUp()
     string value = line;
 
     bool handled = false;
-    if(param == "foo") {
+    if(param == "moos_origin") {
+      string moos_key = biteStringX(line, ':');
+      string ign_key = line;
+      mapping_map.insert(pair<std::string, ignition::transport::Node::Publisher>(toupper(moos_key), node.Advertise<ignition::msgs::Any>(ign_key)));
+      Register(moos_key);
       handled = true;
-    }
-    else if(param == "bar") {
-      handled = true;
+    } else if (param == "ign_origin") {
+      string ign_key = biteStringX(line, ':');
+      string moos_key = line;
+      bool subscribedSuccessfully = false; //TODO node.Subscribe(ign_key, (ignitionCallbackFactory(moos_key)), this);
+      if (!subscribedSuccessfully) {
+        reportUnhandledConfigWarning("Unable to subscribe to " + ign_key);
+      }
+      handled = subscribedSuccessfully;
     }
 
     if(!handled)

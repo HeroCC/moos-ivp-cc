@@ -51,8 +51,8 @@ ADD_SUBDIRECTORY(iNeptune)
 #ADD_SUBDIRECTORY(pNeptuneSim) # unused
 #ADD_SUBDIRECTORY(iDriveDDS)
 
-# Gazebo Simulator Plugin
-ADD_SUBDIRECTORY(lib_gazebo_moos)
+# Ignition Gazebo Simulator Plugin
+ADD_SUBDIRECTORY(iGazebo)
 
 ##############################################################################
 #                           END of CMakeLists.txt
