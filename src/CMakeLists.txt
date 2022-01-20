@@ -30,8 +30,8 @@ ADD_SUBDIRECTORY(pGenPath)
 ADD_SUBDIRECTORY(uFldHazardMgrX)
 ENDIF()
 
-if (NOT APPLE)
-# pWebSocketServer doesn't build on MacOS with newer versions of Boost, so disable it for now
+if (Boost_VERSION LESS_EQUAL 1.54)
+# pWebSocketServer doesn't build on newer versions of Boost, so disable it for now
 ADD_SUBDIRECTORY(pWebSocketServer)
 endif()
 

@@ -2,7 +2,7 @@
 # FILE:  moos-ivp-cc/CMakeLists.txt
 #===========================================================================
 
-CMAKE_MINIMUM_REQUIRED(VERSION 3.2)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.7)
 PROJECT( IVP_CC )
 
 #=============================================================================
