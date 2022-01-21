@@ -1,0 +1,75 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  #config.vm.box = "peru/ubuntu-20.04-desktop-amd64"
+  #config.vm.box_version = "20220102.01"
+  config.vm.box = "generic/ubuntu2004"
+  config.vm.box_version = "3.6.4"
+
+  # Set VirtualBox parameters
+  config.vm.provider "virtualbox" do |vb|
+    vb.gui = true
+    vb.cpus = 4
+    vb.memory = 4096
+    # TODO VirtualBox only supports opengl ~2 something, but mesa's software renderer is more up to date
+    vb.customize ["modifyvm", :id, "--accelerate3d", "off"]
+  end
+
+  # VMWare Params
+  config.vm.provider "vmware_desktop" do |v|
+    v.gui = true
+    # https://www.basvanbeek.nl/linux/undocumented-vmware-vmx-parameters/
+    # VMWare supports newer opengl, but it is still broken: https://github.com/ignitionrobotics/ign-gazebo/issues/1116
+    v.vmx["mks.enable3d"] = "FALSE"
+    #v.vmx["mks.enableGLBackend"] = "TRUE"
+  end
+
+
+  config.ssh.forward_x11 = true
+
+  # Mount shared directory for ansible
+  #config.vm.synced_folder ".", "/vagrant", type: "virtualbox"
+
+  config.vm.provision "shell", inline: <<-SHELL
+    apt-get update
+    apt-get install -y curl open-vm-tools lsb-release wget gnupg neovim
+
+    # GUI
+    apt-get install tasksel mesa-utils libgl1-mesa-dri libglx-mesa0
+    tasksel install ubuntu-desktop-minimal
+
+    # Ros
+    sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
+    curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | apt-key add -
+    apt-get update
+    apt-get install -y ros-noetic-desktop-full ros-noetic-geographic-info ros-noetic-ros-control ros-noetic-gazebo-ros-control
+    apt-get install -y python3-rosdep python3-rosinstall python3-rosinstall-generator python3-wstool build-essential
+    rosdep init
+    rosdep update
+
+    # Gazebo
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] http://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/gazebo-stable.list > /dev/null
+    wget https://packages.osrfoundation.org/gazebo.gpg -O /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg
+    apt-get install -y ignition-fortress
+
+    # Moos
+    apt-get install -y cmake build-essential subversion git libtiff5-dev libfltk1.3-dev freeglut3-dev libpng-dev libjpeg-dev libxinerama-dev libxft-dev
+    apt-get clean
+  SHELL
+
+
+  config.vm.provision "shell", privileged: false, inline: <<-SHELL
+    cd ~
+    git clone https://github.com/ignitionrobotics/ign-gazebo.git
+    svn co https://oceanai.mit.edu/svn/moos-ivp-aro/trunk/ moos-ivp
+    git clone https://github.com/HeroCC/moos-ivp-cc.git
+
+    cd ~/moos-ivp
+    ./build.sh
+
+    cd ~/moos-ivp-cc
+    ./build.sh
+  SHELL
+ end
+
