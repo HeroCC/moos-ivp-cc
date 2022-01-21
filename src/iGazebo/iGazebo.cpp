@@ -142,8 +142,9 @@ bool iGazebo::OnStartUp()
     bool handled = false;
     if(param == "moos_origin") {
       string moos_key = biteStringX(line, ':');
+      //string moos_type = biteStringX(moos_key, '@');
       string ign_key = line;
-      mapping_map.insert(pair<std::string, ignition::transport::Node::Publisher>(toupper(moos_key), node.Advertise<ignition::msgs::Any>(ign_key)));
+      mapping_map.insert(pair<std::string, ignition::transport::Node::Publisher>(moos_key, node.Advertise<ignition::msgs::Double>(ign_key))); // TODO not a double
       Register(moos_key);
       handled = true;
     } else if (param == "ign_origin") {
