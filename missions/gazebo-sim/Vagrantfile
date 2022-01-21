@@ -35,10 +35,6 @@ Vagrant.configure("2") do |config|
     apt-get update
     apt-get install -y curl open-vm-tools lsb-release wget gnupg neovim
 
-    # GUI
-    apt-get install -y tasksel mesa-utils libgl1-mesa-dri libglx-mesa0
-    tasksel install ubuntu-desktop-minimal
-
     # Ros
     sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
     curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | apt-key add -
@@ -56,6 +52,10 @@ Vagrant.configure("2") do |config|
     # Moos
     apt-get install -y cmake build-essential subversion git libtiff5-dev libfltk1.3-dev freeglut3-dev libpng-dev libjpeg-dev libxinerama-dev libxft-dev
     apt-get clean
+
+    # GUI
+    apt-get install -y tasksel mesa-utils libgl1-mesa-dri libglx-mesa0
+    DEBIAN_FRONTEND=noninteractive tasksel install ubuntu-desktop-minimal
   SHELL
 
 
