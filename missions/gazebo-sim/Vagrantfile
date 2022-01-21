@@ -36,7 +36,7 @@ Vagrant.configure("2") do |config|
     apt-get install -y curl open-vm-tools lsb-release wget gnupg neovim
 
     # GUI
-    apt-get install tasksel mesa-utils libgl1-mesa-dri libglx-mesa0
+    apt-get install -y tasksel mesa-utils libgl1-mesa-dri libglx-mesa0
     tasksel install ubuntu-desktop-minimal
 
     # Ros
@@ -70,6 +70,9 @@ Vagrant.configure("2") do |config|
 
     cd ~/moos-ivp-cc
     ./build.sh
+
+    echo 'export PATH="$PATH:$HOME/moos-ivp/bin:$HOME/moos-ivp-cc/bin"' >> ~/.bashrc
+    echo 'export IVP_BEHAVIOR_DIRS="$HOME/moos-ivp/lib:$HOME/moos-ivp-cc/lib"' >> ~/.bashrc
   SHELL
  end
 
