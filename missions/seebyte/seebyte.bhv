@@ -4,10 +4,10 @@ initialize   DEPLOY = false
 initialize   NEPTUNE_SURVEY_TRAVERSE=true
 initialize   NEPTUNE_AVOID_OBSTACLES=true
 initialize   OPERATOR_OVERRIDE=false
-	
+
 //----------------------------------------------
 Behavior = BHV_Waypoint
-{ 
+{
   name      = neptune_waypt_survey
   pwt       = 100
   condition = DEPLOY = true
@@ -65,7 +65,7 @@ Behavior = BHV_AvoidObstacleV21
     visual_hints = obstacle_vertex_color = gray60
     visual_hints = obstacle_fill_color = gray60
     visual_hints = obstacle_fill_transparency = 0.7
-    
+
     visual_hints = buffer_min_edge_color = gray60
     visual_hints = buffer_min_vertex_color = dodger_blue
     visual_hints = buffer_min_vertex_size = 1
@@ -77,4 +77,16 @@ Behavior = BHV_AvoidObstacleV21
     visual_hints = buffer_max_vertex_size = 0
     visual_hints = buffer_max_fill_color = gray80
     visual_hints = buffer_max_fill_transparency = 0.1
+}
+
+// Used on UUVs
+Behavior = BHV_ConstantDepth
+{
+  name         = neptune_depth_survey
+  pwt          = 100
+  condition    = NEPTUNE_SURVEY_TRAVERSE=true
+  updates      = NEPTUNE_SURVEY_DEPTH
+  duration     = no-time-limit
+  perpetual    = true
+  depth        = 0
 }

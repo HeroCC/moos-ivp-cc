@@ -21,11 +21,6 @@ ProcessConfig = ANTLER
   Run = pNodeReporter    @ NewConsole = false
   Run = pHostInfo        @ NewConsole = false
 
-  // Autonomy
-  Run = pHelmIvP         @ NewConsole = false
-  Run = pMarinePID       @ NewConsole = false
-  Run = pObstacleMgr     @ NewConsole = false
-
   // Simulation
   #ifdef SIM
     Run = uSimMarine       @ NewConsole = false
@@ -33,6 +28,11 @@ ProcessConfig = ANTLER
     // TODO work with MikeD to replace this with Philos
     //Run = iM300            @ NewConsole = false
   #endif
+
+  // Autonomy
+  Run = pMarinePID       @ NewConsole = false
+  Run = pHelmIvP         @ NewConsole = false
+  Run = pObstacleMgr     @ NewConsole = false
 
   // Visualization
   #ifdef SHORE
@@ -72,10 +72,10 @@ ProcessConfig = iNeptune
 //--------------------------------------------------------
 ProcessConfig = pObstacleMgr
 {
-  AppTick   = 4 
-  CommsTick = 4 
+  AppTick   = 4
+  CommsTick = 4
 
-  point_var = TRACKED_FEATURE 
+  point_var = TRACKED_FEATURE
 
   post_view_polys = true
 
@@ -102,7 +102,7 @@ ProcessConfig = iM300
 }
 
 //------------------------------------------------------
-// uSimMarine Configuration Block 
+// uSimMarine Configuration Block
 
 ProcessConfig = uSimMarine
 {
@@ -114,6 +114,11 @@ ProcessConfig = uSimMarine
 
   //rotate_speed = 0.012
   //drift_x      = 0.0045
+
+  buoyancy_rate        = 0.15
+  max_depth_rate       = 5
+  max_depth_rate_speed = 2.0
+  default_water_depth  = 400
 
   //thrust_map = -100:-2, 0:0, 20:1, 40:2, 60:3, 80:5, 100:5
   //thrust_map = -100:-2, 0:0, 20:1, 40:2, 60:3, 80:5, 100:5
@@ -129,6 +134,8 @@ ProcessConfig = pRealm
 
   scope_set = name=neptune, vars=DEPLOY:MOOS_MANUAL_OVERRIDE:NEPTUNE_SURVEY_NEXT_POINT:NEPTUNE_SURVEY_VISITED_POINT
   scope_set = name=neptune, vars=NEPTUNE_SURVEY_TRAVERSE:NEPTUNE_SURVEY_UPDATE:SENT_NMEA:INCOMING_NMEA:GIVEN_OBSTACLE:OBM_RESOLVED
+  scope_set = name=neptune, vars=NEPTUNE_SURVEY_DEPTH
+
 }
 
 //---------------------------------------
@@ -138,15 +145,15 @@ ProcessConfig = pMarinePID
   CommsTick  = 10
 
   VERBOSE       = true
-  DEPTH_CONTROL = false
+  DEPTH_CONTROL = true
   ACTIVE_START  = true
 
   // Yaw PID controller (Set for M300)
-  YAW_PID_KP             = 0.35 
-  YAW_PID_KD             = 0.07 
-  YAW_PID_KI             = 0.0  
-  YAW_PID_INTEGRAL_LIMIT = 0.07 
-	
+  YAW_PID_KP             = 0.35
+  YAW_PID_KD             = 0.07
+  YAW_PID_KI             = 0.0
+  YAW_PID_INTEGRAL_LIMIT = 0.07
+
   // Speed PID controller
   SPEED_PID_KP           = 1.0
   SPEED_PID_KD           = 0.0
@@ -156,6 +163,21 @@ ProcessConfig = pMarinePID
   // Maximums
   MAXRUDDER  = 100 // 100
   MAXTHRUST  = 84
+
+  // Depth
+  maxpitch     = 15
+  maxelevator  = 13
+  //Pitch PID controller
+  pitch_pid_kp                   = 1.5
+  pitch_pid_kd                   = 0.3
+  pitch_pid_ki                   = 0.004
+  pitch_pid_integral_limit       = 0
+
+  //ZPID controller
+  z_to_pitch_pid_kp              = 0.12
+  z_to_pitch_pid_kd              = 0.1
+  z_to_pitch_pid_ki              = 0.004
+  z_to_pitch_pid_integral_limit  = 0.05
 
   // A non-zero SPEED_FACTOR overrides use of SPEED_PID
   // Will set DESIRED_THRUST = DESIRED_SPEED * SPEED_FACTOR
@@ -173,6 +195,7 @@ ProcessConfig = pLogger
   AsyncLog = true
 
   Path = ./logs/
+  File = LOG_$(COMMUNITY)
 
   // For variables that are published in a bundle on their first post,
   // explicitly declare their logging request
@@ -215,6 +238,7 @@ ProcessConfig = pHelmIvP
   behaviors  = $(COMMUNITY).bhv
   domain     = course:0:359:360
   domain     = speed:0:4:41
+  domain     = depth:0:100:101
 }
 
 //------------------------------------------
@@ -227,7 +251,7 @@ ProcessConfig = pNodeReporter
 
   crossfill_policy = fill-empty
 
-  platform_type   = kayak
+  platform_type   = uuv
   platform_color  = yellow
   platform_length = 4
 }

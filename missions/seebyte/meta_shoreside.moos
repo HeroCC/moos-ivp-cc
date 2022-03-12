@@ -7,9 +7,9 @@ Community  = shoreside
 MOOSTimeWarp = $(WARP)
 
 #include plug_origin_warp.moos
-  
+
 //--------------------------------------------------------
-Processconfig = ANTLER
+ProcessConfig = ANTLER
 {
   MSBetweenLaunches = 200
 
@@ -45,7 +45,7 @@ ProcessConfig = pMarineViewer
   hash_viewable        = true
 
   trails_point_size   = 1
-  vehicles_name_mode = names+mode
+  vehicles_name_mode = names+depth
 
   // Appcast configuration
   appcast_height       = 75
@@ -55,7 +55,7 @@ ProcessConfig = pMarineViewer
   nodes_font_size      = medium
   procs_font_size      = medium
   appcast_font_size    = small
-  
+
   datum_viewable = true
 
   //left_context[survey-point] = DEPLOY=true
@@ -72,18 +72,18 @@ ProcessConfig = pMarineViewer
   scope  = NEPTUNE_SURVEY_UPDATE
 
   button_one = MEGA_STOP # DEPLOY_ALL=false
-  button_one = MOOS_MANUAL_OVERRIDE_ALL=true 
+  button_one = MOOS_MANUAL_OVERRIDE_ALL=true
   button_one = OPERATOR_OVERRIDE_ALL=true
 
   button_three = MEGA_START # DEPLOY_ALL = true
-  button_three = MOOS_MANUAL_OVERRIDE_ALL=false 
+  button_three = MOOS_MANUAL_OVERRIDE_ALL=false
   button_three = OPERATOR_OVERRIDE_ALL=false
 
 #ifdef SIM
   button_two = SIMULATE_DEPLOY # DEPLOY_ALL=true
   button_two = MOOS_MANUAL_OVERRIDE_ALL = false
   //button_two = NEPTUNE_SURVEY_UPDATE_ALL = "points=pts={-60,-131:155,-26:155,-26}"
-  button_two = NEPTUNE_SURVEY_UPDATE_ALL = "points=pts={5,-50:0,-350},wptflag = NEPTUNE_SURVEY_VISITED_POINT = id=pmarineviewer,px=$[PX],py=$[PY],pi=$[PI]"
+  button_two = NEPTUNE_SURVEY_UPDATE_ALL = "points=pts={5,-50,12:0,-350,20},wptflag = NEPTUNE_SURVEY_VISITED_POINT = id=pmarineviewer,px=$[PX],py=$[PY],pi=$[PI]"
   button_two = NEPTUNE_SURVEY_TRAVERSE_ALL = true
 #endif
 
@@ -122,9 +122,9 @@ ProcessConfig = uFldObstacleSim
 	min_duration = 400
   max_duration = 500
 	refresh_interval = 200
-	
+
 	reuse_ids = false
-	
+
 	reset_interval = 300
 	reset_range    = 10
 }
@@ -177,6 +177,7 @@ ProcessConfig = uFldShoreBroker
   QBRIDGE = STATION_KEEP, APPCAST_REQ
   QBRIDGE = MOOS_MANUAL_OVERRIDE, OPERATOR_OVERRIDE
   QBRIDGE = NEPTUNE_AVOID_OBSTACLES, NEPTUNE_SURVEY_TRAVERSE, NEPTUNE_SURVEY_UPDATE
+  QBRIDGE = NEPTUNE_SURVEY_DEPTH
   QBRIDGE = TRACKED_FEATURE
 
   bridge  = src=GIVEN_OBSTACLE
@@ -191,14 +192,14 @@ ProcessConfig = pLogger
 {
   AppTick       = 10
   CommsTick     = 10
-  
+
   File          = LOG_SHORESIDE
   PATH          = ./logs
   AsyncLog      = true
   FileTimeStamp = true
 
   // Log it all!!!!!
-  WildCardLogging = true 
+  WildCardLogging = true
 }
 
 

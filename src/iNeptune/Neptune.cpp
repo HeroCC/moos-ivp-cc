@@ -31,7 +31,7 @@ Neptune::~Neptune()
 }
 
 // ----------------------
-// Generate NMEA Messages 
+// Generate NMEA Messages
 
 string Neptune::genMONVGString(const NodeRecord record) {
   // Very similar to CPNVG from https://oceanai.mit.edu/herons/docs/ClearpathWireProtocolV0.2.pdf
@@ -99,16 +99,18 @@ bool Neptune::SeglistToLatLon(XYSegList seglist, string& newString) {
 bool Neptune::LatLonToSeglist(string pointsStr, XYSegList& segList) {
   string curPointString = biteStringX(pointsStr, ':');
   while (!curPointString.empty()) {
-    double lat, lon, x, y;
+    double lat, lon, x, y, z;
+    reportEvent(curPointString);
     try {
       lat = stod(biteStringX(curPointString, ','));
-      lon = stod(curPointString);
+      lon = stod(biteStringX(curPointString, ','));
+      setDoubleOnString(z, curPointString);
     } catch (invalid_argument& e) {
       reportRunWarning("Unable to parse latitude / longitude!");
       return false;
     }
     m_geo.LatLong2LocalUTM(lat, lon, y, x);
-    segList.add_vertex(x, y);
+    segList.add_vertex(x, y, z);
     curPointString = biteStringX(pointsStr, ':');
   }
   return true;
@@ -122,6 +124,7 @@ void Neptune::updateWayptBehavior(std::string sequenceId) {
     string wptNextFlagWithId = "wptflag = NEPTUNE_SURVEY_NEXT_POINT = id=" + sequenceId + ",utc=$[UTC],nx=$[NX],ny=$[NY],ni=$[NI]";
     Notify("NEPTUNE_SURVEY_UPDATE", pointsStr + " # " + wptFlagWithId + " # " + wptNextFlagWithId);
     Notify("NEPTUNE_SURVEY_TRAVERSE", "true");
+    Notify("NEPTUNE_SURVEY_DEPTH", "depth=" + doubleToStringX(points.get_vz(0))); // first depth is handled here, and later is updated when we get waypoint endflags
   } else {
     // Sending an empty list of points makes the behavior get upset, so use a condition flag
     Notify("NEPTUNE_SURVEY_TRAVERSE", "false");
@@ -151,7 +154,7 @@ void Neptune::handleMOREG(string contents) {
 }
 
 void Neptune::handleMOWPT(string contents) {
-  // $MOWPT,timestamp,waypointSequenceId,reset,{lat1,lon1:lat2,lon2:...:latN,lonN}*XX
+  // $MOWPT,timestamp,waypointSequenceId,reset,{lat1,lon1[,depth]:lat2,lon2[,depth]:...:latN,lonN[,depth]}*XX
   // Set or add to XYSegList of Points. Relies on a valid m_geo.
   // Since we translate from lat,lon -> XY, we may lose precision as we get extremely far from datum.
   if (!m_geo_initialized) {
@@ -197,9 +200,10 @@ void Neptune::handleMOHLM(string contents) {
 }
 
 void Neptune::handleMOGOH(string contents) {
-  // $MOGOH,timestamp,heading,speed*XX
+  // $MOGOH,timestamp,heading,speed,depth*XX
   string headingString = biteStringX(contents, ',');
   string speedString = biteStringX(contents, ',');
+  string depthString = biteStringX(contents, ',');
 
   bool deployState = false;
   setBooleanOnString(deployState, m_deploy_val);
@@ -213,7 +217,8 @@ void Neptune::handleMOGOH(string contents) {
     reportEvent("Got $MOGOH request, but DEPLOY is true. Continuing, but you should ensure waypoints are cleared");
   }
 
-  double hdgVal, speedVal;
+  double hdgVal, speedVal, depthVal;
+  setDoubleOnString(depthVal, depthString); // If we can't parse this, 0 depth is assumed
   if (!(setDoubleOnString(hdgVal, headingString) && setDoubleOnString(speedVal, speedString))) {
     // Parsing error
     reportRunWarning("Unable to parse heading / speed from $MOGOH! Doing nothing.");
@@ -222,6 +227,7 @@ void Neptune::handleMOGOH(string contents) {
 
   Notify("DESIRED_HEADING", hdgVal);
   Notify("DESIRED_SPEED", speedVal);
+  Notify("DESIRED_DEPTH", depthVal);
   reportEvent("Neptune set new desired heading: " + doubleToStringX(hdgVal) +", speed: " + doubleToStringX(speedVal));
 }
 
@@ -309,7 +315,7 @@ bool Neptune::OnNewMail(MOOSMSG_LIST &NewMail)
 #if 0 // Keep these around just for template
     string comm  = msg.GetCommunity();
     double dval  = msg.GetDouble();
-    string sval  = msg.GetString(); 
+    string sval  = msg.GetString();
     string msrc  = msg.GetSource();
     double mtime = msg.GetTime();
     bool   mdbl  = msg.IsDouble();
@@ -345,6 +351,7 @@ bool Neptune::OnNewMail(MOOSMSG_LIST &NewMail)
        reportEvent("Reporting resolved obstacle: " + name);
      } else if (key == "NEPTUNE_SURVEY_VISITED_POINT") {
        // Visited a point, so remove it from list
+       // TODO we ignore depth right now, eventually grab that endflag too
        string val = msg.GetString();
        string sequenceId = tokStringParse(val, "id", ',', '=');
        double x, y;
@@ -352,13 +359,17 @@ bool Neptune::OnNewMail(MOOSMSG_LIST &NewMail)
        if (m_tracking_sequence_id != sequenceId) {
          // The BHV_Waypoint is informing us of old previous sequence IDs -- we can't clear wptflags though, so just ignore
          // TODO ask Mike to make `wptflag = clear` reset the list of wptflags (could be expanded to other flags too)
-       } else if (tokParse(val, "px", ',', '=', x) 
-         && tokParse(val, "py", ',', '=', y) 
+       } else if (tokParse(val, "px", ',', '=', x)
+         && tokParse(val, "py", ',', '=', y)
          && tokParse(val, "pi", ',', '=', i)
          ) {
          reportEvent("Visited point [" + intToString(i) + "] (" + doubleToString(x, 1) + ", " + doubleToString(y, 1) + ") from seq " + sequenceId);
          send_queue.push(genMOMISString(sequenceId, i));
          points.delete_vertex(x, y);
+         if (points.size() > 0) {
+          // remain at the last depth if we are out of points, otherwise we would surface (which may be a feature I'm disabling, only marketing knows)
+          Notify("NEPTUNE_SURVEY_DEPTH", "depth=" + doubleToStringX(points.get_vz(0))); // the waypoint behavior doesn't handle depth, so when we visit points go to new depth
+         }
        } else {
          reportRunWarning("Received a visited point, but was unable to parse it: " + msg.GetString());
        }
@@ -380,7 +391,7 @@ bool Neptune::OnNewMail(MOOSMSG_LIST &NewMail)
   if (sendMOMIS) {
     send_queue.push(genMOMISString(m_tracking_sequence_id, -1));
   }
-	
+
    return(true);
 }
 
@@ -496,7 +507,7 @@ bool Neptune::OnStartUp()
     reportRunWarning("Error calculating datum! XY Local Grid Unavailable");
   }
 
-  registerVariables();	
+  registerVariables();
   return(true);
 }
 
@@ -539,7 +550,7 @@ void Neptune::handleNinjaEvents()
 //------------------------------------------------------------
 // Procedure: buildReport()
 
-bool Neptune::buildReport() 
+bool Neptune::buildReport()
 {
   m_msgs << "Pending Outbox Messages: " << intToString(send_queue.size()) << endl;
   m_msgs << "Neptune Requested Mailings: " << intToString(forward_mail.size()) << endl;
