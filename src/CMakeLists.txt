@@ -52,7 +52,9 @@ ADD_SUBDIRECTORY(iNeptune)
 #ADD_SUBDIRECTORY(iDriveDDS)
 
 # Ignition Gazebo Simulator Plugin
+if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 ADD_SUBDIRECTORY(iGazebo)
+endif()
 
 ##############################################################################
 #                           END of CMakeLists.txt
