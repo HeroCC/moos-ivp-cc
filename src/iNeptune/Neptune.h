@@ -16,13 +16,13 @@ class Neptune : public AppCastingMOOSApp
    Neptune();
    ~Neptune();
 
- protected: // Standard MOOSApp functions to overload  
+ protected: // Standard MOOSApp functions to overload
    bool OnNewMail(MOOSMSG_LIST &NewMail);
    bool Iterate();
    bool OnConnectToServer();
    bool OnStartUp();
 
- protected: // Standard AppCastingMOOSApp function to overload 
+ protected: // Standard AppCastingMOOSApp function to overload
    bool buildReport();
    void registerVariables();
 
@@ -34,6 +34,7 @@ class Neptune : public AppCastingMOOSApp
     std::string genMOAVDString(std::string name, XYPolygon xyPoints);
     std::string genMODLOString(std::string obstacleID);
     static std::string genMOVALString(std::string key, std::string value, time_t time);
+    std::string genMOEXTString(std::string contents);
 
     void handleMOPOK(std::string contents);
     void handleMOREG(std::string contents);
@@ -41,6 +42,7 @@ class Neptune : public AppCastingMOOSApp
     void handleMOHLM(std::string contents);
     void handleMOAVD(std::string contents);
     void handleMOGOH(std::string contents);
+    void handleMOEXT(std::string contents);
 
     bool ConnectToNMEAServer();
     void updateWayptBehavior(std::string id);
@@ -77,4 +79,4 @@ class Neptune : public AppCastingMOOSApp
     std::string m_tracking_sequence_id;
 };
 
-#endif 
+#endif

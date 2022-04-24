@@ -2,7 +2,7 @@
 // NAME: C. Cesar, MIT CSAIL
 //-------------------------------------------------
 ServerHost   = localhost
-ServerPort   = 9005
+ServerPort   = $(DB_PORT)
 Community    = $(COMMUNITY)
 MOOSTimeWarp = $(WARP)
 
@@ -34,12 +34,13 @@ ProcessConfig = ANTLER
   Run = pHelmIvP         @ NewConsole = false
   Run = pObstacleMgr     @ NewConsole = false
 
-  // Visualization
+  // Visualization and Multi-Vehicle communications
   #ifdef SHORE
     // If shore is defined, enable pShare and the broker for comms
     Run = pShare          @ NewConsole = false
     Run = pRealm          @ NewConsole = false
     Run = uFldNodeBroker  @ NewConsole = false
+    Run = uFldMessageHandler @ NewConsole = false
   #endif
 
   #ifdef DISPLAY
@@ -235,7 +236,7 @@ ProcessConfig = pHelmIvP
 
   other_override_var = OPERATOR_OVERRIDE
 
-  behaviors  = $(COMMUNITY).bhv
+  behaviors  = seebyte.bhv
   domain     = course:0:359:360
   domain     = speed:0:4:41
   domain     = depth:0:100:101

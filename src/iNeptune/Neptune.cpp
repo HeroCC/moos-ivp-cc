@@ -11,6 +11,7 @@
 #include "Neptune.h"
 #include "XYFormatUtilsPoly.h"
 #include "NodeRecordUtils.h"
+#include "NodeMessage.h"
 
 using namespace std;
 
@@ -64,6 +65,10 @@ string Neptune::genMOAVDString(string name, XYPolygon xyPoints) {
 
 string Neptune::genMODLOString(string obstacleID) {
   return NMEAUtils::genNMEAString("MODLO", obstacleID);
+}
+
+string Neptune::genMOEXTString(string content) {
+  return NMEAUtils::genNMEAString("MOEXT", content);
 }
 
 // TODO use proper seglist -- needs mike to tweak pop_last_vertex to return XYPoint
@@ -253,6 +258,20 @@ void Neptune::handleMOAVD(string contents) {
   reportEvent("Updated Neptune ignore area: " + regionID);
 }
 
+void Neptune::handleMOEXT(string content) {
+  // Outgoing broadcast to all Neptune nodes
+  // $MOEXT,00000,messageToBroadcast*FF
+  NodeMessage node_message;
+
+  node_message.setSourceApp(GetAppName());
+  node_message.setSourceNode(m_Comms.GetCommunityName());
+  node_message.setDestNode("all");
+  node_message.setVarName("NEPTUNE_BROADCAST");
+  node_message.setStringVal(content);
+
+  Notify("NODE_MESSAGE_LOCAL", node_message.getSpec());
+}
+
 void Neptune::handleIncomingNMEA(const string _rx) {
   string rx = _rx;
   MOOSTrimWhiteSpace(rx);
@@ -292,6 +311,9 @@ void Neptune::handleIncomingNMEA(const string _rx) {
     handleMOAVD(nmeaNoChecksum);
   } else if (MOOSStrCmp(key, "$MOGOH")) {
     handleMOGOH(nmeaNoChecksum);
+  } else if (MOOSStrCmp(key, "$MOEXT")) {
+    reportEvent(nmeaNoChecksum);
+    handleMOEXT(nmeaNoChecksum);
   } else {
     reportRunWarning("Unhandled Command: " + key);
   }
@@ -334,6 +356,8 @@ bool Neptune::OnNewMail(MOOSMSG_LIST &NewMail)
        if (m_ninja.isConnected()) {
          send_queue.push(genMONVGString(string2NodeRecord(msg.GetString(), true)));
        }
+     } else if (key == "NEPTUNE_BROADCAST") {
+       send_queue.push(genMOEXTString(msg.GetAsString()));
      } else if (key == "OBSTACLE_INFORM") {
        string message = msg.GetString();
        string name = tokStringParse(message, "name", '#', '=');
@@ -533,6 +557,9 @@ void Neptune::registerVariables()
 
   // $MOGOH
   Register("MOOS_MANUAL_OVERRIDE", 0);
+
+  // $MOEXT
+  Register("NEPTUNE_BROADCAST", 0);
 
   Register("NEPTUNE_SURVEY_VISITED_POINT", 0);
 }

@@ -41,3 +41,13 @@ ProcessConfig = uFldNodeBroker
   bridge = src=NODE_MESSAGE_LOCAL, alias=NODE_MESSAGE
 }
 
+//------------------------------------------
+// uFldMessageHandler config block
+
+ProcessConfig = uFldMessageHandler
+{
+  AppTick    = 2
+  CommsTick  = 2
+
+  strict_addressing = false
+}

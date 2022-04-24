@@ -9,7 +9,8 @@
 trap "pkill -INT -P $$ && wait $(jobs -p)" EXIT SIGTERM SIGHUP SIGINT SIGKILL
 
 TIME_WARP=${TIME_WARP:-1}
-COMMUNITY="seebyte"
+COMMUNITY="${COMMUNITY:-seebyte}"
+DB_PORT="${DB_PORT:-9005}"
 NMEA_HOST="${NMEA_HOST:-127.0.0.1}"
 NMEA_PORT="${NMEA_PORT:-10110}"
 NMEA_CHECKSUM="${NMEA_CHECKSUM:-true}"
@@ -56,16 +57,16 @@ for ARGI; do
     SHORE_HOST="${__SHORE[0]}"
     SHORE_PORT="${__SHORE[1]:=SHORE_PORT}"
     unset SHORE
-  elif [ "${ARGI//[^0-9]/}" = "$ARGI" -a "$TIME_WARP" = 1 ]; then 
+  elif [ "${ARGI//[^0-9]/}" = "$ARGI" -a "$TIME_WARP" = 1 ]; then
     TIME_WARP=$ARGI
-  else 
+  else
     printf "Bad Argument: %s \n" $ARGI
     exit 0
   fi
 done
 
 # Resolve IPs where applicable
-if [ -n "$SHORE_HOST" ] && echo "$SHORE_HOST" | grep -v '[0-9]\{1,3\}\(\.[0-9]\{1,3\}\)\{3\}'; then 
+if [ -n "$SHORE_HOST" ] && echo "$SHORE_HOST" | grep -v '[0-9]\{1,3\}\(\.[0-9]\{1,3\}\)\{3\}'; then
   SHORE_HOST="$(ping -c 1 -t 1 $SHORE_HOST | head -1 | cut -d ' ' -f 3 | tr -d '()\:')"
   if [ -z "$SHORE_HOST" ]; then
     echo "Unable to resolve SHORE_HOST '$SHORE_HOST' to IP!"
@@ -85,10 +86,10 @@ fi
 #  Part 3: Build the targ_*.moos file
 #----------------------------------------------------------
 mkdir -p logs/
-nsplug meta_${COMMUNITY}.moos targ_${COMMUNITY}.moos -f \
+nsplug meta_seebyte.moos targ_${COMMUNITY}.moos -f \
   DISPLAY=$DISPLAY WARP=$TIME_WARP COMMUNITY=$COMMUNITY \
   SIM=$SIM HERON_HOST=$HERON_HOST \
-  SHORE=$SHORE \
+  SHORE=$SHORE DB_PORT=$DB_PORT \
   PSHARE_PORT=$PSHARE_PORT HOST_IP=$HOST_IP \
   NMEA_HOST=$NMEA_HOST NMEA_PORT=$NMEA_PORT \
   NMEA_TIME_DELTA=$NMEA_TIME_DELTA NMEA_CHECKSUM=$NMEA_CHECKSUM
