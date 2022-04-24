@@ -103,6 +103,9 @@ void showInterfaceAndExit()
   blk("  DEPLOY, IVPHELM_ALLSTOP, NEPTUNE_SURVEY_VISITED_POINT (from waypoint survey behavior)");
   blk("     -- For NMEA message $MOMIS                                 ");
   blk("                                                                ");
+  blk("  NEPTUNE_BROADCAST");
+  blk("     -- For NMEA message $MOEXT                                 ");
+  blk("                                                                ");
   blk("  Any other MOOS mailing could potentially be subscribed ");
   blk("  to with $MOREG, and returned with $MOVAL                      ");
   blk("                                                                ");
@@ -115,6 +118,7 @@ void showInterfaceAndExit()
   blk("  DEPLOY                  -- Deploys behaviors (via $MOHLM)      ");
   blk("  MOOS_MANUAL_OVERRIDE    -- Halts Helm (via $MOHLM)      ");
   blk("  GIVEN_OBSTACLE          -- Region to avoid (via $MOAVD)      ");
+  blk("  NODE_MESSAGE_LOCAL      -- For broadcasting $MOEXT data");
   blk("  Any other message could be poked with $MOPOK      ");
   blk("                                                                ");
   exit(0);
