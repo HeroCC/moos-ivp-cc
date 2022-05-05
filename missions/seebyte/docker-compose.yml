@@ -1,6 +1,6 @@
 version: '3.7'
 services:
-  moos_vehicle:
+  moos_usv:
     image: "herocc/moos-ivp-cc:latest" # you should change this to a specific tag
     stdin_open: true
     tty: true
@@ -8,12 +8,13 @@ services:
     ports:
       - "9305:9305/udp" # Expose pShare if $SHORE is set
     volumes:
-      - "./logs/moos-logs/vehicle:/home/moos/moos-ivp-cc/missions/seebyte/logs"
+      - "./logs/moos-logs/vehicle/usv:/home/moos/moos-ivp-cc/missions/seebyte/logs"
     environment:
       - MISSION=seebyte
+      - COMMUNITY=seebyte_usv
       - LAUNCH_TYPE=vehicle
       - TIME_WARP=1 # 1 is realtime, increase to speed up (use only in simulation)
-      - NMEA_HOST=neptune # address / hostname of command server
+      - NMEA_HOST=neptune_usv # address / hostname of command server
       - SIM=yes # Set if this is a simulation (use uSimMarine rather than iM300)
       #- HERON_HOST=192.168.10.1 # Ignored if SIM is set, should be IP of heron frontseat
       #- NMEA_PORT=10110 # if not the default (10110), set NMEA host port
@@ -25,7 +26,27 @@ services:
       - PSHARE_PORT=9305 # Used to communicate with shoreside (incoming port), you should expose this
     networks:
       - moos
-  
+
+  moos_uuv:
+    image: "herocc/moos-ivp-cc:latest" # you should change this to a specific tag
+    stdin_open: true
+    tty: true
+    init: true
+    ports:
+      - "9306:9306/udp"
+    volumes:
+      - "./logs/moos-logs/vehicle/uuv:/home/moos/moos-ivp-cc/missions/seebyte/logs"
+    environment:
+      - MISSION=seebyte
+      - LAUNCH_TYPE=vehicle
+      - NMEA_HOST=neptune_uuv
+      - COMMUNITY=seebyte_uuv
+      - SIM=yes
+      - SHORE_HOST=moos_shoreside
+      - PSHARE_PORT=9306
+    networks:
+      - moos
+
   # The shoreside image -- acts as control pane
   moos_shoreside:
     image: "herocc/moos-ivp-cc:latest" # you should change this to a specific tag
@@ -50,23 +71,38 @@ services:
     networks:
       - moos
 
-  neptune:
-    # Wait ~1m, then `docker exec -it seebyte_neptune_1 bash -ic 'rosservice call /usv1/seebyte_arbiter/control "{enable: 1, running: 1}"'`
-    image: "neptune-moos-amd64:v0.8.1-mission1"
+  neptune_usv:
+    # Wait ~1m, then `docker exec -it seebyte_neptune_usv_1 bash -ic 'rosservice call /usv1/seebyte_arbiter/control "{enable: 1, running: 1}"'`
+    image: "seebyte-dkr.docker.seebyte.com/onrmit-neptune-amd64:v1.0.3"
     command: ["/opt/seebyte/docker/entrypoint.sh"]
     init: true
-    ports:
-      - "10110:10110"
     volumes:
-      - "./logs/neptune-logs/:/home/neptune/seebyte/seebyte_neptune/logs"
-      #- "./mission.kml:/home/neptune/seebyte/seebyte_neptune/data/mission.kml"
+      - "./logs/neptune-logs/usv:/home/neptune/seebyte/seebyte_neptune/logs"
+      #- "./mission.kml:/home/neptune/seebyte/seebyte_neptune/data/mission.kml:ro"
       #- "./moos_bridge.json:/home/neptune/seebyte/seebyte_neptune/config/moos_bridge.json"
     environment:
+      - VEHICLE_ID=usv # or uuv - TODO: new image will automatically use this for both NPTN_ID and SOLAR_VEHLCIE
       - ROSCONSOLE_STDOUT_LINE_BUFFERED=1
       - NEPTUNE_BROADCAST_IP=${NEPTUNE_IP}
+      - NPTN_ID=usv
+      - SOLAR_VEHICLE_NAME=uuv
     networks:
       neptune_net:
         ipv4_address: ${NEPTUNE_IP}
+      moos:
+
+  neptune_uuv:
+    image: "seebyte-dkr.docker.seebyte.com/onrmit-neptune-amd64:v1.0.3"
+    command: ["/opt/seebyte/docker/entrypoint.sh"]
+    init: true
+    volumes:
+      - "./logs/neptune-logs/uuv:/home/neptune/seebyte/seebyte_neptune/logs"
+    environment:
+      - VEHICLE_ID=uuv
+      - ROSCONSOLE_STDOUT_LINE_BUFFERED=1
+      - NPTN_ID=uuv
+      - SOLAR_VEHICLE_NAME=uuv
+    networks:
       moos:
 
 networks:
