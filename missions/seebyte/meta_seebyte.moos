@@ -119,7 +119,9 @@ ProcessConfig = uSimMarine
   buoyancy_rate        = 0.15
   max_depth_rate       = 5
   max_depth_rate_speed = 2.0
-  default_water_depth  = 400
+
+  // Charles River is usually 16-22 feet, 33 at max (thx Tyler & co)
+  default_water_depth  = 7
 
   //thrust_map = -100:-2, 0:0, 20:1, 40:2, 60:3, 80:5, 100:5
   //thrust_map = -100:-2, 0:0, 20:1, 40:2, 60:3, 80:5, 100:5
