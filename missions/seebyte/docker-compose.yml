@@ -98,7 +98,7 @@ services:
     command: ["/opt/seebyte/docker/entrypoint.sh"]
     init: true
     ports:
-      - "10110:10111"
+      - "10111:10110"
     volumes:
       - "./logs/neptune-logs/uuv:/home/neptune/seebyte/seebyte_neptune/logs"
     environment:
