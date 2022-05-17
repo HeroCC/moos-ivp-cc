@@ -76,6 +76,8 @@ services:
     image: "seebyte-dkr.docker.seebyte.com/onrmit-neptune-amd64:beta"
     command: ["/opt/seebyte/docker/entrypoint.sh"]
     init: true
+    ports:
+      - "10110:10110"
     volumes:
       - "./logs/neptune-logs/usv:/home/neptune/seebyte/seebyte_neptune/logs"
       #- "./mission.kml:/home/neptune/seebyte/seebyte_neptune/data/mission.kml:ro"
@@ -95,6 +97,8 @@ services:
     image: "seebyte-dkr.docker.seebyte.com/onrmit-neptune-amd64:beta"
     command: ["/opt/seebyte/docker/entrypoint.sh"]
     init: true
+    ports:
+      - "10110:10111"
     volumes:
       - "./logs/neptune-logs/uuv:/home/neptune/seebyte/seebyte_neptune/logs"
     environment:
