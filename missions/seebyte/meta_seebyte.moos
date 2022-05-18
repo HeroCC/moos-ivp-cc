@@ -24,9 +24,6 @@ ProcessConfig = ANTLER
   // Simulation
   #ifdef SIM
     Run = uSimMarine       @ NewConsole = false
-  #else
-    // TODO work with MikeD to replace this with Philos
-    //Run = iM300            @ NewConsole = false
   #endif
 
   // Autonomy
@@ -35,9 +32,9 @@ ProcessConfig = ANTLER
   Run = pObstacleMgr     @ NewConsole = false
 
   // Visualization and Multi-Vehicle communications
+  Run = pShare          @ NewConsole = false
   #ifdef SHORE
     // If shore is defined, enable pShare and the broker for comms
-    Run = pShare          @ NewConsole = false
     Run = pRealm          @ NewConsole = false
     Run = uFldNodeBroker  @ NewConsole = false
     Run = uFldMessageHandler @ NewConsole = false
@@ -89,20 +86,6 @@ ProcessConfig = pObstacleMgr
 }
 
 //------------------------------------------------------
-ProcessConfig = iM300
-{
-  AppTick   = 10
-  CommsTick = 10
-
-  IP_ADDRESS     = $(HERON_HOST)
-  PORT_NUMBER    = 29500
-  GPS_PREFIX     = NAV_
-
-  MAX_RUDDER     = 50.0       // Maximum Rudder Angle  [+/- deg]
-  MAX_THRUST     = 100.0      // Maximum Thrust        [+/- %]
-}
-
-//------------------------------------------------------
 // uSimMarine Configuration Block
 
 ProcessConfig = uSimMarine
@@ -125,6 +108,36 @@ ProcessConfig = uSimMarine
 
   //thrust_map = -100:-2, 0:0, 20:1, 40:2, 60:3, 80:5, 100:5
   //thrust_map = -100:-2, 0:0, 20:1, 40:2, 60:3, 80:5, 100:5
+}
+
+ProcessConfig = pMarineViewer
+{
+  AppTick    = 4
+  CommsTick  = 4
+
+	tiff_file            = MIT_SP.tif
+
+  set_pan_x            = -90
+  set_pan_y            = -280
+  zoom                 = 0.65
+  vehicle_shape_scale  = 1.5
+  hash_delta           = 50
+  hash_shade           = 0.22
+  hash_viewable        = true
+
+  trails_point_size   = 1
+  vehicles_name_mode = names+depth
+
+  // Appcast configuration
+  appcast_height       = 75
+  appcast_width        = 30
+  appcast_viewable     = true
+  appcast_color_scheme = indigo
+  nodes_font_size      = medium
+  procs_font_size      = medium
+  appcast_font_size    = small
+
+  datum_viewable = true
 }
 
 //------------------------------------------------------
@@ -259,3 +272,23 @@ ProcessConfig = pNodeReporter
   platform_length = 4
 }
 
+//---------------------------------------------------------
+// pShare to Shoreside and the Vehicle Driver community
+
+ProcessConfig = pShare
+{
+  AppTick    = 2
+  CommsTick  = 2
+
+  // Shoreside info handled by uFldShoreBroker
+
+  input = route =  localhost:$(PSHARE_PORT)
+
+  // VEHICLE_ROUTE allows this MOOS environment to remain a dockerized / untouched system,
+  // Only sharing out the DESIRED_* information to the vehicle
+#ifdef VEHICLE_ROUTE
+  // Send our DESIRED_* information to the vehicle
+  // If it has any NAV_*, or sensor information we require, it should send that back to us
+  Output = src_name=DESIRED_*, route=$(VEHICLE_ROUTE)
+#endif
+}

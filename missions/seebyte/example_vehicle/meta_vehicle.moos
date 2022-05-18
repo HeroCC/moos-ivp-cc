@@ -1,0 +1,92 @@
+ServerHost   = localhost
+ServerPort   = 8990
+Community    = example-vehicle
+MOOSTimeWarp = 1
+
+// MIT Sailing Pavilion
+LatOrigin  = 42.358456
+LongOrigin = -71.087589
+
+//------------------------------------------
+// Antler configuration block
+ProcessConfig = ANTLER
+{
+  MSBetweenLaunches = 200
+
+  // Essentials
+  Run = MOOSDB           @ NewConsole = false
+  Run = pLogger          @ NewConsole = false
+  Run = uProcessWatch    @ NewConsole = false
+  Run = pHostInfo        @ NewConsole = false
+
+  // Vehicle Driver
+  // Replace uSimMarine with your real driver
+  Run = uSimMarine       @ NewConsole = false
+
+  // Send navigation messages back to Neptune's community
+  Run = pShare           @ NewConsole = false
+
+  // For testing
+  //Run = pMarineViewer    @ NewConsole = false
+  //Run = pNodeReporter    @ NewConsole = false
+}
+
+//------------------------------------------------------
+// uSimMarine Configuration Block
+
+ProcessConfig = uSimMarine
+{
+  AppTick   = 10
+  CommsTick = 10
+
+  PREFIX    = NAV
+
+  buoyancy_rate        = 0.15
+  max_depth_rate       = 5
+  max_depth_rate_speed = 2.0
+
+  // Charles River is usually 16-22 feet, 33 at max (thx Tyler & co)
+  default_water_depth  = 7
+}
+
+//------------------------------------------------------
+ProcessConfig = pShare
+{
+  AppTick    = 2
+  CommsTick  = 2
+
+  input = route =  0.0.0.0:8765
+
+  // Change this route to the pShare IP and port of the vehicle's corresponding Neptune MOOS community
+  output = src_name=NAV_*, route=0.0.0.0:9306
+}
+
+ProcessConfig = pMarineViewer
+{
+  AppTick    = 4
+  CommsTick  = 4
+
+	tiff_file            = MIT_SP.tif
+
+  set_pan_x            = -90
+  set_pan_y            = -280
+  zoom                 = 0.65
+  vehicle_shape_scale  = 1.5
+  hash_delta           = 50
+  hash_shade           = 0.22
+  hash_viewable        = true
+
+  trails_point_size   = 1
+  vehicles_name_mode = names+depth
+
+  // Appcast configuration
+  appcast_height       = 75
+  appcast_width        = 30
+  appcast_viewable     = true
+  appcast_color_scheme = indigo
+  nodes_font_size      = medium
+  procs_font_size      = medium
+  appcast_font_size    = small
+
+  datum_viewable = true
+}

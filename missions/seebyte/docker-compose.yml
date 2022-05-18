@@ -15,7 +15,8 @@ services:
       - LAUNCH_TYPE=vehicle
       - TIME_WARP=1 # 1 is realtime, increase to speed up (use only in simulation)
       - NMEA_HOST=neptune_usv # address / hostname of command server
-      - SIM=yes # Set if this is a simulation (use uSimMarine rather than iM300)
+      - SIM=yes # Set if this is a simulation
+      #- VEHICLE_ROUTE=host.docker.internal:9300 # If not a simulation, set this to a pShare route of a vehicle-driver only community. See `example_vehicle/`
       #- HERON_HOST=192.168.10.1 # Ignored if SIM is set, should be IP of heron frontseat
       #- NMEA_PORT=10110 # if not the default (10110), set NMEA host port
       #- NMEA_TIME_DELTA=3 # set max time difference in seconds for incoming commands (default 3, -1 to disable)
@@ -63,7 +64,7 @@ services:
       - MISSION=seebyte
       - LAUNCH_TYPE=shoreside
       - TIME_WARP=1
-      - SIM=yes # Set to enable uFldObstacleSim & related bits
+      - SIM=yes # Set to enable uFldObstacleSim & related bits.
       #- HOST_IP="moos-shoreside" # Set to the IP where other devices can connect to our pShare (usually host's IP)
       #- PSHARE_PORT="9300" # Used to communicate with shoreside (incoming port), you should expose this
       #- DISPLAY=host.docker.internal:0 # Display X11 on Docker Desktop (w/ Mac XQuarts)
