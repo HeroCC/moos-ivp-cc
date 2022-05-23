@@ -34,6 +34,8 @@ Behavior = BHV_Waypoint
             order = normal
             repeat  = 0
 
+  eager_prev_index_flag = true
+
     visual_hints = nextpt_color=yellow
     visual_hints = nextpt_vertex_size=8
     visual_hints = nextpt_lcolor=gray70
@@ -85,6 +87,7 @@ Behavior = BHV_ConstantDepth
   name         = neptune_depth_survey
   pwt          = 100
   condition    = NEPTUNE_SURVEY_TRAVERSE=true
+  condition    = OPERATOR_OVERRIDE=false
   updates      = NEPTUNE_SURVEY_DEPTH
   duration     = no-time-limit
   perpetual    = true
