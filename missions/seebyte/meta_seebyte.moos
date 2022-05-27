@@ -290,5 +290,7 @@ ProcessConfig = pShare
   // Send our DESIRED_* information to the vehicle
   // If it has any NAV_*, or sensor information we require, it should send that back to us
   Output = src_name=DESIRED_*, route=$(VEHICLE_ROUTE)
+  Output = src_name=MOOS_MANUAL_OVERRIDE, route=$(VEHICLE_ROUTE)
+  Output = src_name=DEPLOY, route=$(VEHICLE_ROUTE)
 #endif
 }
