@@ -45,6 +45,9 @@ services:
       - SIM=yes
       - SHORE_HOST=moos_shoreside
       - PSHARE_PORT=9306
+      # The internal mail key to listen to for obstacles.
+      # If the vehicle has no sensing capabilities, set this to an unused mail to disable simulated obstacle sensing
+      - OBSTACLE_POINT_KEY=disabled
     networks:
       - moos
 

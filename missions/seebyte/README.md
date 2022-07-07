@@ -8,6 +8,7 @@ This guide shows how to install and run the testing mission for MOOS + Seebyte N
 
 * Download and Extract the Neptune distribution file -- something like `Neptune-MOOS v0.5.0.zip` (provided separately)
 * Import the extracted image file to your Docker via `docker load -i neptune-moos-<arch>-<version>.tar.gz`
+  * Make note of the resulting image tag, and change the image tags in `docker-compose.yml` (or preferably, `docker-compose.override.yaml`) if needed
 * If you wish to enable XForwarding on a Mac (to see apps like pMarineViewer), start XQuarts and run `xhost +`. You should also uncomment the *DISPLAY=host.docker.internal:0* env variable, or add it to your *docker-compose.override.yml*
   * On XQuarts, you will need to enable access from networked clients in your settings
   * You must have IGLX enabled or pMarineViewer may crash. See the [xquartz](https://unix.stackexchange.com/a/642954/126262) and [linux](https://askubuntu.com/a/932912/353466) fixes.
