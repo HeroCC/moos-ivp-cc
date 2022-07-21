@@ -164,6 +164,11 @@ ProcessConfig = uFldNodeComms
 {
   AppTick   = 2
   CommsTick = 2
+
+  // No artificial limits, hopefully we're smart enough to throttle ourselves
+  min_msg_interval = 0
+  max_msg_length = 0
+  comms_range = nolimit
 }
 
 //--------------------------------------------------
