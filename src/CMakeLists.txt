@@ -48,6 +48,7 @@ ADD_SUBDIRECTORY(uRaspiMon)
 
 # SeeByte Project
 ADD_SUBDIRECTORY(iNeptune)
+ADD_SUBDIRECTORY(pAnnounceMail)
 #ADD_SUBDIRECTORY(pNeptuneSim) # unused
 #ADD_SUBDIRECTORY(iDriveDDS)
 
