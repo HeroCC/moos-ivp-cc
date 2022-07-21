@@ -38,6 +38,9 @@ ProcessConfig = ANTLER
     Run = pRealm          @ NewConsole = false
     Run = uFldNodeBroker  @ NewConsole = false
     Run = uFldMessageHandler @ NewConsole = false
+    #ifdef BROADCAST_MAILS
+    Run = pAnnounceMail @ NewConsole = false
+    #endif
   #endif
 
   #ifdef DISPLAY
@@ -293,4 +296,12 @@ ProcessConfig = pShare
   Output = src_name=MOOS_MANUAL_OVERRIDE, route=$(VEHICLE_ROUTE)
   Output = src_name=DEPLOY, route=$(VEHICLE_ROUTE)
 #endif
+}
+
+ProcessConfig = pAnnounceMail
+{
+  AppTick = 2
+  CommsTick = 2
+
+  Broadcast = $(BROADCAST_MAILS)
 }

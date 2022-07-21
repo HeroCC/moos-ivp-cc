@@ -25,6 +25,7 @@ services:
       #- SHORE_PORT="9300" # Set to the pShare port of the shoreside machine
       #- HOST_IP=moos-vehicle # Set to the IP where other devices can connect to our pShare (this host's IP, or the container)
       - PSHARE_PORT=9305 # Used to communicate with shoreside (incoming port), you should expose this
+      - BROADCAST_MAILS=OBSTACLE_INFORM,OBM_RESOLVED
     networks:
       - moos
 
