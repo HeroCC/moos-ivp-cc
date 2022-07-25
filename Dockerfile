@@ -1,4 +1,4 @@
-FROM moosivp/moos-ivp:r10032-gui as cc_builddeps
+FROM moosivp/moos-ivp:r10069-gui as cc_builddeps
 
 USER root
 RUN apt-get -y update && DEBIAN_FRONTEND=noninteractive apt-get install -y libssl-dev \
