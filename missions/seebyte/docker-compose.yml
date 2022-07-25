@@ -88,9 +88,9 @@ services:
       #- "./mission.kml:/home/neptune/seebyte/seebyte_neptune/data/mission.kml:ro"
       #- "./moos_bridge.json:/home/neptune/seebyte/seebyte_neptune/config/moos_bridge.json"
     environment:
-      - CONFIG_TYPE=usv
-      - NPTN_ID=usv
-      - SOLAR_VEHICLE_NAME=usv
+      - CONFIG_TYPE=usv-philos
+      - NPTN_ID=usv_philos
+      - SOLAR_VEHICLE_NAME=usv_philos
       - ROSCONSOLE_STDOUT_LINE_BUFFERED=1
       - NEPTUNE_BROADCAST_IP=${NEPTUNE_IP}
     networks:
@@ -107,9 +107,9 @@ services:
     volumes:
       - "./logs/neptune-logs/uuv:/home/neptune/seebyte/seebyte_neptune/logs"
     environment:
-      - CONFIG_TYPE=uuv
-      - NPTN_ID=uuv
-      - SOLAR_VEHICLE_NAME=uuv
+      - CONFIG_TYPE=usv-heron
+      - NPTN_ID=usv_heron
+      - SOLAR_VEHICLE_NAME=usv_heron
       - ROSCONSOLE_STDOUT_LINE_BUFFERED=1
     networks:
       moos:
