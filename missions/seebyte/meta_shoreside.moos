@@ -25,6 +25,7 @@ ProcessConfig = ANTLER
 
 #ifdef SIM
   Run = uFldObstacleSim @ NewConsole = false
+	Run = uTimerScript    @ NewConsole = false
 #endif
 }
 
@@ -90,6 +91,16 @@ ProcessConfig = pMarineViewer
 
   action  = MENU_KEY=deploy # DEPLOY_ALL = true
   action+ = MENU_KEY=deploy # MOOS_MANUAL_OVERRIDE_ALL=false
+	action+ = VIEW_POLYGON=format=radial,x=225,y=-75,radius=10,pts=12,snap=1,label=zone1
+	action+ = VIEW_POLYGON=format=radial,x=225,y=-150,radius=10,pts=12,snap=1,label=zone2
+	action+ = VIEW_POLYGON=format=radial,x=225,y=-225,radius=10,pts=12,snap=1,label=zone3
+
+	//marker = type=circle,x=107.99,y=-88.08,color=blue,width=8
+	//marker = type=square,lat=42.3577,lon=-71.0863,scale=2,color=red,width=4
+
+	// Check XYOval.cpp and XYObject for setting params
+	//xyoval = VIEW_OVAL=x=5,y-10,ang=45,rad=0,len=10
+
 }
 
 //-------------------------------------------------------
@@ -110,13 +121,13 @@ ProcessConfig = uFldObstacleSim
   AppTick       = 1
   CommsTick     = 1
 
-  obstacle_file = obstacles.txt
+  obstacle_file = obstacles_dynamic.txt
 
   post_points = true
   point_size = 6
   rate_points = 2
 
-  sensor_range = 100
+  sensor_range = 300
 
 	draw_region = true
 
@@ -126,7 +137,7 @@ ProcessConfig = uFldObstacleSim
 
 	reuse_ids = false
 
-	reset_interval = 300
+	reset_interval = 10
 	reset_range    = 10
 }
 
@@ -210,3 +221,14 @@ ProcessConfig = pLogger
 }
 
 
+ProcessConfig = uTimerScript
+{
+  AppTick = 4
+  CommsTick = 4
+
+	paused = false
+	reset_max = unlimited
+	reset_time = end
+
+	event = var=UFOS_RESET, val="now", time=10:60
+}
