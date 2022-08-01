@@ -361,6 +361,7 @@ bool Neptune::OnNewMail(MOOSMSG_LIST &NewMail)
      } else if (key == "OBSTACLE_INFORM") {
        string message = msg.GetString();
        string name = tokStringParse(message, "name", '#', '=');
+       MOOSChomp(name, "gen_alert_");
        MOOSChomp(message, "#poly=");
        string polyStr = message;
        XYPolygon obsPoly = string2Poly(polyStr);
