@@ -34,6 +34,7 @@ ProcessConfig = ANTLER
   Run = pHelmIvP	    @ NewConsole = false
   Run = uProcessWatch	@ NewConsole = false
   Run = pRealm        @ NewConsole = false
+  Run = iGazebo       @ NewConsole = true
 }
 
 //------------------------------------------
