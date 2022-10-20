@@ -43,17 +43,17 @@ bool iGazebo::OnNewMail(MOOSMSG_LIST &NewMail)
     bool   mstr  = msg.IsString();
 #endif
 
-    ignition::transport::Node::Publisher& ignpub = mapping_map.find(key)->second;
+    gz::transport::Node::Publisher& ignpub = mapping_map.find(key)->second;
     if (ignpub) {
       // We are registered for a mapping, and it was posted to by MOOS, process it
       if (msg.IsDouble()) {
-        ignition::msgs::Double v;
+        gz::msgs::Double v;
         v.set_data(msg.GetDouble());
         ignpub.Publish(v);
       } else {
-        // We can't handle all of the ignition::msgs types now, so convert to string
+        // We can't handle all of the gz::msgs types now, so convert to string
         // If there is a need / interest, we may be able to fix this
-        ignition::msgs::StringMsg s;
+        gz::msgs::StringMsg s;
         s.set_data(msg.GetAsString());
         ignpub.Publish(s);
       }
@@ -97,14 +97,14 @@ bool iGazebo::Iterate()
   return(true);
 }
 
-// Callback for new ignition messages
-std::function<void(const ignition::msgs::Any&, const ignition::transport::MessageInfo&)> iGazebo::ignitionCallbackFactory(const std::string moos_key) {
-  auto callback = [&](const ignition::msgs::Any &_msg, const ignition::transport::MessageInfo &_info) mutable -> void {
-    // TODO have srcAux be the notifying ignition node name
-    if (_info.Type() == "ignition::msgs::Double") {
+// Callback for new gz messages
+std::function<void(const gz::msgs::Any&, const gz::transport::MessageInfo&)> iGazebo::ignitionCallbackFactory(const std::string moos_key) {
+  auto callback = [&](const gz::msgs::Any &_msg, const gz::transport::MessageInfo &_info) mutable -> void {
+    // TODO have srcAux be the notifying gz node name
+    if (_info.Type() == "gz::msgs::Double") {
       // Type is double, post it as such
       Notify(moos_key, _msg.double_value());
-    } else if (_info.Type() == "ignition::msgs::StringMsg") {
+    } else if (_info.Type() == "gz::msgs::StringMsg") {
       // Type is string, post it as such
       // todo check this -- is double_value accurate?
       Notify(moos_key, _msg.string_value());
@@ -144,7 +144,7 @@ bool iGazebo::OnStartUp()
       string moos_key = biteStringX(line, ':');
       //string moos_type = biteStringX(moos_key, '@');
       string ign_key = line;
-      mapping_map.insert(pair<std::string, ignition::transport::Node::Publisher>(moos_key, node.Advertise<ignition::msgs::Double>(ign_key))); // TODO not a double
+      mapping_map.insert(pair<std::string, gz::transport::Node::Publisher>(moos_key, node.Advertise<gz::msgs::Double>(ign_key))); // TODO not a double
       Register(moos_key);
       handled = true;
     } else if (param == "ign_origin") {

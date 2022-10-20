@@ -1,10 +1,10 @@
 #ifndef Gazebo_HEADER
 #define Gazebo_HEADER
 
-#include <ignition/msgs/twist.pb.h>
-#include <ignition/transport/Node.hh>
+#include <gz/transport/Node.hh>
 #include <sdf/sdf.hh>
-#include <ignition/common/Console.hh>
+#include <gz/common/Console.hh>
+#include <gz/msgs.hh>
 
 #include <MOOS/libMOOS/Thirdparty/AppCasting/AppCastingMOOSApp.h>
 #include <MOOS/libMOOSGeodesy/MOOSGeodesy.h>
@@ -27,11 +27,11 @@ class iGazebo : public AppCastingMOOSApp
    void registerVariables();
 
   private:
-    std::function<void(const ignition::msgs::Any&, const ignition::transport::MessageInfo&)> ignitionCallbackFactory(const std::string moos_key);
+    std::function<void(const gz::msgs::Any&, const gz::transport::MessageInfo&)> ignitionCallbackFactory(const std::string moos_key);
 
   private:
     // Set up transport
-    ignition::transport::Node node;
-    std::map<std::string, ignition::transport::Node::Publisher> mapping_map;
+    gz::transport::Node node;
+    std::map<std::string, gz::transport::Node::Publisher> mapping_map;
 };
 #endif
