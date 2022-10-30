@@ -181,14 +181,13 @@ void iGazebo::registerVariables()
 
 bool iGazebo::buildReport()
 {
-  m_msgs << "============================================" << endl;
-  m_msgs << "File:                                       " << endl;
-  m_msgs << "============================================" << endl;
-
   ACTable actab(4);
-  actab << "Alpha | Bravo | Charlie | Delta";
+  actab << "MOOS | <-> | Ignition | Tx";
   actab.addHeaderLines();
-  actab << "one" << "two" << "three" << "four";
+  for (const auto &pair : mapping_map) {
+    // TODO store the Ignition name so we can chart it, and ensure proper directionality
+    actab << pair.first << "->" << "UNIMPLEMENTED" << "-1";
+  }
   m_msgs << actab.getFormattedString();
 
   return(true);
