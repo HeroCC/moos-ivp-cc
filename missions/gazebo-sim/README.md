@@ -20,7 +20,7 @@ Reboot the VM if you don't see a GUI, and login using `vagrant`/`vagrant`. Then,
 ## On Ubuntu
 On the desktop, in two terminals, run:
 ```sh
-cd ~/ign-gazebo/example/worlds
+cd ~/gz-sim/example/worlds
 ign gazebo -v 4 -r auv_controls.sdf --render-engine ogre
 ```
 You should see an empty world with an AUV in the center.
