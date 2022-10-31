@@ -10,8 +10,8 @@ CMD_LINE_ARGS=""
 for ARGI; do
     if [ "${ARGI}" = "--help" -o "${ARGI}" = "-h" ] ; then
 	printf "%s [SWITCHES]                       \n" $0
-	printf "Switches:                           \n" 
-	printf "  --help, -h                        \n" 
+	printf "Switches:                           \n"
+	printf "  --help, -h                        \n"
         printf "  --debug,   -d                     \n"
         printf "  --release, -r                     \n"
 	printf "Notes:                              \n"
@@ -38,7 +38,7 @@ done
 mkdir -p build
 cd build
 
-cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ../
+cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${CMAKE_EXTRA_ARGS} ../
 
 cmake --build . -- ${CMD_LINE_ARGS}
 cd ${INVOCATION_ABS_DIR}

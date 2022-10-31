@@ -110,6 +110,12 @@ SET(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 SET(CMAKE_CXX_EXTENSIONS OFF)
 
 #=============================================================================
+# Options
+#=============================================================================
+
+option(ENABLE_GAZEBO "Enable building Gazebo related functionality" ON)
+
+#=============================================================================
 # Add Subdirectories
 #=============================================================================
 ADD_SUBDIRECTORY( src )

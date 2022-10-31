@@ -53,7 +53,7 @@ ADD_SUBDIRECTORY(pAnnounceMail)
 #ADD_SUBDIRECTORY(iDriveDDS)
 
 # Ignition Gazebo Simulator Plugin
-if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+if (${ENABLE_GAZEBO})
 ADD_SUBDIRECTORY(iGazebo)
 endif()
 
