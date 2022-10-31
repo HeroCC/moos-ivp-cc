@@ -115,6 +115,8 @@ ProcessConfig = pLogger
 // TODO remove, in place of iGazebo
 ProcessConfig = uSimMarine
 {
+  deprecated_ok = true
+
   AppTick   = 10
   CommsTick = 10
 
@@ -156,6 +158,8 @@ ProcessConfig = pHelmIvP
 
 ProcessConfig = pMarinePID
 {
+  deprecated_ok = true
+
   AppTick    = 10
   CommsTick  = 10
 
