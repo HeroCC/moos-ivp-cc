@@ -38,6 +38,17 @@ ProcessConfig = ANTLER
 }
 
 //------------------------------------------
+// iGazebo Config block
+ProcessConfig = iGazebo
+{
+  AppTick    = 4
+  CommsTick  = 4
+
+  moos_origin = DESIRED_THRUST:/model/tethys/joint/propeller_joint/cmd_thrust
+  moos_origin = DESIRED_RUDDER:/model/tethys/joint/horizontal_fins_joint/0/cmd_pos
+}
+
+//------------------------------------------
 // pRealm config block
 
 ProcessConfig = pRealm
@@ -115,17 +126,6 @@ ProcessConfig = uSimMarine
 
   //thrust_map = -100:-2, 0:0, 20:1, 40:2, 60:3, 80:5, 100:5
   //thrust_map = -100:-2, 0:0, 20:1, 40:2, 60:3, 80:5, 100:5
-}
-
-
-//------------------------------------------
-// iGazebo Config block
-ProcessConfig = iGazebo {
-  AppTick    = 4
-  CommsTick  = 4
-
-  moos_origin = DESIRED_THRUST:/model/tethys/joint/propeller_joint/cmd_thrust
-  moos_origin = DESIRED_RUDDER:/model/tethys/joint/horizontal_fins_joint/0/cmd_pos
 }
 
 //------------------------------------------
