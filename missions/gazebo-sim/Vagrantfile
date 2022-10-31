@@ -32,22 +32,23 @@ Vagrant.configure("2") do |config|
   #config.vm.synced_folder ".", "/vagrant", type: "virtualbox"
 
   config.vm.provision "shell", inline: <<-SHELL
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] http://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/gazebo-stable.list > /dev/null
+    wget https://packages.osrfoundation.org/gazebo.gpg -O /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg
+
+    sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
+    curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | apt-key add -
+
     apt-get update
     apt-get install -y curl open-vm-tools lsb-release wget gnupg neovim
 
     # Ros
-    sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
-    curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | apt-key add -
-    apt-get update
     apt-get install -y ros-noetic-desktop-full ros-noetic-geographic-info ros-noetic-ros-control ros-noetic-gazebo-ros-control
     apt-get install -y python3-rosdep python3-rosinstall python3-rosinstall-generator python3-wstool build-essential
     rosdep init
     rosdep update
 
     # Gazebo
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] http://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/gazebo-stable.list > /dev/null
-    wget https://packages.osrfoundation.org/gazebo.gpg -O /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg
-    apt-get install -y ignition-fortress
+    apt-get install -y gz-garden
 
     # Moos
     apt-get install -y cmake build-essential subversion git libtiff5-dev libfltk1.3-dev freeglut3-dev libpng-dev libjpeg-dev libxinerama-dev libxft-dev
@@ -61,7 +62,7 @@ Vagrant.configure("2") do |config|
 
   config.vm.provision "shell", privileged: false, inline: <<-SHELL
     cd ~
-    git clone https://github.com/ignitionrobotics/ign-gazebo.git
+    git clone https://github.com/gazebosim/gz-sim.git
     svn co https://oceanai.mit.edu/svn/moos-ivp-aro/trunk/ moos-ivp
     git clone https://github.com/HeroCC/moos-ivp-cc.git
 
