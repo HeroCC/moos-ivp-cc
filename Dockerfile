@@ -1,10 +1,12 @@
-FROM moosivp/moos-ivp:r10069-gui as cc_builddeps
+FROM ghcr.io/moos-ivp/moos-ivp:7cc2ac1-gui as cc_builddeps
 
 USER root
 RUN apt-get -y update && DEBIAN_FRONTEND=noninteractive apt-get install -y libssl-dev \
-    libboost-system-dev libboost-thread-dev libboost-coroutine-dev libboost-context-dev \
-    libsndfile-dev libopus-dev portaudio19-dev \
-    libprotobuf-dev protobuf-compiler liblog4cpp5-dev && apt-get -y clean
+  libboost-system-dev libboost-thread-dev libboost-coroutine-dev libboost-context-dev \
+  libsndfile-dev libopus-dev portaudio19-dev \
+  libprotobuf-dev protobuf-compiler liblog4cpp5-dev \
+  subversion \
+  && apt-get -y clean
 USER moos
 
 ENV MOOS="moos-ivp-pavlab"
@@ -27,8 +29,8 @@ CMD [ "bash", "-c", "${HOME}/${MOOS}/docker-entrypoint.sh" ]
 
 USER root
 RUN apt-get -y update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
-    iputils-ping \
-    && apt-get -y clean
+  iputils-ping \
+  && apt-get -y clean
 USER moos
 
 COPY --chown=moos:moos "." "/home/moos/${MOOS}"

@@ -354,7 +354,7 @@ bool Neptune::OnNewMail(MOOSMSG_LIST &NewMail)
        handleIncomingNMEA(msg.GetAsString());
      } else if (key == "NODE_REPORT_LOCAL") {
        if (m_ninja.isConnected()) {
-         send_queue.push(genMONVGString(string2NodeRecord(msg.GetString(), true)));
+         send_queue.push(genMONVGString(string2NodeRecord(msg.GetString())));
        }
      } else if (key == "NEPTUNE_BROADCAST") {
        send_queue.push(genMOEXTString(msg.GetAsString()));
