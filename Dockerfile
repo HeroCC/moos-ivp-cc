@@ -31,8 +31,6 @@ RUN apt-get -y update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
     && apt-get -y clean
 USER moos
 
-ENV CMAKE_EXTRA_ARGS="-DENABLE_GAZEBO=OFF"
-
 COPY --chown=moos:moos "." "/home/moos/${MOOS}"
 
 RUN cd "${HOME}/${MOOS}" && ./build.sh
