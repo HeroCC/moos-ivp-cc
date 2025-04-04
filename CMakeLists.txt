@@ -113,7 +113,7 @@ SET(CMAKE_CXX_EXTENSIONS OFF)
 # Options
 #=============================================================================
 
-option(ENABLE_GAZEBO "Enable building Gazebo related functionality" ON)
+option(ENABLE_GAZEBO "Enable building Gazebo related functionality" OFF)
 
 #=============================================================================
 # Add Subdirectories
