@@ -919,7 +919,7 @@ bool SockNinja::setupListening()
   serv_addr.sin_port = htons(m_port);
   
   // Part 2: Bind the Socket
-  int bind_res = bind(m_sockfd_lis, (sockaddr*) &serv_addr, sizeof(serv_addr));
+  int bind_res = ::bind(m_sockfd_lis, (sockaddr*) &serv_addr, sizeof(serv_addr));
   good_sock = (bind_res >= 0);
   whyfail.assign(strerror(errno));
 
