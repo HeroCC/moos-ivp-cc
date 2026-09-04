@@ -69,7 +69,7 @@ jobs:
 
       - name: Extract build artifacts
         run: |
-          image="ghcr.io/${{ github.repository }}@${{ needs.build.outputs.digest }}"
+          image="ghcr.io/${GITHUB_REPOSITORY,,}@${{ needs.build.outputs.digest }}"
           docker pull "$image"
           container_id="$(docker create "$image")"
           mkdir -p artifacts
@@ -86,4 +86,5 @@ jobs:
 
       - name: Record image digest
         run: |
-          echo "Image digest: ghcr.io/${{ github.repository }}@${{ needs.build.outputs.digest }}" >> "$GITHUB_STEP_SUMMARY"
+          image="ghcr.io/${GITHUB_REPOSITORY,,}@${{ needs.build.outputs.digest }}"
+          echo "Image digest: $image" >> "$GITHUB_STEP_SUMMARY"
