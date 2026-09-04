@@ -13,7 +13,7 @@ concurrency:
 
 jobs:
   build:
-    name: Validate multi-architecture image
+    name: Validate image
     uses: docker/github-builder/.github/workflows/build.yml@v1
     permissions:
       contents: read
