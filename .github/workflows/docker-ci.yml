@@ -25,5 +25,6 @@ jobs:
       cache: true
       cache-scope: ci
       cache-mode: max
-      meta-images: quay.io/herocc/moos-ivp-cc
+      # Required by Docker Builder for image output; this CI image is never pushed.
+      meta-images: example.invalid/moos-ivp-cc-ci
       meta-tags: type=sha,prefix=ci-
