@@ -16,16 +16,8 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  approve-release:
-    name: Authorize trusted release
-    runs-on: ubuntu-latest
-    environment: release
-    steps:
-      - run: ':'
-
   build:
     name: Build and publish trusted image
-    needs: approve-release
     uses: docker/github-builder/.github/workflows/build.yml@v1
     permissions:
       contents: read
@@ -62,7 +54,6 @@ jobs:
     name: Publish build artifacts
     needs: build
     runs-on: ubuntu-latest
-    environment: release
     steps:
       - name: Log in to Quay
         uses: docker/login-action@v4
