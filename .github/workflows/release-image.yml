@@ -35,7 +35,7 @@ jobs:
       set-meta-labels: true
       set-meta-annotations: true
       meta-images: |
-        ghcr.io/herocc/moos-ivp-cc
+        ghcr.io/${{ github.repository }}
         herocc/moos-ivp-cc
       meta-tags: |
         type=sha,prefix=
@@ -67,7 +67,7 @@ jobs:
 
       - name: Extract build artifacts
         run: |
-          image="ghcr.io/herocc/moos-ivp-cc@${{ needs.build.outputs.digest }}"
+          image="ghcr.io/${{ github.repository }}@${{ needs.build.outputs.digest }}"
           docker pull "$image"
           container_id="$(docker create "$image")"
           mkdir -p artifacts
@@ -84,4 +84,4 @@ jobs:
 
       - name: Record image digest
         run: |
-          echo "Image digest: ghcr.io/herocc/moos-ivp-cc@${{ needs.build.outputs.digest }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Image digest: ghcr.io/${{ github.repository }}@${{ needs.build.outputs.digest }}" >> "$GITHUB_STEP_SUMMARY"
