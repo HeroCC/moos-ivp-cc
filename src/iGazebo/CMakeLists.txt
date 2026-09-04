@@ -28,10 +28,10 @@ target_link_libraries(iGazebo
 
 # MOOS dependencies
 target_link_libraries(iGazebo
-  ${MOOS_LIBRARIES}
-  ${MOOSGeodesy_LIBRARIES}
-  apputil
-  mbutil
+  MOOS::MOOS
+  MOOSGeodesy::MOOSGeodesy
+  IVP::apputil
+  IVP::mbutil
   m
   pthread
 )

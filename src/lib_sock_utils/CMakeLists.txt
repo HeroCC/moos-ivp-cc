@@ -13,4 +13,4 @@ SET(HEADERS
 
 # Build Library
 ADD_LIBRARY(sock_util STATIC ${SRC})
-
+TARGET_LINK_LIBRARIES(sock_util PUBLIC IVP::mbutil)

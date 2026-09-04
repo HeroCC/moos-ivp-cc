@@ -15,9 +15,9 @@ SET(SRC
 ADD_EXECUTABLE(pWebSocketServer ${SRC})
 
 TARGET_LINK_LIBRARIES(pWebSocketServer
-   ${MOOS_LIBRARIES}
-   apputil
-   mbutil
+   MOOS::MOOS
+   IVP::apputil
+   IVP::mbutil
    m
    pthread
         simple-websocket-server)

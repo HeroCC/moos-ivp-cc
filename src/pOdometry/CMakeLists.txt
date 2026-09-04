@@ -12,8 +12,8 @@ SET(SRC
 ADD_EXECUTABLE(pOdometry ${SRC})
 
 TARGET_LINK_LIBRARIES(pOdometry
-   ${MOOS_LIBRARIES}
-   mbutil
+   MOOS::MOOS
+   IVP::mbutil
    m
    pthread)
 

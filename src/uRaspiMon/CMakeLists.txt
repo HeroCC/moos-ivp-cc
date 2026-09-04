@@ -12,9 +12,9 @@ SET(SRC
 ADD_EXECUTABLE(uRaspiMon ${SRC})
 
 TARGET_LINK_LIBRARIES(uRaspiMon
-   ${MOOS_LIBRARIES}
-   apputil
-   mbutil
+   MOOS::MOOS
+   IVP::apputil
+   IVP::mbutil
    m
    pthread)
 

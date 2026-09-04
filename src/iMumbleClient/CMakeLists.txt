@@ -16,9 +16,9 @@ ADD_EXECUTABLE(iMumbleClient ${SRC})
 target_compile_definitions(iMumbleClient PRIVATE DUMP_CORE)
 
 TARGET_LINK_LIBRARIES(iMumbleClient
-   ${MOOS_LIBRARIES}
-   apputil
-   mbutil
+   MOOS::MOOS
+   IVP::apputil
+   IVP::mbutil
    m
    pthread
         mumlib

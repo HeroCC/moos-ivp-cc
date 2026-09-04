@@ -14,13 +14,13 @@ SET(SRC
 ADD_EXECUTABLE(uBackNMEABridge ${SRC})
 
 TARGET_LINK_LIBRARIES(uBackNMEABridge
-   ${MOOSGeodesy_LIBRARIES}
-   ${MOOS_LIBRARIES}
-   apputil
-   mbutil
+   MOOSGeodesy::MOOSGeodesy
+   MOOS::MOOS
+   IVP::apputil
+   IVP::mbutil
    m
    pthread
-   #geometry
+   #IVP::geometry
    )
 
 set_property(TARGET uBackNMEABridge PROPERTY CXX_STANDARD 11)
