@@ -40,8 +40,9 @@ jobs:
         herocc/moos-ivp-cc
       meta-tags: |
         type=sha,prefix=
+        type=ref,event=branch,enable=${{ github.ref == 'refs/heads/master' }}
         type=ref,event=tag
-        type=raw,value=latest,enable=${{ github.ref == 'refs/heads/master' }}
+      meta-flavor: latest=false
     secrets:
       registry-auths: |
         - registry: ghcr.io
