@@ -8,7 +8,7 @@ If you'd rather use my tree as a docker image, you can pull it from DockerHub li
 
 ### Image automation
 
-GitHub Actions validates both `linux/amd64` and `linux/arm64` images for pull requests without registry credentials. A separate release workflow runs for pushes to `master` and `v*` tags. Docker's GitHub Builder builds each architecture on a native runner, merges the resulting digests into one multi-platform image, then publishes that exact image to both Quay and Docker Hub. Its built-in OIDC signing signs the generated provenance and SBOM attestations; the workflow does not create a second, separate attestation. The compiled `bin/` and `lib/` directories are extracted from the published Quay digest and saved as workflow artifacts.
+GitHub Actions validates both `linux/amd64` and `linux/arm64` images on native runners for pull requests, without registry credentials, publishing, or signing. A separate release workflow runs for pushes to `master` and `v*` tags. Docker's GitHub Builder builds each architecture on a native runner, merges the resulting digests into one multi-platform image, then publishes that exact image to both Quay and Docker Hub. Its built-in OIDC signing signs the generated provenance and SBOM attestations; the workflow does not create a second, separate attestation. The compiled `bin/` and `lib/` directories are extracted from the published Quay digest and saved as workflow artifacts.
 
 Put the registry credentials at repository or organization scope:
 
