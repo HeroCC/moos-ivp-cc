@@ -1,4 +1,4 @@
-FROM moosivp/moos-ivp:9289b70-gui as cc_builddeps
+FROM moosivp/moos-ivp:9289b70-gui AS cc_builddeps
 
 USER root
 RUN apt-get -y update && DEBIAN_FRONTEND=noninteractive apt-get install -y libssl-dev \
@@ -32,6 +32,12 @@ RUN apt-get -y update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
   iputils-ping \
   && apt-get -y clean
 USER moos
+
+RUN cmake -DCMAKE_INSTALL_PREFIX="${HOME}/moos-ivp" \
+  -DCMAKE_INSTALL_LOCAL_ONLY=ON \
+  -P "${HOME}/moos-ivp/build/ivp/cmake_install.cmake"
+
+ENV CMAKE_PREFIX_PATH="/home/moos/moos-ivp"
 
 COPY --chown=moos:moos "." "/home/moos/${MOOS}"
 
