@@ -1,0 +1,100 @@
+name: Docker
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docker-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build multi-architecture image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  publish:
+    name: Publish to Quay
+    if: github.event_name == 'push'
+    needs: build
+    uses: ./.github/workflows/publish-image.yml
+    with:
+      registry: quay.io
+      image: quay.io/herocc/moos-ivp-cc
+      username: ${{ vars.QUAY_USERNAME }}
+    secrets:
+      registry_password: ${{ secrets.QUAY_PUSH_KEY }}
+
+  publish-docker-hub:
+    name: Publish to Docker Hub
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    needs: build
+    uses: ./.github/workflows/publish-image.yml
+    with:
+      registry: docker.io
+      image: herocc/moos-ivp-cc
+      username: ${{ vars.DOCKER_HUB_USERNAME }}
+    secrets:
+      registry_password: ${{ secrets.DOCKER_HUB_PUSH_KEY }}
+
+  artifacts:
+    name: Save build artifacts
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build artifact image
+        id: build
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          platforms: linux/amd64
+          load: true
+          tags: moos-ivp-cc:artifacts
+          cache-from: type=gha
+
+      - name: Extract bin and lib directories
+        run: |
+          container_id="$(docker create moos-ivp-cc:artifacts)"
+          mkdir -p artifacts
+          docker cp "$container_id:/home/moos/moos-ivp-cc/bin" artifacts/bin
+          docker cp "$container_id:/home/moos/moos-ivp-cc/lib" artifacts/lib
+          docker rm "$container_id"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: moos-ivp-cc-${{ github.sha }}
+          path: artifacts/
+          if-no-files-found: error

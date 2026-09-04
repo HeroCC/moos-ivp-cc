@@ -6,6 +6,15 @@ The home of my extensions and trinkets related to MOOS-IvP
 
 If you'd rather use my tree as a docker image, you can pull it from DockerHub like so: `docker pull herocc/moos-ivp-cc:latest`. To see all the versions avaliable, [click here](https://hub.docker.com/r/herocc/moos-ivp-cc/tags). Some missions in this repo are designed with docker in mind, others are not; docker missions are noted if so.
 
+### Image automation
+
+GitHub Actions builds both `linux/amd64` and `linux/arm64` images for pushes and pull requests, and saves the compiled `bin/` and `lib/` directories as workflow artifacts. Pushes are published to Quay; pushes to `master` are also published to Docker Hub. Configure the following repository values before publishing:
+
+* Repository variables: `QUAY_USERNAME`, `DOCKER_HUB_USERNAME`
+* Repository secrets: `QUAY_PUSH_KEY`, `DOCKER_HUB_PUSH_KEY`
+
+The former GitLab schedule was configured outside this repository, so recreate its cadence with a `schedule` trigger in [the Docker workflow](.github/workflows/docker.yml) if periodic image rebuilds are required.
+
 ## Dependencies
 
 The libraries this tree uses have dependencies of their own, in addition to normal MOOS and Aquaticus dependencies. You should make sure your compiler of choice supports C++11 or greater, and then install them like so:
