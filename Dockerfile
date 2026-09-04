@@ -1,4 +1,4 @@
-FROM ghcr.io/moos-ivp/moos-ivp:7cc2ac1-gui as cc_builddeps
+FROM moosivp/moos-ivp:9289b70-gui as cc_builddeps
 
 USER root
 RUN apt-get -y update && DEBIAN_FRONTEND=noninteractive apt-get install -y libssl-dev \
@@ -36,4 +36,3 @@ USER moos
 COPY --chown=moos:moos "." "/home/moos/${MOOS}"
 
 RUN cd "${HOME}/${MOOS}" && ./build.sh
-
