@@ -8,12 +8,12 @@ If you'd rather use my tree as a docker image, you can pull it from DockerHub li
 
 ### Image automation
 
-GitHub Actions validates both `linux/amd64` and `linux/arm64` images for pull requests without registry credentials. A separate release workflow runs for pushes to `master` and `v*` tags; it builds once and publishes the resulting digest to both Quay and Docker Hub. It also attests the Quay image and saves the compiled `bin/` and `lib/` directories as workflow artifacts.
+GitHub Actions validates both `linux/amd64` and `linux/arm64` images for pull requests without registry credentials. A separate release workflow runs for pushes to `master` and `v*` tags. Docker's GitHub Builder builds each architecture on a native runner, merges the resulting digests into one multi-platform image, then publishes that exact image to both Quay and Docker Hub. Its built-in OIDC signing signs the generated provenance and SBOM attestations; the workflow does not create a second, separate attestation. The compiled `bin/` and `lib/` directories are extracted from the published Quay digest and saved as workflow artifacts.
 
-Create a protected `release` environment before enabling publishing. Put the following configuration in that environment and require an appropriate reviewer for it:
+Create a protected `release` environment and require an appropriate reviewer for it. The reusable Docker Builder workflow cannot receive environment secrets from its caller, so put the registry credentials at repository or organization scope instead:
 
-* Environment variables: `QUAY_USERNAME`, `DOCKER_HUB_USERNAME`
-* Environment secrets: `QUAY_PUSH_KEY`, `DOCKER_HUB_PUSH_KEY`
+* Actions variables: `QUAY_USERNAME`, `DOCKER_HUB_USERNAME`
+* Actions secrets: `QUAY_PUSH_KEY`, `DOCKER_HUB_PUSH_KEY`
 
 Protect `master`, restrict who can create matching release tags, and require pull-request review plus the Docker CI check before merging. Deploy consumers should use the published image digest rather than the mutable `latest` tag.
 
