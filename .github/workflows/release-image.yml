@@ -9,7 +9,6 @@ on:
 
 permissions:
   contents: read
-  id-token: write
 
 concurrency:
   group: release-image-${{ github.ref }}
@@ -22,6 +21,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
+      packages: write
     with:
       output: image
       push: true
@@ -35,7 +35,7 @@ jobs:
       set-meta-labels: true
       set-meta-annotations: true
       meta-images: |
-        quay.io/herocc/moos-ivp-cc
+        ghcr.io/herocc/moos-ivp-cc
         herocc/moos-ivp-cc
       meta-tags: |
         type=sha,prefix=
@@ -43,9 +43,9 @@ jobs:
         type=raw,value=latest,enable=${{ github.ref == 'refs/heads/master' }}
     secrets:
       registry-auths: |
-        - registry: quay.io
-          username: ${{ vars.QUAY_USERNAME }}
-          password: ${{ secrets.QUAY_PUSH_KEY }}
+        - registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
         - registry: docker.io
           username: ${{ vars.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PUSH_KEY }}
@@ -54,17 +54,20 @@ jobs:
     name: Publish build artifacts
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
     steps:
-      - name: Log in to Quay
+      - name: Log in to GitHub Container Registry
         uses: docker/login-action@v4
         with:
-          registry: quay.io
-          username: ${{ vars.QUAY_USERNAME }}
-          password: ${{ secrets.QUAY_PUSH_KEY }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Extract build artifacts
         run: |
-          image="quay.io/herocc/moos-ivp-cc@${{ needs.build.outputs.digest }}"
+          image="ghcr.io/herocc/moos-ivp-cc@${{ needs.build.outputs.digest }}"
           docker pull "$image"
           container_id="$(docker create "$image")"
           mkdir -p artifacts
@@ -81,4 +84,4 @@ jobs:
 
       - name: Record image digest
         run: |
-          echo "Image digest: quay.io/herocc/moos-ivp-cc@${{ needs.build.outputs.digest }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Image digest: ghcr.io/herocc/moos-ivp-cc@${{ needs.build.outputs.digest }}" >> "$GITHUB_STEP_SUMMARY"

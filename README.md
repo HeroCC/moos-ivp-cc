@@ -4,16 +4,16 @@ The home of my extensions and trinkets related to MOOS-IvP
 
 ## Docker
 
-If you'd rather use my tree as a docker image, you can pull it from DockerHub like so: `docker pull herocc/moos-ivp-cc:latest`. To see all the versions avaliable, [click here](https://hub.docker.com/r/herocc/moos-ivp-cc/tags). Some missions in this repo are designed with docker in mind, others are not; docker missions are noted if so.
+If you'd rather use my tree as a docker image, you can pull it from DockerHub like so: `docker pull herocc/moos-ivp-cc:latest`, or GitHub Container Registry with `docker pull ghcr.io/herocc/moos-ivp-cc:latest`. To see all the versions avaliable, [click here](https://hub.docker.com/r/herocc/moos-ivp-cc/tags). Some missions in this repo are designed with docker in mind, others are not; docker missions are noted if so.
 
 ### Image automation
 
-GitHub Actions validates both `linux/amd64` and `linux/arm64` images on native runners for pull requests, without registry credentials, publishing, or signing. A separate release workflow runs for pushes to `master` and `v*` tags. Docker's GitHub Builder builds each architecture on a native runner, merges the resulting digests into one multi-platform image, then publishes that exact image to both Quay and Docker Hub. Its built-in OIDC signing signs the generated provenance and SBOM attestations; the workflow does not create a second, separate attestation. The compiled `bin/` and `lib/` directories are extracted from the published Quay digest and saved as workflow artifacts.
+GitHub Actions validates both `linux/amd64` and `linux/arm64` images on native runners for pull requests, without registry credentials, publishing, or signing. A separate release workflow runs for pushes to `master` and `v*` tags. Docker's GitHub Builder builds each architecture on a native runner, merges the resulting digests into one multi-platform image, then publishes that exact image to both GitHub Container Registry and Docker Hub. Its built-in OIDC signing signs the generated provenance and SBOM attestations; the workflow does not create a second, separate attestation. The compiled `bin/` and `lib/` directories are extracted from the published GHCR digest and saved as workflow artifacts.
 
-Put the registry credentials at repository or organization scope:
+GHCR publishing uses the workflow's automatically generated `GITHUB_TOKEN`; grant it `packages: write` in the release job. Put the Docker Hub credentials at repository or organization scope:
 
-* Actions variables: `QUAY_USERNAME`, `DOCKER_HUB_USERNAME`
-* Actions secrets: `QUAY_PUSH_KEY`, `DOCKER_HUB_PUSH_KEY`
+* Actions variable: `DOCKER_HUB_USERNAME`
+* Actions secret: `DOCKER_HUB_PUSH_KEY`
 
 Protect `master`, restrict who can create matching release tags, and require pull-request review plus the Docker CI check before merging; these controls limit who can invoke publishing. Deploy consumers should use the published image digest rather than the mutable `latest` tag.
 
