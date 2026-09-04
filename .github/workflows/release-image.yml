@@ -1,0 +1,90 @@
+name: Release container image
+
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-image-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build and publish image
+    uses: docker/github-builder/.github/workflows/build.yml@v1
+    permissions:
+      contents: read
+      id-token: write
+      packages: write
+    with:
+      output: image
+      push: true
+      distribute: true
+      platforms: linux/amd64,linux/arm64
+      cache: true
+      cache-scope: release
+      cache-mode: max
+      sbom: true
+      sign: auto
+      set-meta-labels: true
+      set-meta-annotations: true
+      meta-images: |
+        ghcr.io/${{ github.repository }}
+        herocc/moos-ivp-cc
+      meta-tags: |
+        type=sha,prefix=
+        type=ref,event=branch,enable=${{ github.ref == 'refs/heads/master' }}
+        type=ref,event=tag
+      meta-flavor: latest=false
+    secrets:
+      registry-auths: |
+        - registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+        - registry: docker.io
+          username: ${{ vars.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PUSH_KEY }}
+
+  artifacts:
+    name: Publish build artifacts
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract build artifacts
+        run: |
+          image="ghcr.io/${GITHUB_REPOSITORY,,}@${{ needs.build.outputs.digest }}"
+          docker pull "$image"
+          container_id="$(docker create "$image")"
+          mkdir -p artifacts
+          docker cp "$container_id:/home/moos/moos-ivp-cc/bin" artifacts/bin
+          docker cp "$container_id:/home/moos/moos-ivp-cc/lib" artifacts/lib
+          docker rm "$container_id"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: moos-ivp-cc-${{ github.sha }}
+          path: artifacts/
+          if-no-files-found: error
+
+      - name: Record image digest
+        run: |
+          image="ghcr.io/${GITHUB_REPOSITORY,,}@${{ needs.build.outputs.digest }}"
+          echo "Image digest: $image" >> "$GITHUB_STEP_SUMMARY"

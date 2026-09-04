@@ -1,0 +1,30 @@
+name: Docker CI
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docker-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Validate image
+    uses: docker/github-builder/.github/workflows/build.yml@v1
+    permissions:
+      contents: read
+    with:
+      output: image
+      push: false
+      distribute: true
+      platforms: linux/amd64,linux/arm64
+      cache: true
+      cache-scope: ci
+      cache-mode: max
+      # Required by Docker Builder for image output; this CI image is never pushed.
+      meta-images: example.invalid/moos-ivp-cc-ci
+      meta-tags: type=sha,prefix=ci-

@@ -4,7 +4,7 @@ The home of my extensions and trinkets related to MOOS-IvP
 
 ## Docker
 
-If you'd rather use my tree as a docker image, you can pull it from DockerHub like so: `docker pull herocc/moos-ivp-cc:latest`. To see all the versions avaliable, [click here](https://hub.docker.com/r/herocc/moos-ivp-cc/tags). Some missions in this repo are designed with docker in mind, others are not; docker missions are noted if so.
+If you'd rather use my tree as a docker image, you can pull it from DockerHub like so: `docker pull herocc/moos-ivp-cc:latest`, or GitHub Container Registry with `docker pull ghcr.io/herocc/moos-ivp-cc:latest`. To see all the versions avaliable, [click here](https://hub.docker.com/r/herocc/moos-ivp-cc/tags). Some missions in this repo are designed with docker in mind, others are not; docker missions are noted if so.
 
 ## Dependencies
 
