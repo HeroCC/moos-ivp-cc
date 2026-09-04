@@ -8,7 +8,7 @@ If you'd rather use my tree as a docker image, you can pull it from DockerHub li
 
 ### Image automation
 
-GitHub Actions builds both `linux/amd64` and `linux/arm64` images for pushes and pull requests, and saves the compiled `bin/` and `lib/` directories as workflow artifacts. Pushes are published to Quay; pushes to `master` are also published to Docker Hub. Configure the following repository values before publishing:
+GitHub Actions builds both `linux/amd64` and `linux/arm64` images for pushes and pull requests. On a push, it stages one canonical image in Quay and records its digest; registry tags and the compiled `bin/` and `lib/` workflow artifacts are then created from that exact image. Pushes are published to Quay; pushes to `master` are also published to Docker Hub. Configure the following repository values before publishing:
 
 * Repository variables: `QUAY_USERNAME`, `DOCKER_HUB_USERNAME`
 * Repository secrets: `QUAY_PUSH_KEY`, `DOCKER_HUB_PUSH_KEY`
