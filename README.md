@@ -8,10 +8,14 @@ If you'd rather use my tree as a docker image, you can pull it from DockerHub li
 
 ### Image automation
 
-GitHub Actions builds both `linux/amd64` and `linux/arm64` images for pushes and pull requests. On a push, it stages one canonical image in Quay and records its digest; registry tags and the compiled `bin/` and `lib/` workflow artifacts are then created from that exact image. Pushes are published to Quay; pushes to `master` are also published to Docker Hub. Configure the following repository values before publishing:
+GitHub Actions validates both `linux/amd64` and `linux/arm64` images for pull requests without registry credentials. Pushes to `master` and `v*` tags run a protected release job that builds once and publishes the resulting digest to both Quay and Docker Hub. It also attests the Quay image and saves the compiled `bin/` and `lib/` directories as workflow artifacts.
 
-* Repository variables: `QUAY_USERNAME`, `DOCKER_HUB_USERNAME`
-* Repository secrets: `QUAY_PUSH_KEY`, `DOCKER_HUB_PUSH_KEY`
+Create a protected `release` environment before enabling publishing. Put the following configuration in that environment and require an appropriate reviewer for it:
+
+* Environment variables: `QUAY_USERNAME`, `DOCKER_HUB_USERNAME`
+* Environment secrets: `QUAY_PUSH_KEY`, `DOCKER_HUB_PUSH_KEY`
+
+Protect `master`, restrict who can create matching release tags, and require pull-request review plus the Docker CI check before merging. Deploy consumers should use the published image digest rather than the mutable `latest` tag.
 
 The former GitLab schedule was configured outside this repository, so recreate its cadence with a `schedule` trigger in [the Docker workflow](.github/workflows/docker.yml) if periodic image rebuilds are required.
 
