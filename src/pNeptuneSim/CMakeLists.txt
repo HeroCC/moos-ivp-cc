@@ -12,10 +12,10 @@ SET(SRC
 ADD_EXECUTABLE(pNeptuneSim ${SRC})
 
 TARGET_LINK_LIBRARIES(pNeptuneSim
-   ${MOOSGeodesy_LIBRARIES}
-   ${MOOS_LIBRARIES}
-   apputil
-   mbutil
+   MOOSGeodesy::MOOSGeodesy
+   MOOS::MOOS
+   IVP::apputil
+   IVP::mbutil
    m
    pthread)
 

@@ -12,9 +12,9 @@ SET(SRC
 ADD_EXECUTABLE(pAnnounceMail ${SRC})
 
 TARGET_LINK_LIBRARIES(pAnnounceMail
-   ${MOOS_LIBRARIES}
-   apputil
-   mbutil
+   MOOS::MOOS
+   IVP::apputil
+   IVP::mbutil
    m
    pthread)
 

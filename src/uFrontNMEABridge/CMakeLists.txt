@@ -12,9 +12,9 @@ SET(SRC
 ADD_EXECUTABLE(uFrontNMEABridge ${SRC})
 
 TARGET_LINK_LIBRARIES(uFrontNMEABridge
-   ${MOOS_LIBRARIES}
-   apputil
-   mbutil
+   MOOS::MOOS
+   IVP::apputil
+   IVP::mbutil
    m
    pthread)
 

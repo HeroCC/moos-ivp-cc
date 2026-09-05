@@ -12,9 +12,9 @@ SET(SRC
 ADD_EXECUTABLE(pGenPath ${SRC})
 
 TARGET_LINK_LIBRARIES(pGenPath
-   ${MOOS_LIBRARIES}
-   mbutil
+   MOOS::MOOS
+   IVP::mbutil
    m
-   geometry
+   IVP::geometry
    pthread)
 

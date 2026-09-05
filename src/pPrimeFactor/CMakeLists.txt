@@ -13,8 +13,8 @@ SET(SRC
 ADD_EXECUTABLE(pPrimeFactor ${SRC})
 
 TARGET_LINK_LIBRARIES(pPrimeFactor
-   ${MOOS_LIBRARIES}
-   mbutil
+   MOOS::MOOS
+   IVP::mbutil
    m
    pthread)
 

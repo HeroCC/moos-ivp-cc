@@ -14,13 +14,13 @@ SET(SRC
 ADD_EXECUTABLE(iNeptune ${SRC})
 
 TARGET_LINK_LIBRARIES(iNeptune
-   ${MOOS_LIBRARIES}
-   ${MOOSGeodesy_LIBRARIES}
+   MOOS::MOOS
+   MOOSGeodesy::MOOSGeodesy
    sock_util
-   contacts
-   geometry
-   apputil
-   mbutil
+   IVP::contacts
+   IVP::geometry
+   IVP::apputil
+   IVP::mbutil
    m
    pthread)
 
